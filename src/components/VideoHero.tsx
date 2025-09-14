@@ -83,9 +83,9 @@ export default function VideoHero({ videos }: VideoHeroProps) {
       </div>
 
       {/* Content Overlay */}
-      <div className="relative h-full flex flex-col items-center justify-center px-6">
+      <div className="relative h-full flex flex-col items-center justify-end px-6 pb-32">
         {/* Tagline */}
-        <div className="mb-12 text-center animate-fade-in">
+        <div className="mb-8 text-center animate-fade-in">
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl text-primary mb-4 tracking-wider">
             TIMELESS
           </h1>
@@ -95,7 +95,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-20 animate-fade-in animation-delay-300">
+        <div className="flex flex-col sm:flex-row gap-4 mb-16 animate-fade-in animation-delay-300">
           <Link to="/products">
             <Button 
               size="lg"

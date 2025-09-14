@@ -80,8 +80,8 @@ export default function ProductCarousel() {
           </CarouselContent>
           
           {/* Navigation Arrows - Only visible on hover */}
-          <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/10 backdrop-blur-sm border-foreground/10 hover:bg-background/20 hover:border-foreground/20" />
-          <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/10 backdrop-blur-sm border-foreground/10 hover:bg-background/20 hover:border-foreground/20" />
+          <CarouselPrevious className="-left-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/10 backdrop-blur-sm border-foreground/10 hover:bg-background/20 hover:border-foreground/20" />
+          <CarouselNext className="-right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/10 backdrop-blur-sm border-foreground/10 hover:bg-background/20 hover:border-foreground/20" />
         </Carousel>
       </div>
     </section>

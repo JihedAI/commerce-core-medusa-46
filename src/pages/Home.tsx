@@ -1,6 +1,7 @@
 import React from "react";
 import VideoHero from "@/components/VideoHero";
 import ProductCarousel from "@/components/ProductCarousel";
+import CollectionsShowcase from "@/components/CollectionsShowcase";
 import Layout from "@/components/Layout";
 
 export default function Home() {
@@ -20,6 +21,9 @@ export default function Home() {
       
       {/* Product Carousel Section */}
       <ProductCarousel />
+      
+      {/* Collections Showcase Section */}
+      <CollectionsShowcase />
     </Layout>
   );
 }
