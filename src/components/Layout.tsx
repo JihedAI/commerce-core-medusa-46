@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingBag, Search, User, Menu, LogOut } from "lucide-react";
+import { ShoppingBag, Search, User, Menu, LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -26,9 +26,13 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const [fullSearchOpen, setFullSearchOpen] = React.useState(false);
   const [hasScrolled, setHasScrolled] = React.useState(false);
+  const [currentSearchPhrase, setCurrentSearchPhrase] = React.useState(0);
 
   const itemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+
+  const popularSearchPhrases = ["Aviator", "Black Frames", "Summer Collection", "Ray-Ban", "Vintage Style"];
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -39,19 +43,50 @@ export default function Layout({ children }: LayoutProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSearchPhrase((prev) => (prev + 1) % popularSearchPhrases.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [popularSearchPhrases.length]);
+
+  const sunglassesCategories = [
+    { name: "Men", href: "/categories/men" },
+    { name: "Women", href: "/categories/women" },
+    { name: "Limited Editions", href: "/categories/limited" },
+    { name: "Sport", href: "/categories/sport" }
+  ];
+
+  const collections = [
+    { name: "Summer Shades", href: "/collections/summer-shades" },
+    { name: "Luxury Line", href: "/collections/luxury-line" },
+    { name: "Limited Editions", href: "/collections/limited-editions" },
+    { name: "Classic Collection", href: "/collections/classic" }
+  ];
+
   const navigation = [
-    { name: "Sunglasses", href: "/categories" },
-    { name: "Collections", href: "/collections" },
-    { name: "Store", href: "/products" },
-    { name: "Explore", href: "/products" },
+    { 
+      name: "Sunglasses", 
+      href: "/categories",
+      hasDropdown: true,
+      items: sunglassesCategories
+    },
+    { 
+      name: "Collections", 
+      href: "/collections",
+      hasDropdown: true,
+      items: collections
+    },
+    { name: "Store", href: "/products", hasUnderline: true },
+    { name: "Explore", href: "/products", hasUnderline: true },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-500 ${
+      <header className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-700 ease-out ${
         hasScrolled 
-          ? 'bg-background/80 backdrop-blur-[20px] border-b border-white/10' 
+          ? 'bg-background/70 backdrop-blur-[20px] border-b border-white/10 shadow-lg' 
           : 'bg-transparent'
       }`}>
         <nav className="w-full h-full px-8">
@@ -84,28 +119,71 @@ export default function Layout({ children }: LayoutProps) {
               </Sheet>
 
               {/* Desktop Navigation */}
-              <div className="hidden lg:flex lg:gap-x-8">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`font-medium text-xs tracking-[0.15em] uppercase transition-all duration-500 ${
-                      hasScrolled 
-                        ? 'text-foreground hover:text-foreground/80' 
-                        : 'text-primary/80 hover:text-primary'
-                    }`}
+              <div className={`hidden lg:flex transition-all duration-700 ease-out ${
+                hasScrolled ? 'lg:gap-x-6' : 'lg:gap-x-8'
+              }`}>
+                {navigation.map((item, index) => (
+                  <div 
+                    key={item.name} 
+                    className="relative group"
+                    style={{ 
+                      animationDelay: `${index * 100}ms`,
+                      animation: hasScrolled ? 'fade-in 0.6s ease-out forwards' : 'none'
+                    }}
                   >
-                    {item.name}
-                  </Link>
+                    {item.hasDropdown ? (
+                      <div className="relative">
+                        <Link
+                          to={item.href}
+                          className={`font-medium text-xs tracking-[0.15em] uppercase transition-all duration-500 block py-2 ${
+                            hasScrolled 
+                              ? 'text-foreground hover:text-foreground/80' 
+                              : 'text-primary/80 hover:text-primary'
+                          }`}
+                        >
+                          {item.name}
+                        </Link>
+                        
+                        {/* Dropdown */}
+                        <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out transform translate-y-2 group-hover:translate-y-0">
+                          <div className="bg-background/80 backdrop-blur-[20px] border border-white/10 rounded-sm shadow-lg min-w-48 py-2">
+                            {item.items?.map((subItem) => (
+                              <Link
+                                key={subItem.name}
+                                to={subItem.href}
+                                className="block px-4 py-3 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/5 transition-all duration-200"
+                              >
+                                {subItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Link
+                        to={item.href}
+                        className={`font-medium text-xs tracking-[0.15em] uppercase transition-all duration-500 relative group ${
+                          hasScrolled 
+                            ? 'text-foreground hover:text-foreground/80' 
+                            : 'text-primary/80 hover:text-primary'
+                        } ${item.hasUnderline ? 'after:content-[""] after:absolute after:w-full after:h-0.5 after:bottom-0 after:left-0 after:bg-current after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100' : ''}`}
+                      >
+                        {item.name}
+                      </Link>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
 
             {/* Center Brand - Bigger and wider */}
-            <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
-              <span className={`font-display font-bold transition-all duration-500 tracking-[0.35em] uppercase ${
+            <Link 
+              to="/" 
+              className="absolute left-1/2 transform -translate-x-1/2 flex items-center transition-all duration-700 ease-out"
+            >
+              <span className={`font-display font-bold transition-all duration-700 ease-out tracking-[0.35em] uppercase ${
                 hasScrolled 
-                  ? 'text-3xl text-foreground' 
+                  ? 'text-2xl text-foreground' 
                   : 'text-5xl text-primary'
               }`}>
                 LUXE
@@ -114,28 +192,70 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Right side actions - Far right */}
             <div className="flex items-center gap-5">
-              {/* Search */}
-              <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`transition-all duration-500 ${
+              {/* Enhanced Search */}
+              <div className="flex items-center gap-3">
+                {/* Cycling Search Phrases */}
+                <div className="hidden md:block overflow-hidden h-6 relative">
+                  <div 
+                    className={`transition-transform duration-500 ease-out ${
+                      hasScrolled ? 'text-foreground/60' : 'text-primary/60'
+                    }`}
+                    style={{ 
+                      transform: `translateY(-${currentSearchPhrase * 24}px)` 
+                    }}
+                  >
+                    {popularSearchPhrases.map((phrase, index) => (
+                      <div 
+                        key={phrase} 
+                        className="h-6 flex items-center text-xs font-light tracking-wide"
+                      >
+                        {phrase}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Search Icon */}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setFullSearchOpen(true)}
+                  className={`transition-all duration-500 ${
                     hasScrolled 
                       ? 'text-foreground hover:bg-muted' 
                       : 'text-primary/80 hover:bg-white/10 hover:scale-110'
-                  }`}>
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="top" className="h-auto bg-black/90 backdrop-blur-md border-white/20">
-                  <div className="container mx-auto py-8">
-                    <Input
-                      type="search"
-                      placeholder="Search products..."
-                      className="text-lg h-12 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                      autoFocus
-                    />
+                  }`}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Full Search Overlay */}
+              {fullSearchOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm animate-fade-in">
+                  <div className="flex items-center justify-center min-h-screen p-4">
+                    <div className="w-full max-w-2xl bg-background/90 backdrop-blur-[20px] border border-white/20 rounded-sm shadow-xl p-8 animate-scale-in">
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-medium text-foreground">Search</h2>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setFullSearchOpen(false)}
+                          className="text-foreground/60 hover:text-foreground hover:bg-white/10"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
+                      <Input
+                        type="search"
+                        placeholder="Search for sunglasses…"
+                        className="text-lg h-12 bg-white/5 border-white/20 text-foreground placeholder:text-foreground/60 focus:border-primary"
+                        autoFocus
+                      />
+                    </div>
                   </div>
-                </SheetContent>
-              </Sheet>
+                </div>
+              )}
 
               {/* Account */}
               {customer ? (
@@ -149,16 +269,16 @@ export default function Layout({ children }: LayoutProps) {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-black/90 backdrop-blur-md border-white/20">
-                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-white hover:bg-white/10">
+                  <DropdownMenuContent align="end" className="w-48 bg-background/90 backdrop-blur-[20px] border-white/20">
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-foreground hover:bg-white/10">
                       <User className="mr-2 h-4 w-4" />
                       My Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-white hover:bg-white/10">
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-foreground hover:bg-white/10">
                       Your Orders
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-white/20" />
-                    <DropdownMenuItem onClick={logout} className="text-white hover:bg-white/10">
+                    <DropdownMenuItem onClick={logout} className="text-foreground hover:bg-white/10">
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout
                     </DropdownMenuItem>
@@ -175,11 +295,11 @@ export default function Layout({ children }: LayoutProps) {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-black/90 backdrop-blur-md border-white/20">
-                    <DropdownMenuItem onClick={() => navigate('/login')} className="text-white hover:bg-white/10">
+                  <DropdownMenuContent align="end" className="w-48 bg-background/90 backdrop-blur-[20px] border-white/20">
+                    <DropdownMenuItem onClick={() => navigate('/login')} className="text-foreground hover:bg-white/10">
                       Login
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/register')} className="text-white hover:bg-white/10">
+                    <DropdownMenuItem onClick={() => navigate('/register')} className="text-foreground hover:bg-white/10">
                       Create Account
                     </DropdownMenuItem>
                   </DropdownMenuContent>
