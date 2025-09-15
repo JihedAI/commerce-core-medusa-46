@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/CartContext";
 import { sdk } from "@/lib/sdk";
 import ProductCard from "@/components/ProductCard";
+import Layout from "@/components/Layout";
 
 // Price formatting utility
 const formatPrice = (amount: number, currency: string = "USD") => {
@@ -117,6 +118,24 @@ export default function ProductDetail() {
     enabled: !!product?.collection?.id && !!region,
   });
 
+  // Fetch all products for explore section
+  const { data: exploreProducts } = useQuery({
+    queryKey: ["explore-products", region?.id, product?.id],
+    queryFn: async () => {
+      if (!region) return [];
+      
+      const { products } = await sdk.store.product.list({
+        limit: 12,
+        fields: "+variants.calculated_price,+images,+collection",
+        region_id: region.id
+      });
+      
+      // Filter out the current product
+      return products?.filter(p => p.id !== product?.id) || [];
+    },
+    enabled: !!region && !!product,
+  });
+
   const handleAddToCart = async () => {
     if (!selectedVariant || !region) {
       toast.error("Please select a variant");
@@ -157,9 +176,9 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="flex">
-          <div className="w-[70%] h-screen">
+      <Layout>
+        <div className="flex" style={{ height: 'calc(100vh - 5rem)' }}>
+          <div className="w-[70%] h-full">
             <Skeleton className="w-full h-full" />
           </div>
           <div className="w-[30%] p-12 space-y-6">
@@ -174,22 +193,25 @@ export default function ProductDetail() {
             <Skeleton className="h-32 w-full" />
           </div>
         </div>
-      </div>
+        <div className="h-96 bg-muted animate-pulse" />
+      </Layout>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
-          <p className="text-muted-foreground mb-6">{error || "The product you're looking for doesn't exist."}</p>
-          <Button onClick={() => navigate(-1)} className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Go Back
-          </Button>
+      <Layout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
+            <p className="text-muted-foreground mb-6">{error || "The product you're looking for doesn't exist."}</p>
+            <Button onClick={() => navigate(-1)} className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Go Back
+            </Button>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -197,10 +219,10 @@ export default function ProductDetail() {
   const price = selectedVariant?.calculated_price;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
+    <Layout>
+      <div className="flex" style={{ height: 'calc(100vh - 5rem)' }}>
         {/* Left Column - Product Image (70%) */}
-        <div className="w-[70%] h-screen relative overflow-hidden">
+        <div className="w-[70%] h-full relative overflow-hidden">
           {product.images && product.images.length > 0 ? (
             <>
               <img
@@ -257,7 +279,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Right Column - Product Info (30%) */}
-        <div className="w-[30%] h-screen overflow-y-auto p-12">
+        <div className="w-[30%] h-full overflow-y-auto p-12">
           {/* Back Button */}
           <Button
             variant="ghost"
@@ -414,6 +436,107 @@ All orders are processed within 1-2 business days. You will receive a tracking n
           )}
         </div>
       </div>
-    </div>
+
+      {/* Explore Our Products Section */}
+      {exploreProducts && exploreProducts.length > 0 && (
+        <div className="bg-background py-24">
+          <div className="container mx-auto px-8">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-display font-bold text-foreground mb-4 tracking-wide">
+                Explore Our Products
+              </h2>
+              <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Discover our curated collection of premium products, each crafted with attention to detail and modern elegance.
+              </p>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {exploreProducts.slice(0, 8).map((exploreProduct, index) => (
+                <div
+                  key={exploreProduct.id}
+                  className="group animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <Link
+                    to={`/products/${exploreProduct.handle}`}
+                    className="block"
+                  >
+                    <div className="bg-card rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 border border-border/50 hover:border-primary/20">
+                      {/* Product Image */}
+                      <div className="aspect-square overflow-hidden bg-muted relative">
+                        <img
+                          src={exploreProduct.thumbnail || "/placeholder.svg"}
+                          alt={exploreProduct.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/placeholder.svg";
+                          }}
+                        />
+                        
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Quick Actions */}
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                          >
+                            <Heart className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="p-6">
+                        <div className="space-y-3">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                            {exploreProduct.title}
+                          </h3>
+                          
+                          {exploreProduct.collection && (
+                            <Badge variant="secondary" className="text-xs">
+                              {exploreProduct.collection.title}
+                            </Badge>
+                          )}
+                          
+                          {exploreProduct.variants?.[0]?.calculated_price && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-bold text-foreground">
+                                {formatPrice(
+                                  exploreProduct.variants[0].calculated_price.calculated_amount_with_tax || 
+                                  exploreProduct.variants[0].calculated_price.calculated_amount || 0,
+                                  currency
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {/* View All Button */}
+            <div className="text-center mt-16">
+              <Button
+                onClick={() => navigate('/products')}
+                variant="outline"
+                className="px-12 py-4 text-base font-medium rounded-full border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
+              >
+                View All Products
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Layout>
   );
 }
