@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 import CartDrawer from "./CartDrawer";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -335,7 +336,10 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                     </div>
                   </div>
                 </div>
-              )}
+               )}
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
 
               {/* Account */}
               {customer ? (
