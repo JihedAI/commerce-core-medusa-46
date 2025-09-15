@@ -32,6 +32,7 @@ export default function Layout({ children }: LayoutProps) {
   const [currentSearchPhrase, setCurrentSearchPhrase] = React.useState(0);
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
+  const [searchExpanded, setSearchExpanded] = React.useState(false);
 
   const itemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
@@ -59,10 +60,12 @@ export default function Layout({ children }: LayoutProps) {
       try {
         // Fetch collections
         const collectionsResponse = await sdk.store.collection.list();
+        console.log('Collections response:', collectionsResponse);
         setCollections(collectionsResponse.collections || []);
 
         // Fetch categories  
         const categoriesResponse = await sdk.store.category.list();
+        console.log('Categories response:', categoriesResponse);
         setCategories(categoriesResponse.product_categories || []);
       } catch (error) {
         console.error("Failed to fetch collections/categories:", error);
@@ -172,13 +175,17 @@ export default function Layout({ children }: LayoutProps) {
                         </Link>
                         
                         {/* Dropdown */}
-                        <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out transform translate-y-2 group-hover:translate-y-0">
-                          <div className="bg-background/80 backdrop-blur-[20px] border border-white/10 rounded-sm shadow-lg min-w-48 py-2">
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out translate-y-[10px] group-hover:translate-y-0">
+                          <div 
+                            className="bg-white/95 backdrop-blur-[12px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] w-[400px] py-4"
+                            style={{ backdropFilter: 'blur(12px)' }}
+                          >
                             {item.items?.map((subItem) => (
                               <Link
                                 key={subItem.name}
                                 to={subItem.href}
-                                className="block px-4 py-3 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/5 transition-all duration-200"
+                                className="block px-6 py-3 text-sm font-medium text-gray-800 hover:text-gray-900 hover:bg-white/40 transition-all duration-200"
+                                style={{ letterSpacing: '0.5px' }}
                               >
                                 {subItem.name}
                               </Link>
@@ -221,32 +228,53 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-5">
               {/* Enhanced Search */}
               <div className="flex items-center gap-3">
-                {/* Cycling Search Phrases */}
-                <div className="hidden md:block overflow-hidden h-6 relative">
-                  <div 
-                    className={`transition-transform duration-500 ease-out ${
-                      hasScrolled ? 'text-foreground/60' : 'text-primary/60'
-                    }`}
-                    style={{ 
-                      transform: `translateY(-${currentSearchPhrase * 24}px)` 
-                    }}
-                  >
-                    {popularSearchPhrases.map((phrase, index) => (
-                      <div 
-                        key={phrase} 
-                        className="h-6 flex items-center text-xs font-light tracking-wide"
-                      >
-                        {phrase}
-                      </div>
-                    ))}
+                {/* Cycling Search Phrases or Search Input */}
+                {!searchExpanded ? (
+                  <div className="hidden md:block overflow-hidden h-6 relative">
+                    <div 
+                      className={`transition-transform duration-500 ease-out ${
+                        hasScrolled ? 'text-foreground/60' : 'text-primary/60'
+                      }`}
+                      style={{ 
+                        transform: `translateY(-${currentSearchPhrase * 24}px)` 
+                      }}
+                    >
+                      {popularSearchPhrases.map((phrase, index) => (
+                        <div 
+                          key={phrase} 
+                          className="h-6 flex items-center text-xs font-light tracking-wide"
+                        >
+                          {phrase}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center transition-all duration-300 ease-out">
+                    <Input
+                      type="search"
+                      placeholder="Search for sunglasses…"
+                      className={`w-64 h-8 text-sm transition-all duration-300 ease-out ${
+                        hasScrolled 
+                          ? 'bg-background/50 border-foreground/20 text-foreground placeholder:text-foreground/60' 
+                          : 'bg-white/10 border-primary/30 text-primary placeholder:text-primary/60'
+                      }`}
+                      autoFocus
+                    />
+                  </div>
+                )}
 
                 {/* Search Icon */}
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={() => setFullSearchOpen(true)}
+                  onClick={() => {
+                    if (searchExpanded) {
+                      setSearchExpanded(false);
+                    } else {
+                      setSearchExpanded(true);
+                    }
+                  }}
                   className={`transition-all duration-500 ${
                     hasScrolled 
                       ? 'text-foreground hover:bg-muted' 
