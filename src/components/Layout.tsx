@@ -58,23 +58,29 @@ export default function Layout({ children }: LayoutProps) {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch collections
-        const collectionsResponse = await sdk.store.collection.list();
+        // Fetch collections with proper fields
+        const collectionsResponse = await sdk.store.collection.list({
+          limit: 100,
+          fields: "id,title,handle"
+        });
         console.log('Collections response:', collectionsResponse);
         setCollections(collectionsResponse.collections || []);
 
-        // Fetch categories  
-        const categoriesResponse = await sdk.store.category.list();
+        // Fetch categories with proper fields
+        const categoriesResponse = await sdk.store.category.list({
+          limit: 100,
+          fields: "id,name,handle"
+        });
         console.log('Categories response:', categoriesResponse);
         setCategories(categoriesResponse.product_categories || []);
       } catch (error) {
         console.error("Failed to fetch collections/categories:", error);
         // Fallback to static data
         setCollections([
-          { id: 'summer', name: 'Summer Shades', handle: 'summer-shades' },
-          { id: 'luxury', name: 'Luxury Line', handle: 'luxury-line' },
-          { id: 'limited', name: 'Limited Editions', handle: 'limited-editions' },
-          { id: 'classic', name: 'Classic Collection', handle: 'classic' }
+          { id: 'summer', title: 'Summer Shades', handle: 'summer-shades' },
+          { id: 'luxury', title: 'Luxury Line', handle: 'luxury-line' },
+          { id: 'limited', title: 'Limited Editions', handle: 'limited-editions' },
+          { id: 'classic', title: 'Classic Collection', handle: 'classic' }
         ]);
         setCategories([
           { id: 'men', name: 'Men', handle: 'men' },
@@ -108,7 +114,7 @@ export default function Layout({ children }: LayoutProps) {
       href: "/collections",
       hasDropdown: true,
       items: collections.length > 0 ? collections.map(col => ({ 
-        name: col.name, 
+        name: col.title, // Collections use 'title' property, not 'name'
         href: `/collections/${col.handle}` 
       })) : [
         { name: 'Summer Shades', href: '/collections/summer-shades' },
