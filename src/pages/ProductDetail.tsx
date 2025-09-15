@@ -1,453 +1,419 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Heart, Minus, Plus, Share2, Truck, Shield, Package, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { HttpTypes } from "@medusajs/types";
-import { sdk } from "@/lib/sdk";
+import { toast } from "sonner";
+import { ArrowLeft, Heart, Share2, Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/CartContext";
-import { useToast } from "@/hooks/use-toast";
-import Layout from "@/components/Layout";
+import { sdk } from "@/lib/sdk";
 import ProductCard from "@/components/ProductCard";
 
 // Price formatting utility
 const formatPrice = (amount: number, currency: string = "USD") => {
-  return new Intl.NumberFormat("en-US", { 
-    style: "currency", 
-    currency: currency.toUpperCase() 
-  }).format(amount / 100)
-}
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency,
+  }).format(amount / 100);
+};
 
 export default function ProductDetail() {
   const { handle } = useParams<{ handle: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
-  const { toast } = useToast();
   
-  const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<HttpTypes.StoreProduct | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<HttpTypes.StoreProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [region, setRegion] = useState<HttpTypes.StoreRegion | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+  // Fetch product and region data
   useEffect(() => {
-    const fetchProductAndRegion = async () => {
-      if (!handle) return
+    const fetchData = async () => {
+      if (!handle) return;
       
       try {
-        setLoading(true)
-        setError(null)
+        setIsLoading(true);
+        setError(null);
         
         // Fetch region first
-        let selectedRegion: HttpTypes.StoreRegion | null = null
+        let selectedRegion: HttpTypes.StoreRegion | null = null;
         try {
-          const { regions } = await sdk.store.region.list()
-          selectedRegion = regions?.[0] || null
+          const { regions } = await sdk.store.region.list();
+          selectedRegion = regions?.[0] || null;
         } catch (regionError) {
-          console.warn("Could not fetch regions:", regionError)
+          console.warn("Could not fetch regions:", regionError);
         }
         
-        setRegion(selectedRegion)
+        setRegion(selectedRegion);
         
         // Fetch product by handle using the list method
         const queryParams: any = {
           handle,
           fields: "+variants.calculated_price,+variants.options,+images,+collection",
           limit: 1
-        }
+        };
         
         if (selectedRegion) {
-          queryParams.region_id = selectedRegion.id
+          queryParams.region_id = selectedRegion.id;
           if (selectedRegion.countries?.[0]) {
-            queryParams.country_code = selectedRegion.countries[0].iso_2
+            queryParams.country_code = selectedRegion.countries[0].iso_2;
           }
         }
         
-        const { products } = await sdk.store.product.list(queryParams)
+        const { products } = await sdk.store.product.list(queryParams);
         
         if (products && products.length > 0) {
-          const productData = products[0]
-          setProduct(productData)
+          const productData = products[0];
+          setProduct(productData);
           
           // Set default variant and image
           if (productData.variants && productData.variants.length > 0) {
-            setSelectedVariant(productData.variants[0])
+            setSelectedVariant(productData.variants[0]);
           }
           
-          const defaultImage = productData.thumbnail || productData.images?.[0]?.url || "/placeholder.svg"
-          setSelectedImage(defaultImage)
+          const defaultImage = productData.thumbnail || productData.images?.[0]?.url || "/placeholder.svg";
+          setSelectedImage(defaultImage);
+          setCurrentImageIndex(0);
         } else {
-          setError("Product not found")
+          setError("Product not found");
         }
         
       } catch (err) {
-        console.error("Failed to fetch product:", err)
-        setError("Product not found or failed to load.")
+        console.error("Failed to fetch product:", err);
+        setError("Product not found or failed to load.");
       } finally {
-        setLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchProductAndRegion()
-  }, [handle])
+    fetchData();
+  }, [handle]);
 
   // Fetch related products
   const { data: relatedProducts } = useQuery({
     queryKey: ["related-products", product?.collection?.id, region?.id],
     queryFn: async () => {
       if (!product?.collection?.id || !region) return [];
+      
       const { products } = await sdk.store.product.list({
         collection_id: [product.collection.id],
-        limit: 4,
+        limit: 6,
         fields: "+variants.calculated_price,+images,+collection",
         region_id: region.id
       });
-      return products.filter((p) => p.handle !== product.handle);
+      
+      // Filter out the current product
+      return products?.filter(p => p.handle !== product.handle) || [];
     },
     enabled: !!product?.collection?.id && !!region,
   });
 
   const handleAddToCart = async () => {
-    if (!selectedVariant) {
-      toast({
-        title: "Please select a variant",
-        description: "Choose a product variant before adding to cart.",
-        variant: "destructive"
-      });
+    if (!selectedVariant || !region) {
+      toast.error("Please select a variant");
       return;
     }
 
-    setIsLoading(true);
     try {
+      setIsAddingToCart(true);
       await addItem(selectedVariant.id, quantity);
-      toast({
-        title: "Added to cart!",
-        description: `${product?.title} has been added to your cart.`,
-        variant: "default"
-      });
+      toast.success("Added to cart!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add to cart");
     } finally {
-      setIsLoading(false);
+      setIsAddingToCart(false);
     }
   };
 
   const handleVariantSelect = (variant: HttpTypes.StoreProductVariant) => {
-    setSelectedVariant(variant)
+    setSelectedVariant(variant);
   };
 
-  if (loading) {
+  const handleImageNavigation = (direction: 'prev' | 'next') => {
+    if (!product?.images) return;
+    
+    const totalImages = product.images.length;
+    let newIndex = currentImageIndex;
+    
+    if (direction === 'prev') {
+      newIndex = currentImageIndex === 0 ? totalImages - 1 : currentImageIndex - 1;
+    } else {
+      newIndex = currentImageIndex === totalImages - 1 ? 0 : currentImageIndex + 1;
+    }
+    
+    setCurrentImageIndex(newIndex);
+    setSelectedImage(product.images[newIndex].url);
+  };
+
+  if (isLoading) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-6 w-24 mb-6" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <Skeleton className="aspect-square w-full rounded-lg" />
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-square rounded-md" />
-                ))}
-              </div>
+      <div className="min-h-screen bg-background">
+        <div className="flex">
+          <div className="w-[70%] h-screen">
+            <Skeleton className="w-full h-full" />
+          </div>
+          <div className="w-[30%] p-12 space-y-6">
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-8 w-1/2" />
+            <div className="flex gap-3">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="w-10 h-10 rounded-full" />
+              ))}
             </div>
-            <div className="space-y-6">
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-6 w-1/4" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-10 w-32" />
-            </div>
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (error || !product) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">
-              {error || "Product not found"}
-            </h2>
-            <Button onClick={() => navigate("/products")} variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Products
-            </Button>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
+          <p className="text-muted-foreground mb-6">{error || "The product you're looking for doesn't exist."}</p>
+          <Button onClick={() => navigate(-1)} className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Go Back
+          </Button>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   const currency = region?.currency_code || "USD";
   const price = selectedVariant?.calculated_price;
-  const images = product.images || [];
-  const currentImage = selectedImage || product.thumbnail;
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate("/products")}
-          className="mb-6 p-0 h-auto text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Products
-        </Button>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Images */}
-          <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg bg-gradient-secondary">
+    <div className="min-h-screen bg-background">
+      <div className="flex">
+        {/* Left Column - Product Image (70%) */}
+        <div className="w-[70%] h-screen relative overflow-hidden">
+          {product.images && product.images.length > 0 ? (
+            <>
               <img
-                src={currentImage}
+                src={selectedImage || product.thumbnail || "/placeholder.svg"}
                 alt={product.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain transition-transform duration-700 hover:scale-110 animate-fade-in"
                 onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.src = "/placeholder.svg"
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/placeholder.svg";
                 }}
               />
-            </div>
-            
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {images.map((image, index) => (
+              
+              {/* Image Navigation */}
+              {product.images.length > 1 && (
+                <>
                   <button
-                    key={index}
-                    onClick={() => setSelectedImage(image.url)}
-                    className={`aspect-square overflow-hidden rounded-md border-2 transition-colors ${
-                      selectedImage === image.url 
-                        ? "border-brand" 
-                        : "border-transparent hover:border-muted-foreground"
-                    }`}
+                    onClick={() => handleImageNavigation('prev')}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-background/20 backdrop-blur-sm border border-border/20 rounded-full flex items-center justify-center text-foreground hover:bg-background/40 transition-colors"
                   >
-                    <img
-                      src={image.url}
-                      alt={`${product.title} view ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
+                  <button
+                    onClick={() => handleImageNavigation('next')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-background/20 backdrop-blur-sm border border-border/20 rounded-full flex items-center justify-center text-foreground hover:bg-background/40 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Dots Indicator */}
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                    {product.images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setCurrentImageIndex(index);
+                          setSelectedImage(product.images![index].url);
+                        }}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          currentImageIndex === index
+                            ? 'bg-foreground'
+                            : 'bg-foreground/30 hover:bg-foreground/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground">No image available</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Product Info (30%) */}
+        <div className="w-[30%] h-screen overflow-y-auto p-12">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 mb-8 -ml-4 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+
+          {/* Product Name */}
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {product.title}
+          </h1>
+
+          {/* Price */}
+          <div className="mb-6">
+            {price?.calculated_amount_with_tax ? (
+              <>
+                <span className="text-2xl font-medium text-foreground">
+                  {formatPrice(price.calculated_amount_with_tax, currency)}
+                </span>
+                {price.original_amount_with_tax && 
+                 price.calculated_amount_with_tax !== price.original_amount_with_tax && (
+                  <span className="ml-3 text-lg text-muted-foreground line-through">
+                    {formatPrice(price.original_amount_with_tax, currency)}
+                  </span>
+                )}
+              </>
+            ) : price?.calculated_amount ? (
+              <span className="text-2xl font-medium text-foreground">
+                {formatPrice(price.calculated_amount, currency)}
+              </span>
+            ) : (
+              <span className="text-lg text-muted-foreground">
+                Price available in cart
+              </span>
+            )}
+          </div>
+
+          {/* Color Variants */}
+          {product.variants && product.variants.length > 1 && (
+            <div className="mb-8">
+              <div className="flex gap-3">
+                {product.variants.map((variant, index) => (
+                  <button
+                    key={variant.id}
+                    onClick={() => handleVariantSelect(variant)}
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${
+                      selectedVariant?.id === variant.id
+                        ? 'border-foreground shadow-glow'
+                        : 'border-border hover:border-muted-foreground'
+                    }`}
+                    style={{
+                      backgroundColor: variant.options?.find(opt => opt.option?.title?.toLowerCase() === 'color')?.value || 
+                        `hsl(${index * 60}, 50%, 60%)`
+                    }}
+                  />
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                {product.title}
-              </h1>
-              
-              {/* Price */}
-              <div className="space-y-1">
-                {price?.calculated_amount_with_tax ? (
-                  <>
-                    <p className="text-2xl font-bold">
-                      {formatPrice(price.calculated_amount_with_tax, currency)}
+          {/* Add to Bag Button */}
+          <Button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || !selectedVariant}
+            className="w-full py-4 mb-8 bg-foreground text-background hover:bg-foreground/90 text-base font-semibold rounded-xl transition-all hover:shadow-xl"
+          >
+            {isAddingToCart ? "Adding..." : "Add to Bag"}
+          </Button>
+
+          {/* Accordion Sections */}
+          <Accordion type="single" defaultValue="details" className="w-full">
+            <AccordionItem value="details" className="border-border">
+              <AccordionTrigger className="text-base font-bold text-foreground hover:no-underline">
+                Details
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-6">
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Weight: 500g | Dimensions: 20x10x5cm | Material: Stainless Steel
+                  </p>
+                  
+                  <h4 className="font-bold text-base text-foreground mb-2">
+                    Description
+                  </h4>
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {product.description || "This is the detailed description of the product..."}
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="shipping" className="border-border">
+              <AccordionTrigger className="text-base font-bold text-foreground hover:no-underline">
+                Shipping
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-6">
+                <div className="space-y-3 text-sm leading-relaxed text-foreground whitespace-pre-line">
+                  {`Shipping Information
+We offer worldwide shipping with the following options:
+
+Standard Shipping (5-7 business days): $9.99
+Express Shipping (2-3 business days): $19.99
+Free shipping on orders over $100
+
+All orders are processed within 1-2 business days. You will receive a tracking number once your order has shipped.`}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          {/* Related Products Section */}
+          {relatedProducts && relatedProducts.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-xl font-bold text-foreground mb-6">
+                Check Our Other Products
+              </h3>
+              <div className="grid grid-cols-3 gap-4">
+                {relatedProducts.slice(0, 3).map((relatedProduct) => (
+                  <Link
+                    key={relatedProduct.id}
+                    to={`/products/${relatedProduct.handle}`}
+                    className="group"
+                  >
+                    <div className="aspect-square overflow-hidden rounded-lg mb-2 bg-muted">
+                      <img
+                        src={relatedProduct.thumbnail || "/placeholder.svg"}
+                        alt={relatedProduct.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder.svg";
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                      {relatedProduct.title}
                     </p>
-                    {price.original_amount_with_tax && 
-                     price.calculated_amount_with_tax !== price.original_amount_with_tax && (
-                      <p className="text-lg text-muted-foreground line-through">
-                        {formatPrice(price.original_amount_with_tax, currency)}
+                    {relatedProduct.variants?.[0]?.calculated_price && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatPrice(
+                          relatedProduct.variants[0].calculated_price.calculated_amount_with_tax || 
+                          relatedProduct.variants[0].calculated_price.calculated_amount || 0,
+                          currency
+                        )}
                       </p>
                     )}
-                  </>
-                ) : price?.calculated_amount ? (
-                  <p className="text-2xl font-bold">
-                    {formatPrice(price.calculated_amount, currency)}
-                  </p>
-                ) : (
-                  <p className="text-lg text-muted-foreground">
-                    Price available in cart
-                  </p>
-                )}
+                  </Link>
+                ))}
               </div>
             </div>
-
-            {/* Description */}
-            {product.description && (
-              <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {product.description}
-                </p>
-              </div>
-            )}
-
-            {/* Variants */}
-            {product.variants && product.variants.length > 1 && (
-              <div>
-                <h3 className="font-semibold mb-3">Options</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {product.variants.map((variant) => (
-                    <Button
-                      key={variant.id}
-                      variant={selectedVariant?.id === variant.id ? "default" : "outline"}
-                      onClick={() => handleVariantSelect(variant)}
-                      className="text-sm"
-                    >
-                      {variant.title || `Variant ${variant.id.slice(-4)}`}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Collection */}
-            {product.collection && (
-              <div>
-                <Badge variant="secondary" className="mb-4">
-                  {product.collection.title}
-                </Badge>
-              </div>
-            )}
-
-            {/* Quantity */}
-            <div>
-              <h3 className="font-semibold mb-3">Quantity</h3>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-4">
-              <Button 
-                onClick={handleAddToCart}
-                className="w-full bg-gradient-primary text-brand-foreground shadow-brand hover:shadow-lg transition-all duration-200"
-                size="lg"
-                disabled={isLoading}
-              >
-                {isLoading ? "Adding..." : "Add to Cart"}
-              </Button>
-              
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Heart className="mr-2 h-4 w-4" />
-                  Wishlist
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </div>
-            </div>
-
-            {/* Features */}
-            <div className="space-y-3 border-t pt-6">
-              <div className="flex items-center gap-3">
-                <Truck className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm">Free shipping on orders over $100</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm">Secure payment & buyer protection</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm">30-day easy returns</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-
-        {/* Additional Info Tabs */}
-        <div className="mt-12">
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="shipping">Shipping</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            </TabsList>
-            <TabsContent value="details" className="mt-6">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Product Details</h3>
-                <div className="space-y-2 text-sm">
-                  {product.metadata?.material && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Material:</span>
-                      <span>{product.metadata.material as string}</span>
-                    </div>
-                  )}
-                  {product.weight && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Weight:</span>
-                      <span>{product.weight}g</span>
-                    </div>
-                  )}
-                  {product.length && product.width && product.height && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Dimensions:</span>
-                      <span>
-                        {product.length} x {product.width} x {product.height} cm
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </TabsContent>
-            <TabsContent value="shipping" className="mt-6">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Shipping Information</h3>
-                <div className="space-y-4 text-sm">
-                  <p>We offer worldwide shipping with the following options:</p>
-                  <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>Standard Shipping (5-7 business days): $9.99</li>
-                    <li>Express Shipping (2-3 business days): $19.99</li>
-                    <li>Free shipping on orders over $100</li>
-                  </ul>
-                  <p>
-                    All orders are processed within 1-2 business days. You will receive a
-                    tracking number once your order has shipped.
-                  </p>
-                </div>
-              </Card>
-            </TabsContent>
-            <TabsContent value="reviews" className="mt-6">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Customer Reviews</h3>
-                <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Related Products */}
-        {relatedProducts && relatedProducts.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-display font-bold mb-8">You May Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <ProductCard key={relatedProduct.id} product={relatedProduct} />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-    </Layout>
+    </div>
   );
 }
