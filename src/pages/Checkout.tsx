@@ -575,61 +575,74 @@ export default function Checkout() {
             )}
 
             {currentStep === 3 && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Payment Method</h2>
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-lg bg-muted">
-                    <p className="text-sm text-muted-foreground mb-2">Test Mode</p>
-                    <p className="text-sm">
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Payment Method</h2>
+                  
+                  {/* Test Mode Notice */}
+                  <div className="py-4 px-1 border-b border-border/30">
+                    <p className="text-xs font-bold text-foreground mb-2">Test Mode</p>
+                    <p className="text-xs text-muted-foreground">
                       This is a demo checkout. No real payment will be processed.
                     </p>
                   </div>
 
                   {paymentProviders.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Loading payment options...</p>
+                    <div className="text-center py-12">
+                      <p className="text-xs text-muted-foreground">Loading payment options...</p>
                     </div>
                   ) : (
-                    <RadioGroup value={selectedPaymentProvider} onValueChange={setSelectedPaymentProvider}>
-                      <div className="space-y-3">
-                        {paymentProviders.map((provider) => (
-                          <div key={provider.id} className="flex items-center space-x-3 p-4 border rounded-lg hover:border-primary transition-colors">
-                            <RadioGroupItem value={provider.id} id={provider.id} />
-                            <Label htmlFor={provider.id} className="flex-1 cursor-pointer">
-                              <div className="flex items-center gap-2">
-                                <CreditCard className="h-5 w-5" />
-                                <span>
-                                  {provider.id.includes('stripe') ? 'Stripe Payment' :
-                                   provider.id.includes('system_default') ? 'Manual Payment' :
-                                   provider.id}
-                                </span>
-                              </div>
-                              {provider.id.includes('system_default') && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  No additional actions required
-                                </p>
-                              )}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </RadioGroup>
+                    <div className="space-y-4">
+                      <RadioGroup value={selectedPaymentProvider} onValueChange={setSelectedPaymentProvider}>
+                        <div className="space-y-3">
+                          {paymentProviders.map((provider) => (
+                            <div key={provider.id} className="flex items-center space-x-4 py-4 px-1 border-b border-border/30 hover:border-border transition-colors">
+                              <RadioGroupItem value={provider.id} id={provider.id} className="mt-0.5" />
+                              <Label htmlFor={provider.id} className="flex-1 cursor-pointer">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-3">
+                                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm font-medium text-foreground">
+                                      {provider.id.includes('stripe') ? 'Stripe Payment' :
+                                       provider.id.includes('system_default') ? 'Manual Payment' :
+                                       provider.id}
+                                    </span>
+                                  </div>
+                                  {provider.id.includes('system_default') && (
+                                    <p className="text-xs text-muted-foreground ml-7">
+                                      No additional actions required
+                                    </p>
+                                  )}
+                                </div>
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </RadioGroup>
+                    </div>
                   )}
-
-                  <div className="flex gap-3 mt-6">
-                    <Button variant="outline" onClick={() => setCurrentStep(2)} className="flex-1">
-                      Back
-                    </Button>
-                    <Button
-                      onClick={handlePaymentSubmit}
-                      disabled={isLoading || !selectedPaymentProvider}
-                      className="flex-1"
-                    >
-                      {isLoading ? "Processing..." : "Complete Order"}
-                    </Button>
-                  </div>
                 </div>
-              </Card>
+
+                <Separator className="bg-border/50" />
+
+                {/* Navigation Buttons */}
+                <div className="flex gap-4 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(2)} 
+                    className="flex-1 h-12 text-xs font-medium rounded-lg border-border/50 hover:border-border"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handlePaymentSubmit}
+                    disabled={isLoading || !selectedPaymentProvider}
+                    className="flex-1 h-12 bg-foreground text-background font-bold text-sm rounded-lg hover:bg-foreground/90 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-none"
+                  >
+                    {isLoading ? "Processing..." : "Complete Order"}
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
 
