@@ -141,17 +141,23 @@ export default function Products() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex flex-wrap gap-3 flex-1">
               {collectionsData?.slice(0, 6).map((collection) => (
-                <Link
+                <button
                   key={collection.id}
-                  to={`/collections/${collection.id}`}
-                  className="group"
+                  onClick={() => handleCollectionToggle(collection.id)}
+                  className={`group px-6 py-3 backdrop-blur-sm border rounded-full transition-all duration-300 hover:scale-105 ${
+                    selectedCollections.includes(collection.id)
+                      ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                      : 'bg-muted/50 border-border/50 hover:bg-muted/80'
+                  }`}
                 >
-                  <div className="px-6 py-3 bg-muted/50 backdrop-blur-sm border border-border/50 rounded-full hover:bg-muted/80 transition-all duration-300 hover:scale-105">
-                    <span className="text-sm font-medium group-hover:text-primary transition-colors">
-                      {collection.title}
-                    </span>
-                  </div>
-                </Link>
+                  <span className={`text-sm font-medium transition-colors ${
+                    selectedCollections.includes(collection.id)
+                      ? 'text-primary-foreground'
+                      : 'group-hover:text-primary'
+                  }`}>
+                    {collection.title}
+                  </span>
+                </button>
               ))}
             </div>
             
