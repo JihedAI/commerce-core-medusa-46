@@ -20,9 +20,10 @@ import { Badge } from "@/components/ui/badge";
 
 interface LayoutProps {
   children: React.ReactNode;
+  isHomePage?: boolean;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const { cart } = useCart();
   const { customer, logout } = useAuth();
   const navigate = useNavigate();
@@ -410,7 +411,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main className={`flex-1 ${!isHomePage ? 'pt-24' : ''}`}>{children}</main>
 
       {/* Footer */}
       <footer className="bg-muted mt-16">
