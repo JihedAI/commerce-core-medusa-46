@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { sdk } from "@/lib/sdk";
 import CartDrawer from "./CartDrawer";
 import { Badge } from "@/components/ui/badge";
-import { sdk } from "@/lib/sdk";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +33,52 @@ export default function Layout({ children }: LayoutProps) {
   const [currentSearchPhrase, setCurrentSearchPhrase] = React.useState(0);
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
+
+  // Fetch categories using React Query like other components
+  const { data: categoriesData = [] } = useQuery({
+    queryKey: ["nav-categories"],
+    queryFn: async () => {
+      try {
+        const { product_categories } = await sdk.store.category.list({
+          limit: 100,
+          fields: "id,name,handle"
+        });
+        console.log('Categories fetched:', product_categories);
+        return product_categories || [];
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        return [
+          { id: 'men', name: 'Men', handle: 'men' },
+          { id: 'women', name: 'Women', handle: 'women' },
+          { id: 'sport', name: 'Sport', handle: 'sport' },
+          { id: 'limited', name: 'Limited Editions', handle: 'limited' }
+        ];
+      }
+    },
+  });
+
+  // Fetch collections using React Query like other components
+  const { data: collectionsData = [] } = useQuery({
+    queryKey: ["nav-collections"],
+    queryFn: async () => {
+      try {
+        const { collections } = await sdk.store.collection.list({
+          limit: 100,
+          fields: "id,title,handle"
+        });
+        console.log('Collections fetched:', collections);
+        return collections || [];
+      } catch (error) {
+        console.error("Failed to fetch collections:", error);
+        return [
+          { id: 'summer', title: 'Summer Shades', handle: 'summer-shades' },
+          { id: 'luxury', title: 'Luxury Line', handle: 'luxury-line' },
+          { id: 'limited', title: 'Limited Editions', handle: 'limited-editions' },
+          { id: 'classic', title: 'Classic Collection', handle: 'classic' }
+        ];
+      }
+    },
+  });
   const [searchExpanded, setSearchExpanded] = React.useState(false);
 
   const itemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
@@ -54,52 +101,13 @@ export default function Layout({ children }: LayoutProps) {
     return () => clearInterval(interval);
   }, [popularSearchPhrases.length]);
 
-  // Fetch collections and categories
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch collections with proper fields
-        const collectionsResponse = await sdk.store.collection.list({
-          limit: 100,
-          fields: "id,title,handle"
-        });
-        console.log('Collections response:', collectionsResponse);
-        setCollections(collectionsResponse.collections || []);
-
-        // Fetch categories with proper fields
-        const categoriesResponse = await sdk.store.category.list({
-          limit: 100,
-          fields: "id,name,handle"
-        });
-        console.log('Categories response:', categoriesResponse);
-        setCategories(categoriesResponse.product_categories || []);
-      } catch (error) {
-        console.error("Failed to fetch collections/categories:", error);
-        // Fallback to static data
-        setCollections([
-          { id: 'summer', title: 'Summer Shades', handle: 'summer-shades' },
-          { id: 'luxury', title: 'Luxury Line', handle: 'luxury-line' },
-          { id: 'limited', title: 'Limited Editions', handle: 'limited-editions' },
-          { id: 'classic', title: 'Classic Collection', handle: 'classic' }
-        ]);
-        setCategories([
-          { id: 'men', name: 'Men', handle: 'men' },
-          { id: 'women', name: 'Women', handle: 'women' },
-          { id: 'sport', name: 'Sport', handle: 'sport' },
-          { id: 'limited', name: 'Limited Editions', handle: 'limited' }
-        ]);
-      }
-    };
-    
-    fetchData();
-  }, []);
 
   const navigation = [
     { 
       name: "Sunglasses", 
       href: "/categories",
       hasDropdown: true,
-      items: categories.length > 0 ? categories.map(cat => ({ 
+      items: categoriesData.length > 0 ? categoriesData.map(cat => ({ 
         name: cat.name, 
         href: `/categories/${cat.handle}` 
       })) : [
@@ -113,7 +121,7 @@ export default function Layout({ children }: LayoutProps) {
       name: "Collections", 
       href: "/collections",
       hasDropdown: true,
-      items: collections.length > 0 ? collections.map(col => ({ 
+      items: collectionsData.length > 0 ? collectionsData.map(col => ({ 
         name: col.title, // Collections use 'title' property, not 'name'
         href: `/collections/${col.handle}` 
       })) : [
