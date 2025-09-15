@@ -139,18 +139,18 @@ export default function Products() {
         {/* Collections Pills Section */}
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex flex-wrap gap-3 flex-1">
+            <div className="flex flex-wrap gap-2 flex-1">
               {collectionsData?.slice(0, 6).map((collection) => (
                 <button
                   key={collection.id}
                   onClick={() => handleCollectionToggle(collection.id)}
-                  className={`group px-6 py-3 backdrop-blur-sm border rounded-full transition-all duration-300 hover:scale-105 ${
+                  className={`group px-4 py-2 backdrop-blur-sm border rounded-full transition-all duration-300 hover:scale-105 ${
                     selectedCollections.includes(collection.id)
-                      ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
-                      : 'bg-muted/50 border-border/50 hover:bg-muted/80'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20'
+                      : 'bg-muted/40 border-border/40 hover:bg-muted/60'
                   }`}
                 >
-                  <span className={`text-sm font-medium transition-colors ${
+                  <span className={`text-xs font-medium transition-colors ${
                     selectedCollections.includes(collection.id)
                       ? 'text-primary-foreground'
                       : 'group-hover:text-primary'
