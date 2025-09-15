@@ -496,63 +496,82 @@ export default function Checkout() {
             )}
 
             {currentStep === 2 && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Shipping Method</h2>
-                {!cart?.shipping_address ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Please set your shipping address first.</p>
-                    <Button variant="outline" onClick={() => setCurrentStep(1)} className="mt-2">
-                      Back to Address
-                    </Button>
-                  </div>
-                ) : shippingOptions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Loading shipping options...</p>
-                  </div>
-                ) : (
-                  <RadioGroup value={selectedShipping} onValueChange={setSelectedShipping}>
-                    <div className="space-y-3">
-                      {shippingOptions.map((option) => {
-                        // Get the price for the option
-                        const price = option.price_type === "flat" 
-                          ? option.amount 
-                          : calculatedPrices[option.id] || 0;
-                        
-                        return (
-                          <div
-                            key={option.id}
-                            className="flex items-center justify-between p-4 border rounded-lg hover:border-primary transition-colors"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <RadioGroupItem value={option.id} id={option.id} />
-                              <Label htmlFor={option.id} className="flex-1 cursor-pointer">
-                                <div>
-                                  <p className="font-medium">{option.name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {option.data?.delivery_estimate || "Standard delivery"}
-                                  </p>
-                                </div>
-                              </Label>
-                            </div>
-                            <span className="font-semibold">
-                              {price > 0 ? formatPrice(price, cart?.region?.currency_code) : "Free"}
-                            </span>
-                          </div>
-                        );
-                      })}
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Shipping Method</h2>
+                  
+                  {!cart?.shipping_address ? (
+                    <div className="text-center py-12">
+                      <p className="text-xs text-muted-foreground mb-4">Please set your shipping address first.</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setCurrentStep(1)} 
+                        className="text-xs h-9 px-6"
+                      >
+                        Back to Address
+                      </Button>
                     </div>
-                  </RadioGroup>
-                )}
+                  ) : shippingOptions.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-xs text-muted-foreground">Loading shipping options...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <RadioGroup value={selectedShipping} onValueChange={setSelectedShipping}>
+                        <div className="space-y-3">
+                          {shippingOptions.map((option) => {
+                            // Get the price for the option
+                            const price = option.price_type === "flat" 
+                              ? option.amount 
+                              : calculatedPrices[option.id] || 0;
+                            
+                            return (
+                              <div
+                                key={option.id}
+                                className="flex items-center justify-between py-4 px-1 border-b border-border/30 hover:border-border transition-colors"
+                              >
+                                <div className="flex items-center space-x-4">
+                                  <RadioGroupItem value={option.id} id={option.id} className="mt-0.5" />
+                                  <Label htmlFor={option.id} className="flex-1 cursor-pointer">
+                                    <div className="space-y-1">
+                                      <p className="text-sm font-medium text-foreground">{option.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {option.data?.delivery_estimate || "Standard delivery"}
+                                      </p>
+                                    </div>
+                                  </Label>
+                                </div>
+                                <span className="text-sm font-bold text-foreground">
+                                  {price > 0 ? formatPrice(price, cart?.region?.currency_code) : "Free"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  )}
+                </div>
 
-                <div className="flex gap-3 mt-6">
-                  <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
+                <Separator className="bg-border/50" />
+
+                {/* Navigation Buttons */}
+                <div className="flex gap-4 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(1)} 
+                    className="flex-1 h-12 text-xs font-medium rounded-lg border-border/50 hover:border-border"
+                  >
                     Back
                   </Button>
-                  <Button onClick={handleShippingSubmit} className="flex-1">
+                  <Button 
+                    onClick={handleShippingSubmit} 
+                    className="flex-1 h-12 bg-foreground text-background font-bold text-sm rounded-lg hover:bg-foreground/90 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                  >
                     Continue to Payment
                   </Button>
                 </div>
-              </Card>
+              </div>
             )}
 
             {currentStep === 3 && (
