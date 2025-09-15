@@ -15,6 +15,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer from "./CartDrawer";
 import { Badge } from "@/components/ui/badge";
+import { sdk } from "@/lib/sdk";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,8 @@ export default function Layout({ children }: LayoutProps) {
   const [fullSearchOpen, setFullSearchOpen] = React.useState(false);
   const [hasScrolled, setHasScrolled] = React.useState(false);
   const [currentSearchPhrase, setCurrentSearchPhrase] = React.useState(0);
+  const [collections, setCollections] = React.useState<any[]>([]);
+  const [categories, setCategories] = React.useState<any[]>([]);
 
   const itemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
@@ -50,32 +53,56 @@ export default function Layout({ children }: LayoutProps) {
     return () => clearInterval(interval);
   }, [popularSearchPhrases.length]);
 
-  const sunglassesCategories = [
-    { name: "Men", href: "/categories/men" },
-    { name: "Women", href: "/categories/women" },
-    { name: "Limited Editions", href: "/categories/limited" },
-    { name: "Sport", href: "/categories/sport" }
-  ];
+  // Fetch collections and categories
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch collections
+        const collectionsResponse = await sdk.store.collection.list();
+        setCollections(collectionsResponse.collections || []);
 
-  const collections = [
-    { name: "Summer Shades", href: "/collections/summer-shades" },
-    { name: "Luxury Line", href: "/collections/luxury-line" },
-    { name: "Limited Editions", href: "/collections/limited-editions" },
-    { name: "Classic Collection", href: "/collections/classic" }
-  ];
+        // Fetch categories  
+        const categoriesResponse = await sdk.store.category.list();
+        setCategories(categoriesResponse.product_categories || []);
+      } catch (error) {
+        console.error("Failed to fetch collections/categories:", error);
+        // Fallback to static data
+        setCollections([
+          { id: 'summer', name: 'Summer Shades', handle: 'summer-shades' },
+          { id: 'luxury', name: 'Luxury Line', handle: 'luxury-line' },
+          { id: 'limited', name: 'Limited Editions', handle: 'limited-editions' },
+          { id: 'classic', name: 'Classic Collection', handle: 'classic' }
+        ]);
+        setCategories([
+          { id: 'men', name: 'Men', handle: 'men' },
+          { id: 'women', name: 'Women', handle: 'women' },
+          { id: 'sport', name: 'Sport', handle: 'sport' },
+          { id: 'limited', name: 'Limited Editions', handle: 'limited' }
+        ]);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const navigation = [
     { 
       name: "Sunglasses", 
       href: "/categories",
       hasDropdown: true,
-      items: sunglassesCategories
+      items: categories.map(cat => ({ 
+        name: cat.name, 
+        href: `/categories/${cat.handle}` 
+      }))
     },
     { 
       name: "Collections", 
       href: "/collections",
       hasDropdown: true,
-      items: collections
+      items: collections.map(col => ({ 
+        name: col.name, 
+        href: `/collections/${col.handle}` 
+      }))
     },
     { name: "Store", href: "/products", hasUnderline: true },
     { name: "Explore", href: "/products", hasUnderline: true },
@@ -119,7 +146,7 @@ export default function Layout({ children }: LayoutProps) {
               </Sheet>
 
               {/* Desktop Navigation */}
-              <div className={`hidden lg:flex transition-all duration-700 ease-out ${
+              <div className={`hidden lg:flex items-center transition-all duration-700 ease-out ${
                 hasScrolled ? 'lg:gap-x-6' : 'lg:gap-x-8'
               }`}>
                 {navigation.map((item, index) => (

@@ -47,13 +47,12 @@ const StoreLocator = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const [accessToken, setAccessToken] = useState<string>('');
 
   useEffect(() => {
-    if (!mapContainer.current || !accessToken) return;
+    if (!mapContainer.current) return;
 
-    // Initialize map with dark theme
-    mapboxgl.accessToken = accessToken;
+    // Initialize map with embedded access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamloZWRjaCIsImEiOiJjbWZrMHg0MjQxOHVwMmlxcTFzNzBoenYyIn0.pNIB0Etu0zDd_pcaAdDtpg';
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -127,7 +126,7 @@ const StoreLocator = () => {
       markers.current = [];
       map.current?.remove();
     };
-  }, [accessToken]);
+  }, []);
 
   return (
     <section className="w-full py-24 bg-background">
@@ -142,45 +141,9 @@ const StoreLocator = () => {
 
         {/* Map Container */}
         <div className="relative">
-          {!accessToken && (
-            <div className="bg-card border border-border rounded-lg p-8 text-center mb-8">
-              <h3 className="text-xl font-semibold text-card-foreground mb-4">
-                Enter Mapbox Access Token
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Please enter your Mapbox public token to display the store locator map.
-                You can find your token at{' '}
-                <a 
-                  href="https://mapbox.com/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  mapbox.com
-                </a>
-              </p>
-              <div className="flex gap-4 max-w-md mx-auto">
-                <input
-                  type="text"
-                  placeholder="pk.eyJ1..."
-                  className="flex-1 px-4 py-2 bg-input border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                />
-                <Button 
-                  onClick={() => {}} 
-                  disabled={!accessToken}
-                  className="px-6"
-                >
-                  Load Map
-                </Button>
-              </div>
-            </div>
-          )}
-          
           <div 
             ref={mapContainer} 
-            className={`w-full h-[500px] rounded-lg shadow-xl ${!accessToken ? 'opacity-50' : ''}`}
+            className="w-full h-[500px] rounded-lg shadow-xl"
             style={{ background: 'hsl(0 0% 7%)' }}
           />
         </div>
