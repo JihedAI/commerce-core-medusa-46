@@ -279,17 +279,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Right Column - Product Info (30%) */}
-        <div className="w-[30%] h-full overflow-y-auto p-12">
-          {/* Back Button */}
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-8 -ml-4 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-
+        <div className="w-[30%] h-full p-12">
           {/* Product Name */}
           <h1 className="text-3xl font-bold text-foreground mb-2">
             {product.title}
