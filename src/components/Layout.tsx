@@ -93,19 +93,29 @@ export default function Layout({ children }: LayoutProps) {
       name: "Sunglasses", 
       href: "/categories",
       hasDropdown: true,
-      items: categories.map(cat => ({ 
+      items: categories.length > 0 ? categories.map(cat => ({ 
         name: cat.name, 
         href: `/categories/${cat.handle}` 
-      }))
+      })) : [
+        { name: 'Men', href: '/categories/men' },
+        { name: 'Women', href: '/categories/women' },
+        { name: 'Sport', href: '/categories/sport' },
+        { name: 'Limited Editions', href: '/categories/limited' }
+      ]
     },
     { 
       name: "Collections", 
       href: "/collections",
       hasDropdown: true,
-      items: collections.map(col => ({ 
+      items: collections.length > 0 ? collections.map(col => ({ 
         name: col.name, 
         href: `/collections/${col.handle}` 
-      }))
+      })) : [
+        { name: 'Summer Shades', href: '/collections/summer-shades' },
+        { name: 'Luxury Line', href: '/collections/luxury-line' },
+        { name: 'Limited Editions', href: '/collections/limited-editions' },
+        { name: 'Classic Collection', href: '/collections/classic' }
+      ]
     },
     { name: "Store", href: "/products", hasUnderline: true },
     { name: "Explore", href: "/products", hasUnderline: true },
@@ -175,16 +185,16 @@ export default function Layout({ children }: LayoutProps) {
                         </Link>
                         
                         {/* Dropdown */}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out translate-y-[10px] group-hover:translate-y-0">
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out translate-y-[10px] group-hover:translate-y-0 z-50">
                           <div 
-                            className="bg-white/95 backdrop-blur-[12px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] w-[400px] py-4"
+                            className="bg-background/95 backdrop-blur-[12px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/10 w-[400px] py-4"
                             style={{ backdropFilter: 'blur(12px)' }}
                           >
                             {item.items?.map((subItem) => (
                               <Link
                                 key={subItem.name}
                                 to={subItem.href}
-                                className="block px-6 py-3 text-sm font-medium text-gray-800 hover:text-gray-900 hover:bg-white/40 transition-all duration-200"
+                                className="block px-6 py-3 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all duration-200"
                                 style={{ letterSpacing: '0.5px' }}
                               >
                                 {subItem.name}
@@ -254,10 +264,10 @@ export default function Layout({ children }: LayoutProps) {
                     <Input
                       type="search"
                       placeholder="Search for sunglasses…"
-                      className={`w-64 h-8 text-sm transition-all duration-300 ease-out ${
+                      className={`w-64 h-8 text-sm transition-all duration-300 ease-out border-0 focus:ring-0 focus:border-0 focus:outline-none ${
                         hasScrolled 
-                          ? 'bg-background/50 border-foreground/20 text-foreground placeholder:text-foreground/60' 
-                          : 'bg-white/10 border-primary/30 text-primary placeholder:text-primary/60'
+                          ? 'bg-background/50 text-foreground placeholder:text-foreground/60' 
+                          : 'bg-white/10 text-primary placeholder:text-primary/60'
                       }`}
                       autoFocus
                     />
