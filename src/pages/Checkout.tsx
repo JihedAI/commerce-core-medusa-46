@@ -32,6 +32,8 @@ export default function Checkout() {
 
   // Promotion code state
   const [promoCode, setPromoCode] = useState("");
+  const [promoMessage, setPromoMessage] = useState("");
+  const [promoMessageType, setPromoMessageType] = useState<"success" | "error" | "">("");
 
   // Form data
   const [email, setEmailState] = useState("");
@@ -157,8 +159,15 @@ export default function Checkout() {
   // Promotion handlers
   const handleApplyPromo = async () => {
     if (promoCode.trim()) {
-      await applyDiscount(promoCode.trim());
-      setPromoCode("");
+      try {
+        await applyDiscount(promoCode.trim());
+        setPromoMessage("Promo code applied successfully!");
+        setPromoMessageType("success");
+        setPromoCode("");
+      } catch (error) {
+        setPromoMessage("Invalid promo code. Please try again.");
+        setPromoMessageType("error");
+      }
     }
   };
 
@@ -328,137 +337,162 @@ export default function Checkout() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {currentStep === 1 && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Contact Information</h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmailState(e.target.value)}
-                      placeholder="john@example.com"
-                      required
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <h3 className="text-lg font-semibold">Shipping Address</h3>
-                  <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-8">
+                {/* Contact Information Section */}
+                <div className="space-y-6">
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Contact Information</h2>
+                  <div className="space-y-4">
                     <div>
-                      <Label htmlFor="first_name">First Name</Label>
+                      <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email Address</Label>
                       <Input
-                        id="first_name"
-                        value={shippingData.first_name}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, first_name: e.target.value })
-                        }
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmailState(e.target.value)}
+                        placeholder="john@example.com"
                         required
+                        className="mt-1 text-sm"
                       />
                     </div>
+                  </div>
+                </div>
+
+                <Separator className="bg-border/50" />
+
+                {/* Shipping Address Section */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Shipping Address</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">First Name</Label>
+                        <Input
+                          id="first_name"
+                          value={shippingData.first_name}
+                          onChange={(e) =>
+                            setShippingData({ ...shippingData, first_name: e.target.value })
+                          }
+                          required
+                          className="mt-1 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="last_name" className="text-xs font-medium text-muted-foreground">Last Name</Label>
+                        <Input
+                          id="last_name"
+                          value={shippingData.last_name}
+                          onChange={(e) =>
+                            setShippingData({ ...shippingData, last_name: e.target.value })
+                          }
+                          required
+                          className="mt-1 text-sm"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <Label htmlFor="last_name">Last Name</Label>
+                      <Label htmlFor="address_1" className="text-xs font-medium text-muted-foreground">Street Address</Label>
                       <Input
-                        id="last_name"
-                        value={shippingData.last_name}
+                        id="address_1"
+                        value={shippingData.address_1}
                         onChange={(e) =>
-                          setShippingData({ ...shippingData, last_name: e.target.value })
+                          setShippingData({ ...shippingData, address_1: e.target.value })
                         }
+                        placeholder="123 Main St"
                         required
+                        className="mt-1 text-sm"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="address_1">Street Address</Label>
-                    <Input
-                      id="address_1"
-                      value={shippingData.address_1}
-                      onChange={(e) =>
-                        setShippingData({ ...shippingData, address_1: e.target.value })
-                      }
-                      placeholder="123 Main St"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="address_2">Apartment, suite, etc. (optional)</Label>
-                    <Input
-                      id="address_2"
-                      value={shippingData.address_2}
-                      onChange={(e) =>
-                        setShippingData({ ...shippingData, address_2: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="city">City</Label>
+                      <Label htmlFor="address_2" className="text-xs font-medium text-muted-foreground">Apartment, suite, etc. (optional)</Label>
                       <Input
-                        id="city"
-                        value={shippingData.city}
-                        onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="province">State/Province</Label>
-                      <Input
-                        id="province"
-                        value={shippingData.province}
+                        id="address_2"
+                        value={shippingData.address_2}
                         onChange={(e) =>
-                          setShippingData({ ...shippingData, province: e.target.value })
+                          setShippingData({ ...shippingData, address_2: e.target.value })
                         }
-                        required
+                        className="mt-1 text-sm"
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="postal_code">ZIP/Postal Code</Label>
-                      <Input
-                        id="postal_code"
-                        value={shippingData.postal_code}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, postal_code: e.target.value })
-                        }
-                        required
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="city" className="text-xs font-medium text-muted-foreground">City</Label>
+                        <Input
+                          id="city"
+                          value={shippingData.city}
+                          onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
+                          required
+                          className="mt-1 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="province" className="text-xs font-medium text-muted-foreground">State/Province</Label>
+                        <Input
+                          id="province"
+                          value={shippingData.province}
+                          onChange={(e) =>
+                            setShippingData({ ...shippingData, province: e.target.value })
+                          }
+                          required
+                          className="mt-1 text-sm"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={shippingData.phone}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, phone: e.target.value })
-                        }
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="postal_code" className="text-xs font-medium text-muted-foreground">ZIP/Postal Code</Label>
+                        <Input
+                          id="postal_code"
+                          value={shippingData.postal_code}
+                          onChange={(e) =>
+                            setShippingData({ ...shippingData, postal_code: e.target.value })
+                          }
+                          required
+                          className="mt-1 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground">Phone</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={shippingData.phone}
+                          onChange={(e) =>
+                            setShippingData({ ...shippingData, phone: e.target.value })
+                          }
+                          className="mt-1 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="same-billing"
+                        checked={sameAsBilling}
+                        onChange={(e) => setSameAsBilling(e.target.checked)}
+                        className="h-4 w-4 rounded border-border"
                       />
+                      <Label htmlFor="same-billing" className="text-xs text-muted-foreground">Billing address same as shipping</Label>
                     </div>
                   </div>
+                </div>
 
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="same-billing"
-                      checked={sameAsBilling}
-                      onChange={(e) => setSameAsBilling(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="same-billing">Billing address same as shipping</Label>
-                  </div>
+                <Separator className="bg-border/50" />
 
-                  <Button onClick={handleEmailSubmit} className="w-full">
-                    Continue to Shipping
+                {/* Continue Button */}
+                <div className="pt-4">
+                  <Button 
+                    onClick={handleEmailSubmit} 
+                    className="w-full h-12 bg-foreground text-background font-bold text-sm rounded-lg hover:bg-foreground/90 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    Continue to Payment
                   </Button>
                 </div>
-              </Card>
+              </div>
             )}
 
             {currentStep === 2 && (
@@ -580,116 +614,128 @@ export default function Checkout() {
             )}
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-20">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              <div className="space-y-3 mb-4">
+            <div className="space-y-6 sticky top-4">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Order Summary</h2>
+              
+              <div className="space-y-4">
                 {cart.items.map((item) => (
-                  <div key={item.id} className="flex gap-3">
-                    <div className="w-16 h-16 bg-muted rounded overflow-hidden">
-                      {item.thumbnail ? (
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="h-6 w-6 text-muted-foreground" />
-                        </div>
+                  <div key={item.id} className="flex justify-between items-start py-2">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-foreground">{item.product_title || item.title}</h3>
+                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      {item.variant && (
+                        <p className="text-xs text-muted-foreground">
+                          {item.variant.title}
+                        </p>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        {formatPrice(item.subtotal || 0, cart.currency_code)}
+                      </p>
                     </div>
-                    <p className="text-sm font-semibold">
-                      {formatPrice(item.unit_price * item.quantity, cart.region?.currency_code)}
-                    </p>
                   </div>
                 ))}
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="bg-border/50" />
 
               {/* Promotion Code Section */}
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Promo code"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
-                  />
-                  <Button variant="outline" onClick={handleApplyPromo}>
-                    Apply
-                  </Button>
-                </div>
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wide text-foreground">Promotion Code</h3>
                 
-                {/* Display Applied Promotions */}
+                {/* Promotion Message */}
+                {promoMessage && (
+                  <div className={`text-xs font-bold ${promoMessageType === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    {promoMessage}
+                  </div>
+                )}
+                
+                {/* Applied Promotions */}
                 {appliedPromotions.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Applied Promotions</h4>
                     {appliedPromotions.map((promo: any, index: number) => (
-                      <div key={promo.id || index} className="flex items-center justify-between bg-muted px-3 py-2 rounded-md">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-success">
-                            {promo.code || promo.promotion?.code || `Promotion ${index + 1}`}
-                          </span>
-                          {promo.amount && (
-                            <span className="text-xs text-muted-foreground">
-                              -{formatPrice(promo.amount, cart?.region?.currency_code)} discount
-                            </span>
-                          )}
-                        </div>
+                      <div key={index} className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-2 rounded-md">
+                        <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                          {promo.code || promo.display_id}
+                        </span>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveDiscount(promo.code || promo.promotion?.code || '')}
+                          onClick={() => handleRemoveDiscount(promo.code || promo.display_id)}
+                          className="h-6 w-6 p-0 text-green-700 dark:text-green-300"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="w-3 h-3" />
                         </Button>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
 
-              <Separator className="my-4" />
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(cart.subtotal, cart.region?.currency_code)}</span>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter code"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value);
+                      if (promoMessage) {
+                        setPromoMessage("");
+                        setPromoMessageType("");
+                      }
+                    }}
+                    className="text-xs h-9"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={handleApplyPromo} 
+                    size="sm"
+                    className="text-xs h-9 px-3"
+                  >
+                    Apply
+                  </Button>
                 </div>
-                {cart.discount_total > 0 && (
-                  <div className="flex justify-between text-success">
+              </div>
+
+              <Separator className="bg-border/50" />
+
+              {/* Order Totals */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-medium">{formatPrice(cart.subtotal || 0, cart.currency_code)}</span>
+                </div>
+                
+                {(cart as any).discount_total > 0 && (
+                  <div className="flex justify-between text-xs text-green-600 dark:text-green-400">
                     <span>Discount</span>
-                    <span>-{formatPrice(cart.discount_total, cart.region?.currency_code)}</span>
+                    <span className="font-medium">-{formatPrice((cart as any).discount_total || 0, cart.currency_code)}</span>
                   </div>
                 )}
-                {cart.shipping_total > 0 && (
-                  <div className="flex justify-between">
-                    <span>Shipping</span>
-                    <span>{formatPrice(cart.shipping_total, cart.region?.currency_code)}</span>
+                
+                {cart.shipping_total !== undefined && cart.shipping_total > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="font-medium">{formatPrice(cart.shipping_total || 0, cart.currency_code)}</span>
                   </div>
                 )}
-                {cart.tax_total > 0 && (
-                  <div className="flex justify-between">
-                    <span>Tax</span>
-                    <span>{formatPrice(cart.tax_total, cart.region?.currency_code)}</span>
+                
+                {cart.tax_total !== undefined && cart.tax_total > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span className="font-medium">{formatPrice(cart.tax_total || 0, cart.currency_code)}</span>
                   </div>
                 )}
+                
+                <Separator className="bg-border/50" />
+                
+                <div className="flex justify-between font-bold text-sm pt-2">
+                  <span>Total</span>
+                  <span>{formatPrice(cart.total || 0, cart.currency_code)}</span>
+                </div>
               </div>
-
-              <Separator className="my-4" />
-
-              <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
-                <span>{formatPrice(cart.total, cart.region?.currency_code)}</span>
-              </div>
-            </Card>
+            </div>
           </div>
         </div>
       </div>
