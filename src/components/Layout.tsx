@@ -246,7 +246,7 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                   ? 'text-2xl text-foreground' 
                   : 'text-5xl text-primary'
               }`}>
-                LUXE
+                Amine
               </span>
             </Link>
 
