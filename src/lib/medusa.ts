@@ -3,7 +3,7 @@ import Medusa from "@medusajs/medusa-js";
 // Initialize Medusa SDK with backend configuration
 export const medusa = new Medusa({
   baseUrl: "https://856jmnth-9000.euw.devtunnels.ms/",
-  publishableApiKey: "pk_ba00b69f3710729736480df4449027a7a43da5cc532f497b6f34a79c2f00ee3f",
+  publishableApiKey: "pk_eb12150d81366c9ee8a4a554a34cdc20d575659998906f31aba17fa6bf918cb4",
   maxRetries: 3,
 });
 

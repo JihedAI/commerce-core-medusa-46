@@ -11,7 +11,7 @@ export const sdk = new Medusa({
     jwtTokenStorageKey: "medusa_jwt_token", // Key for storing JWT in localStorage
     jwtTokenStorageMethod: "local", // Store in localStorage
   },
-  publishableKey: "pk_ba00b69f3710729736480df4449027a7a43da5cc532f497b6f34a79c2f00ee3f",
+  publishableKey: "pk_eb12150d81366c9ee8a4a554a34cdc20d575659998906f31aba17fa6bf918cb4",
 });
 
 // Export type for customer data
