@@ -54,41 +54,42 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link to={`/products/${product.handle}`}>
-      <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg">
-        {/* Image Container */}
+      <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg touch-target">
+        {/* Image Container - Responsive aspect ratio */}
         <div className="relative aspect-square overflow-hidden bg-muted">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              loading="lazy"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+              <ShoppingBag className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground" />
             </div>
           )}
 
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {/* Badges - Responsive positioning */}
+          <div className="absolute top-1 sm:top-2 left-1 sm:left-2 flex flex-col gap-1">
             {product.collection && (
-              <Badge variant="secondary" className="shadow-sm">
+              <Badge variant="secondary" className="shadow-sm text-xs">
                 {product.collection.title}
               </Badge>
             )}
             {!hasStock && (
-              <Badge variant="destructive" className="shadow-sm">
+              <Badge variant="destructive" className="shadow-sm text-xs">
                 Out of Stock
               </Badge>
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+          {/* Quick Actions - Touch-friendly */}
+          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex flex-col gap-1 sm:gap-2 opacity-0 transition-opacity group-hover:opacity-100">
             <Button
               size="icon"
               variant="secondary"
-              className="h-8 w-8 shadow-lg"
+              className="h-8 w-8 sm:h-10 sm:w-10 shadow-lg touch-target"
               onClick={(e) => {
                 e.preventDefault();
                 toast({
@@ -97,17 +98,17 @@ export default function ProductCard({ product }: ProductCardProps) {
                 });
               }}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <Button size="icon" variant="secondary" className="h-8 w-8 shadow-lg">
-              <Eye className="h-4 w-4" />
+            <Button size="icon" variant="secondary" className="h-8 w-8 sm:h-10 sm:w-10 shadow-lg touch-target">
+              <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
 
-          {/* Add to Cart Button */}
+          {/* Add to Cart Button - Touch-friendly */}
           <div className="absolute bottom-0 left-0 right-0 translate-y-full transition-transform group-hover:translate-y-0">
             <Button
-              className="w-full rounded-none"
+              className="w-full rounded-none touch-target text-sm"
               onClick={handleAddToCart}
               disabled={isLoading || !hasStock}
             >
@@ -116,17 +117,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Product Info */}
-        <div className="p-4">
-          <h3 className="font-medium text-sm line-clamp-1">{product.title}</h3>
+        {/* Product Info - Responsive spacing and typography */}
+        <div className="p-3 sm:p-4">
+          <h3 className="font-medium text-fluid-sm line-clamp-1">{product.title}</h3>
           {product.description && (
-            <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+            <p className="mt-1 text-fluid-xs text-muted-foreground line-clamp-2">
               {truncateText(product.description, 60)}
             </p>
           )}
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-2 sm:mt-3 flex items-center justify-between gap-2">
             {price && (
-              <span className="font-semibold text-lg">
+              <span className="font-semibold text-fluid-lg">
                 {(() => {
                   const amount = price.calculated_amount_with_tax || price.calculated_amount;
                   const currency = price.currency_code || "TND";
@@ -136,7 +137,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
             {defaultVariant?.inventory_quantity !== undefined && 
              defaultVariant?.inventory_quantity !== null && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-fluid-xs text-muted-foreground">
                 {defaultVariant.inventory_quantity > 0
                   ? `${defaultVariant.inventory_quantity} in stock`
                   : "Out of stock"}

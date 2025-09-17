@@ -73,6 +73,27 @@ All colors MUST be HSL.
     --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Responsive Design Variables */
+    --touch-target: 44px; /* Minimum recommended touch target size */
+    --container-padding: clamp(1rem, 4vw, 2rem);
+    --section-spacing: clamp(2rem, 8vw, 6rem);
+    --grid-gap: clamp(1rem, 4vw, 2rem);
+    
+    /* Fluid Typography Scale */
+    --text-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.75rem);
+    --text-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.875rem);
+    --text-base: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+    --text-lg: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    --text-xl: clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem);
+    --text-2xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --text-3xl: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+    --text-4xl: clamp(1.875rem, 1.65rem + 1.125vw, 2.25rem);
+    --text-5xl: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
+    --text-6xl: clamp(3rem, 2.55rem + 2.25vw, 3.75rem);
+    --text-7xl: clamp(3.75rem, 3.15rem + 3vw, 4.5rem);
+    --text-8xl: clamp(4.5rem, 3.75rem + 3.75vw, 6rem);
+    --text-9xl: clamp(6rem, 4.95rem + 5.25vw, 8rem);
     
     /* Luxury Typography */
     --font-sans: "Montserrat", system-ui, -apple-system, sans-serif;
@@ -176,8 +197,23 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
   .animate-fade-in {
     animation: fade-in 1s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
   }
 
   .animation-delay-300 {
@@ -186,5 +222,56 @@ All colors MUST be HSL.
 
   .duration-2000 {
     transition-duration: 2000ms;
+  }
+
+  /* Responsive utilities */
+  .container-padding {
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+
+  .section-spacing {
+    padding-top: var(--section-spacing);
+    padding-bottom: var(--section-spacing);
+  }
+
+  .grid-gap {
+    gap: var(--grid-gap);
+  }
+
+  .touch-target {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Responsive text utilities */
+  .text-fluid-xs { font-size: var(--text-xs); }
+  .text-fluid-sm { font-size: var(--text-sm); }
+  .text-fluid-base { font-size: var(--text-base); }
+  .text-fluid-lg { font-size: var(--text-lg); }
+  .text-fluid-xl { font-size: var(--text-xl); }
+  .text-fluid-2xl { font-size: var(--text-2xl); }
+  .text-fluid-3xl { font-size: var(--text-3xl); }
+  .text-fluid-4xl { font-size: var(--text-4xl); }
+  .text-fluid-5xl { font-size: var(--text-5xl); }
+  .text-fluid-6xl { font-size: var(--text-6xl); }
+  .text-fluid-7xl { font-size: var(--text-7xl); }
+  .text-fluid-8xl { font-size: var(--text-8xl); }
+  .text-fluid-9xl { font-size: var(--text-9xl); }
+
+  /* Hide scrollbars but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
