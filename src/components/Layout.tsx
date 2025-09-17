@@ -24,6 +24,26 @@ interface LayoutProps {
   isHomePage?: boolean;
 }
 
+// Types for navigation structure
+interface NavigationChild {
+  name: string;
+  href: string;
+}
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  children?: NavigationChild[];
+}
+
+interface Navigation {
+  name: string;
+  href: string;
+  hasDropdown?: boolean;
+  hasUnderline?: boolean;
+  items?: NavigationItem[];
+}
+
 export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const { cart } = useCart();
   const { customer, logout } = useAuth();
@@ -36,24 +56,59 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch categories using React Query like other components
+  // Fetch nested categories using proper Medusa SDK method
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
       try {
         const { product_categories } = await sdk.store.category.list({
-          limit: 100,
-          fields: "id,name,handle"
+          fields: "id,name,handle,description,category_children.id,category_children.name,category_children.handle",
+          include_descendants_tree: true,
+          parent_category_id: null, // Get top-level categories with their children
+          limit: 100
         });
-        console.log('Categories fetched:', product_categories);
+        console.log('Nested categories fetched:', product_categories);
         return product_categories || [];
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Failed to fetch nested categories:", error);
+        // Fallback categories with nested structure
         return [
-          { id: 'men', name: 'Men', handle: 'men' },
-          { id: 'women', name: 'Women', handle: 'women' },
-          { id: 'sport', name: 'Sport', handle: 'sport' },
-          { id: 'limited', name: 'Limited Editions', handle: 'limited' }
+          { 
+            id: 'men', 
+            name: 'Men', 
+            handle: 'men',
+            category_children: [
+              { id: 'men-aviator', name: 'Aviator', handle: 'men-aviator' },
+              { id: 'men-wayfarer', name: 'Wayfarer', handle: 'men-wayfarer' },
+              { id: 'men-sport', name: 'Sport', handle: 'men-sport' }
+            ]
+          },
+          { 
+            id: 'women', 
+            name: 'Women', 
+            handle: 'women',
+            category_children: [
+              { id: 'women-cat-eye', name: 'Cat Eye', handle: 'women-cat-eye' },
+              { id: 'women-oversized', name: 'Oversized', handle: 'women-oversized' },
+              { id: 'women-retro', name: 'Retro', handle: 'women-retro' }
+            ]
+          },
+          { 
+            id: 'sport', 
+            name: 'Sport', 
+            handle: 'sport',
+            category_children: [
+              { id: 'sport-running', name: 'Running', handle: 'sport-running' },
+              { id: 'sport-cycling', name: 'Cycling', handle: 'sport-cycling' },
+              { id: 'sport-water', name: 'Water Sports', handle: 'sport-water' }
+            ]
+          },
+          { 
+            id: 'limited', 
+            name: 'Limited Editions', 
+            handle: 'limited',
+            category_children: []
+          }
         ];
       }
     },
@@ -104,19 +159,53 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   }, [popularSearchPhrases.length]);
 
 
-  const navigation = [
+  const navigation: Navigation[] = [
     { 
       name: "Sunglasses", 
       href: "/categories",
       hasDropdown: true,
-      items: categoriesData.length > 0 ? categoriesData.map(cat => ({ 
-        name: cat.name, 
-        href: `/categories/${cat.handle}` 
+      items: categoriesData.length > 0 ? categoriesData.map(cat => ({
+        name: cat.name,
+        href: `/categories/${cat.handle}`,
+        children: cat.category_children && cat.category_children.length > 0 
+          ? cat.category_children.map(child => ({
+              name: child.name,
+              href: `/categories/${child.handle}`
+            }))
+          : undefined
       })) : [
-        { name: 'Men', href: '/categories/men' },
-        { name: 'Women', href: '/categories/women' },
-        { name: 'Sport', href: '/categories/sport' },
-        { name: 'Limited Editions', href: '/categories/limited' }
+        { 
+          name: 'Men', 
+          href: '/categories/men',
+          children: [
+            { name: 'Aviator', href: '/categories/men-aviator' },
+            { name: 'Wayfarer', href: '/categories/men-wayfarer' },
+            { name: 'Sport', href: '/categories/men-sport' }
+          ]
+        },
+        { 
+          name: 'Women', 
+          href: '/categories/women',
+          children: [
+            { name: 'Cat Eye', href: '/categories/women-cat-eye' },
+            { name: 'Oversized', href: '/categories/women-oversized' },
+            { name: 'Retro', href: '/categories/women-retro' }
+          ]
+        },
+        { 
+          name: 'Sport', 
+          href: '/categories/sport',
+          children: [
+            { name: 'Running', href: '/categories/sport-running' },
+            { name: 'Cycling', href: '/categories/sport-cycling' },
+            { name: 'Water Sports', href: '/categories/sport-water' }
+          ]
+        },
+        { 
+          name: 'Limited Editions', 
+          href: '/categories/limited',
+          children: []
+        }
       ]
     },
     { 
@@ -158,17 +247,47 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-72 bg-black/90 backdrop-blur-md border-white/20">
+                <SheetContent side="left" className="w-80 bg-background/95 backdrop-blur-md border-white/20">
                   <div className="flex flex-col gap-6 mt-8">
                     {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className="text-lg font-medium text-white tracking-wide transition-colors hover:text-white/80"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
+                      <div key={item.name} className="space-y-3">
+                        <Link
+                          to={item.href}
+                          className="text-lg font-semibold text-foreground tracking-wide transition-colors hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                        {item.hasDropdown && item.items && (
+                          <div className="ml-4 space-y-2">
+                            {item.items.map((subItem) => (
+                              <div key={subItem.name} className="space-y-1">
+                                <Link
+                                  to={subItem.href}
+                                  className="block text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  {subItem.name}
+                                </Link>
+                                {subItem.children && subItem.children.length > 0 && (
+                                  <div className="ml-3 space-y-1">
+                                    {subItem.children.map((child) => (
+                                      <Link
+                                        key={child.name}
+                                        to={child.href}
+                                        className="block text-xs text-foreground/60 hover:text-foreground transition-colors"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                      >
+                                        {child.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </SheetContent>
@@ -200,22 +319,38 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                           {item.name}
                         </Link>
                         
-                        {/* Dropdown */}
+                        {/* Enhanced Dropdown with Nested Categories */}
                         <div className="absolute top-full left-1/2 transform -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out translate-y-[10px] group-hover:translate-y-0 z-50">
                           <div 
-                            className="bg-background/95 backdrop-blur-[12px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/10 w-[400px] py-4"
+                            className="bg-background/95 backdrop-blur-[12px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/10 w-[500px] py-4"
                             style={{ backdropFilter: 'blur(12px)' }}
                           >
-                            {item.items?.map((subItem) => (
-                              <Link
-                                key={subItem.name}
-                                to={subItem.href}
-                                className="block px-6 py-3 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all duration-200"
-                                style={{ letterSpacing: '0.5px' }}
-                              >
-                                {subItem.name}
-                              </Link>
-                            ))}
+                            <div className="grid grid-cols-2 gap-4 px-4">
+                              {item.items?.map((subItem) => (
+                                <div key={subItem.name} className="space-y-2">
+                                  <Link
+                                    to={subItem.href}
+                                    className="block px-3 py-2 text-sm font-semibold text-foreground hover:text-primary hover:bg-white/10 rounded-lg transition-all duration-200"
+                                    style={{ letterSpacing: '0.5px' }}
+                                  >
+                                    {subItem.name}
+                                  </Link>
+                                  {subItem.children && subItem.children.length > 0 && (
+                                    <div className="space-y-1 ml-2">
+                                      {subItem.children.map((child) => (
+                                        <Link
+                                          key={child.name}
+                                          to={child.href}
+                                          className="block px-3 py-1.5 text-xs text-foreground/70 hover:text-foreground hover:bg-white/5 rounded transition-all duration-200"
+                                        >
+                                          {child.name}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
