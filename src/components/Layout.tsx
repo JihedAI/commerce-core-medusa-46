@@ -71,45 +71,7 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
         return product_categories || [];
       } catch (error) {
         console.error("Failed to fetch nested categories:", error);
-        // Fallback categories with nested structure
-        return [
-          { 
-            id: 'men', 
-            name: 'Men', 
-            handle: 'men',
-            category_children: [
-              { id: 'men-aviator', name: 'Aviator', handle: 'men-aviator' },
-              { id: 'men-wayfarer', name: 'Wayfarer', handle: 'men-wayfarer' },
-              { id: 'men-sport', name: 'Sport', handle: 'men-sport' }
-            ]
-          },
-          { 
-            id: 'women', 
-            name: 'Women', 
-            handle: 'women',
-            category_children: [
-              { id: 'women-cat-eye', name: 'Cat Eye', handle: 'women-cat-eye' },
-              { id: 'women-oversized', name: 'Oversized', handle: 'women-oversized' },
-              { id: 'women-retro', name: 'Retro', handle: 'women-retro' }
-            ]
-          },
-          { 
-            id: 'sport', 
-            name: 'Sport', 
-            handle: 'sport',
-            category_children: [
-              { id: 'sport-running', name: 'Running', handle: 'sport-running' },
-              { id: 'sport-cycling', name: 'Cycling', handle: 'sport-cycling' },
-              { id: 'sport-water', name: 'Water Sports', handle: 'sport-water' }
-            ]
-          },
-          { 
-            id: 'limited', 
-            name: 'Limited Editions', 
-            handle: 'limited',
-            category_children: []
-          }
-        ];
+        return [];
       }
     },
   });
@@ -159,56 +121,18 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   }, [popularSearchPhrases.length]);
 
 
-  // Create navigation from categories directly
-  const categoryNavItems: Navigation[] = categoriesData.length > 0 
-    ? categoriesData.map(cat => ({
-        name: cat.name,
-        href: `/categories/${cat.handle}`,
-        hasDropdown: cat.category_children && cat.category_children.length > 0,
-        items: cat.category_children && cat.category_children.length > 0 
-          ? cat.category_children.map(child => ({
-              name: child.name,
-              href: `/categories/${child.handle}`
-            }))
-          : undefined
-      }))
-    : [
-        { 
-          name: 'Men', 
-          href: '/categories/men',
-          hasDropdown: true,
-          items: [
-            { name: 'Aviator', href: '/categories/men-aviator' },
-            { name: 'Wayfarer', href: '/categories/men-wayfarer' },
-            { name: 'Sport', href: '/categories/men-sport' }
-          ]
-        },
-        { 
-          name: 'Women', 
-          href: '/categories/women',
-          hasDropdown: true,
-          items: [
-            { name: 'Cat Eye', href: '/categories/women-cat-eye' },
-            { name: 'Oversized', href: '/categories/women-oversized' },
-            { name: 'Retro', href: '/categories/women-retro' }
-          ]
-        },
-        { 
-          name: 'Sport', 
-          href: '/categories/sport',
-          hasDropdown: true,
-          items: [
-            { name: 'Running', href: '/categories/sport-running' },
-            { name: 'Cycling', href: '/categories/sport-cycling' },
-            { name: 'Water Sports', href: '/categories/sport-water' }
-          ]
-        },
-        { 
-          name: 'Limited Editions', 
-          href: '/categories/limited',
-          hasDropdown: false
-        }
-      ];
+  // Create navigation from categories directly - only use fetched data
+  const categoryNavItems: Navigation[] = categoriesData.map(cat => ({
+    name: cat.name,
+    href: `/categories/${cat.handle}`,
+    hasDropdown: cat.category_children && cat.category_children.length > 0,
+    items: cat.category_children && cat.category_children.length > 0 
+      ? cat.category_children.map(child => ({
+          name: child.name,
+          href: `/categories/${child.handle}`
+        }))
+      : undefined
+  }));
 
   const navigation: Navigation[] = [
     ...categoryNavItems,
