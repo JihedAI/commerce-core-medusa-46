@@ -24,26 +24,6 @@ interface LayoutProps {
   isHomePage?: boolean;
 }
 
-// Types for navigation structure
-interface NavigationChild {
-  name: string;
-  href: string;
-}
-
-interface NavigationItem {
-  name: string;
-  href: string;
-  children?: NavigationChild[];
-}
-
-interface Navigation {
-  name: string;
-  href: string;
-  hasDropdown?: boolean;
-  hasUnderline?: boolean;
-  items?: NavigationItem[];
-}
-
 export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const { cart } = useCart();
   const { customer, logout } = useAuth();
@@ -56,59 +36,24 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch nested categories using proper Medusa SDK method
+  // Fetch categories using React Query like other components
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
       try {
         const { product_categories } = await sdk.store.category.list({
-          fields: "id,name,handle,description,category_children.id,category_children.name,category_children.handle",
-          include_descendants_tree: true,
-          parent_category_id: null, // Get top-level categories with their children
-          limit: 100
+          limit: 100,
+          fields: "id,name,handle"
         });
-        console.log('Nested categories fetched:', product_categories);
+        console.log('Categories fetched:', product_categories);
         return product_categories || [];
       } catch (error) {
-        console.error("Failed to fetch nested categories:", error);
-        // Fallback categories with nested structure
+        console.error("Failed to fetch categories:", error);
         return [
-          { 
-            id: 'men', 
-            name: 'Men', 
-            handle: 'men',
-            category_children: [
-              { id: 'men-aviator', name: 'Aviator', handle: 'men-aviator' },
-              { id: 'men-wayfarer', name: 'Wayfarer', handle: 'men-wayfarer' },
-              { id: 'men-sport', name: 'Sport', handle: 'men-sport' }
-            ]
-          },
-          { 
-            id: 'women', 
-            name: 'Women', 
-            handle: 'women',
-            category_children: [
-              { id: 'women-cat-eye', name: 'Cat Eye', handle: 'women-cat-eye' },
-              { id: 'women-oversized', name: 'Oversized', handle: 'women-oversized' },
-              { id: 'women-retro', name: 'Retro', handle: 'women-retro' }
-            ]
-          },
-          { 
-            id: 'sport', 
-            name: 'Sport', 
-            handle: 'sport',
-            category_children: [
-              { id: 'sport-running', name: 'Running', handle: 'sport-running' },
-              { id: 'sport-cycling', name: 'Cycling', handle: 'sport-cycling' },
-              { id: 'sport-water', name: 'Water Sports', handle: 'sport-water' }
-            ]
-          },
-          { 
-            id: 'limited', 
-            name: 'Limited Editions', 
-            handle: 'limited',
-            category_children: []
-          }
+          { id: 'men', name: 'Men', handle: 'men' },
+          { id: 'women', name: 'Women', handle: 'women' },
+          { id: 'sport', name: 'Sport', handle: 'sport' },
+          { id: 'limited', name: 'Limited Editions', handle: 'limited' }
         ];
       }
     },
@@ -159,53 +104,19 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   }, [popularSearchPhrases.length]);
 
 
-  const navigation: Navigation[] = [
+  const navigation = [
     { 
       name: "Sunglasses", 
       href: "/categories",
       hasDropdown: true,
-      items: categoriesData.length > 0 ? categoriesData.map(cat => ({
-        name: cat.name,
-        href: `/categories/${cat.handle}`,
-        children: cat.category_children && cat.category_children.length > 0 
-          ? cat.category_children.map(child => ({
-              name: child.name,
-              href: `/categories/${child.handle}`
-            }))
-          : undefined
+      items: categoriesData.length > 0 ? categoriesData.map(cat => ({ 
+        name: cat.name, 
+        href: `/categories/${cat.handle}` 
       })) : [
-        { 
-          name: 'Men', 
-          href: '/categories/men',
-          children: [
-            { name: 'Aviator', href: '/categories/men-aviator' },
-            { name: 'Wayfarer', href: '/categories/men-wayfarer' },
-            { name: 'Sport', href: '/categories/men-sport' }
-          ]
-        },
-        { 
-          name: 'Women', 
-          href: '/categories/women',
-          children: [
-            { name: 'Cat Eye', href: '/categories/women-cat-eye' },
-            { name: 'Oversized', href: '/categories/women-oversized' },
-            { name: 'Retro', href: '/categories/women-retro' }
-          ]
-        },
-        { 
-          name: 'Sport', 
-          href: '/categories/sport',
-          children: [
-            { name: 'Running', href: '/categories/sport-running' },
-            { name: 'Cycling', href: '/categories/sport-cycling' },
-            { name: 'Water Sports', href: '/categories/sport-water' }
-          ]
-        },
-        { 
-          name: 'Limited Editions', 
-          href: '/categories/limited',
-          children: []
-        }
+        { name: 'Men', href: '/categories/men' },
+        { name: 'Women', href: '/categories/women' },
+        { name: 'Sport', href: '/categories/sport' },
+        { name: 'Limited Editions', href: '/categories/limited' }
       ]
     },
     { 
@@ -229,73 +140,101 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-700 ease-out ${
+      <header className={`fixed top-0 left-0 right-0 z-50 h-16 sm:h-20 transition-all duration-700 ease-out safe-area-inset ${
         hasScrolled 
           ? 'bg-background/70 backdrop-blur-[20px] border-b border-white/10 shadow-lg' 
           : 'bg-transparent'
       }`}>
-        <nav className="w-full h-full px-8">
+        <nav className="w-full h-full px-4 sm:px-6 lg:px-8">
           <div className="flex h-full items-center justify-between">
             {/* Left Navigation - Far left */}
             <div className="flex items-center">
               {/* Mobile menu button */}
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild className="lg:hidden mr-4">
-                  <Button variant="ghost" size="icon" className={`transition-colors duration-300 ${
+                <SheetTrigger asChild className="lg:hidden mr-2 sm:mr-4">
+                  <Button variant="ghost" size="icon" className={`touch-target transition-colors duration-300 ${
                     hasScrolled ? 'text-foreground hover:bg-muted' : 'text-primary hover:bg-white/10'
                   }`}>
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-80 bg-background/95 backdrop-blur-md border-white/20">
-                  <div className="flex flex-col gap-6 mt-8">
+                <SheetContent side="left" className="w-72 sm:w-80 bg-background/95 backdrop-blur-md border border-border safe-area-inset">
+                  <div className="flex flex-col mt-8">
+                    {/* Mobile Navigation Categories */}
                     {navigation.map((item) => (
-                      <div key={item.name} className="space-y-3">
+                      <div key={item.name} className="border-b border-border/50 last:border-b-0">
                         <Link
                           to={item.href}
-                          className="text-lg font-semibold text-foreground tracking-wide transition-colors hover:text-primary"
+                          className="flex items-center justify-between py-4 px-2 text-lg font-medium text-foreground tracking-wide transition-colors hover:text-primary touch-target"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           {item.name}
                         </Link>
+                        {/* Mobile Submenu */}
                         {item.hasDropdown && item.items && (
-                          <div className="ml-4 space-y-2">
+                          <div className="pb-4 border-t border-border/30">
                             {item.items.map((subItem) => (
-                              <div key={subItem.name} className="space-y-1">
-                                <Link
-                                  to={subItem.href}
-                                  className="block text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-                                  onClick={() => setMobileMenuOpen(false)}
-                                >
-                                  {subItem.name}
-                                </Link>
-                                {subItem.children && subItem.children.length > 0 && (
-                                  <div className="ml-3 space-y-1">
-                                    {subItem.children.map((child) => (
-                                      <Link
-                                        key={child.name}
-                                        to={child.href}
-                                        className="block text-xs text-foreground/60 hover:text-foreground transition-colors"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                      >
-                                        {child.name}
-                                      </Link>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
+                              <Link
+                                key={subItem.name}
+                                to={subItem.href}
+                                className="block py-3 px-6 text-sm text-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors touch-target"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                {subItem.name}
+                              </Link>
                             ))}
                           </div>
                         )}
                       </div>
                     ))}
+                    
+                    {/* Mobile-only quick links */}
+                    <div className="mt-8 pt-6 border-t border-border">
+                      {!customer ? (
+                        <div className="flex flex-col gap-3">
+                          <Link
+                            to="/login"
+                            className="flex items-center py-3 px-2 text-foreground hover:text-primary transition-colors touch-target"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Login
+                          </Link>
+                          <Link
+                            to="/register"
+                            className="flex items-center py-3 px-2 text-foreground hover:text-primary transition-colors touch-target"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Create Account
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          <Link
+                            to="/profile"
+                            className="flex items-center py-3 px-2 text-foreground hover:text-primary transition-colors touch-target"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            My Profile
+                          </Link>
+                          <button
+                            onClick={() => {
+                              logout();
+                              setMobileMenuOpen(false);
+                            }}
+                            className="flex items-center py-3 px-2 text-foreground hover:text-primary transition-colors touch-target text-left"
+                          >
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
 
               {/* Desktop Navigation */}
               <div className={`hidden lg:flex items-center transition-all duration-700 ease-out ${
-                hasScrolled ? 'lg:gap-x-6' : 'lg:gap-x-8'
+                hasScrolled ? 'lg:gap-x-4 xl:gap-x-6' : 'lg:gap-x-6 xl:gap-x-8'
               }`}>
                 {navigation.map((item, index) => (
                   <div 
@@ -310,7 +249,7 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                       <div className="relative">
                         <Link
                           to={item.href}
-                          className={`font-medium text-xs tracking-[0.15em] uppercase transition-all duration-500 block py-2 ${
+                          className={`font-medium text-xs xl:text-sm tracking-[0.1em] xl:tracking-[0.15em] uppercase transition-all duration-500 block py-2 touch-target ${
                             hasScrolled 
                               ? 'text-foreground hover:text-foreground/80' 
                               : 'text-primary/80 hover:text-primary'
@@ -319,45 +258,25 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                           {item.name}
                         </Link>
                         
-                        {/* Enhanced Dropdown with Nested Categories */}
+                        {/* Dropdown */}
                         <div className="absolute top-full left-1/2 transform -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out translate-y-[10px] group-hover:translate-y-0 z-50">
-                          <div 
-                            className="bg-background/95 backdrop-blur-[12px] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] border border-white/10 w-[500px] py-4"
-                            style={{ backdropFilter: 'blur(12px)' }}
-                          >
-                            <div className="grid grid-cols-2 gap-4 px-4">
-                              {item.items?.map((subItem) => (
-                                <div key={subItem.name} className="space-y-2">
-                                  <Link
-                                    to={subItem.href}
-                                    className="block px-3 py-2 text-sm font-semibold text-foreground hover:text-primary hover:bg-white/10 rounded-lg transition-all duration-200"
-                                    style={{ letterSpacing: '0.5px' }}
-                                  >
-                                    {subItem.name}
-                                  </Link>
-                                  {subItem.children && subItem.children.length > 0 && (
-                                    <div className="space-y-1 ml-2">
-                                      {subItem.children.map((child) => (
-                                        <Link
-                                          key={child.name}
-                                          to={child.href}
-                                          className="block px-3 py-1.5 text-xs text-foreground/70 hover:text-foreground hover:bg-white/5 rounded transition-all duration-200"
-                                        >
-                                          {child.name}
-                                        </Link>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+                          <div className="bg-background/95 backdrop-blur-[12px] rounded-lg shadow-xl border border-border w-72 xl:w-80 py-2">
+                            {item.items?.map((subItem) => (
+                              <Link
+                                key={subItem.name}
+                                to={subItem.href}
+                                className="block px-4 py-3 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted/50 transition-all duration-200 touch-target"
+                              >
+                                {subItem.name}
+                              </Link>
+                            ))}
                           </div>
                         </div>
                       </div>
                     ) : (
                       <Link
                         to={item.href}
-                        className={`font-medium text-xs tracking-[0.15em] uppercase transition-all duration-500 relative group ${
+                        className={`font-medium text-xs xl:text-sm tracking-[0.1em] xl:tracking-[0.15em] uppercase transition-all duration-500 relative group touch-target ${
                           hasScrolled 
                             ? 'text-foreground hover:text-foreground/80' 
                             : 'text-primary/80 hover:text-primary'
@@ -371,27 +290,27 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
               </div>
             </div>
 
-            {/* Center Brand - Bigger and wider */}
+            {/* Center Brand - Responsive sizing */}
             <Link 
               to="/" 
-              className="absolute left-1/2 transform -translate-x-1/2 flex items-center transition-all duration-700 ease-out"
+              className="absolute left-1/2 transform -translate-x-1/2 flex items-center transition-all duration-700 ease-out touch-target"
             >
-              <span className={`font-display font-bold transition-all duration-700 ease-out tracking-[0.35em] uppercase ${
+              <span className={`font-display font-bold transition-all duration-700 ease-out tracking-[0.2em] sm:tracking-[0.25em] lg:tracking-[0.35em] uppercase ${
                 hasScrolled 
-                  ? 'text-2xl text-foreground' 
-                  : 'text-5xl text-primary'
+                  ? 'text-lg sm:text-xl lg:text-2xl text-foreground' 
+                  : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-primary'
               }`}>
                 Amine
               </span>
             </Link>
 
-            {/* Right side actions - Far right */}
-            <div className="flex items-center gap-5">
-              {/* Enhanced Search */}
-              <div className="flex items-center gap-3">
+            {/* Right side actions - Responsive spacing */}
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+              {/* Enhanced Search - Hidden on small screens, shown on medium+ */}
+              <div className="hidden sm:flex items-center gap-2 lg:gap-3">
                 {/* Cycling Search Phrases or Search Input */}
                 {!searchExpanded ? (
-                  <div className="hidden md:block overflow-hidden h-6 relative">
+                  <div className="hidden lg:block overflow-hidden h-6 relative">
                     <div 
                       className={`transition-transform duration-500 ease-out ${
                         hasScrolled ? 'text-foreground/60' : 'text-primary/60'
@@ -414,8 +333,8 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                   <div className="flex items-center transition-all duration-300 ease-out">
                     <Input
                       type="search"
-                      placeholder="Search for sunglasses…"
-                      className={`w-64 h-8 text-sm transition-all duration-300 ease-out border-0 focus:ring-0 focus:border-0 focus:outline-none ${
+                      placeholder="Search..."
+                      className={`w-32 sm:w-48 lg:w-64 h-8 text-sm transition-all duration-300 ease-out border-0 focus:ring-0 focus:border-0 focus:outline-none ${
                         hasScrolled 
                           ? 'bg-background/50 text-foreground placeholder:text-foreground/60' 
                           : 'bg-white/10 text-primary placeholder:text-primary/60'
@@ -436,7 +355,7 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                       setSearchExpanded(true);
                     }
                   }}
-                  className={`transition-all duration-500 ${
+                  className={`touch-target transition-all duration-500 ${
                     hasScrolled 
                       ? 'text-foreground hover:bg-muted' 
                       : 'text-primary/80 hover:bg-white/10 hover:scale-110'
@@ -445,6 +364,20 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* Mobile Search - Only visible on small screens */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setFullSearchOpen(true)}
+                className={`sm:hidden touch-target transition-all duration-500 ${
+                  hasScrolled 
+                    ? 'text-foreground hover:bg-muted' 
+                    : 'text-primary/80 hover:bg-white/10 hover:scale-110'
+                }`}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
 
               {/* Full Search Overlay */}
               {fullSearchOpen && (
@@ -476,11 +409,11 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
               {/* Theme Toggle */}
               <ThemeToggle />
 
-              {/* Account */}
+              {/* Account - Hidden on mobile, handled in mobile menu */}
               {customer ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className={`transition-all duration-500 ${
+                    <Button variant="ghost" size="icon" className={`hidden sm:flex touch-target transition-all duration-500 ${
                       hasScrolled 
                         ? 'text-foreground hover:bg-muted' 
                         : 'text-primary/80 hover:bg-white/10 hover:scale-110'
@@ -488,16 +421,16 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-background/90 backdrop-blur-[20px] border-white/20">
-                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-foreground hover:bg-white/10">
+                  <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-[20px] border border-border">
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-foreground hover:bg-muted/50 touch-target">
                       <User className="mr-2 h-4 w-4" />
                       My Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-foreground hover:bg-white/10">
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-foreground hover:bg-muted/50 touch-target">
                       Your Orders
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-white/20" />
-                    <DropdownMenuItem onClick={logout} className="text-foreground hover:bg-white/10">
+                    <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuItem onClick={logout} className="text-foreground hover:bg-muted/50 touch-target">
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout
                     </DropdownMenuItem>
@@ -506,7 +439,7 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
               ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className={`transition-all duration-500 ${
+                    <Button variant="ghost" size="icon" className={`hidden sm:flex touch-target transition-all duration-500 ${
                       hasScrolled 
                         ? 'text-foreground hover:bg-muted' 
                         : 'text-primary/80 hover:bg-white/10 hover:scale-110'
@@ -514,11 +447,11 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-background/90 backdrop-blur-[20px] border-white/20">
-                    <DropdownMenuItem onClick={() => navigate('/login')} className="text-foreground hover:bg-white/10">
+                  <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-[20px] border border-border">
+                    <DropdownMenuItem onClick={() => navigate('/login')} className="text-foreground hover:bg-muted/50 touch-target">
                       Login
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/register')} className="text-foreground hover:bg-white/10">
+                    <DropdownMenuItem onClick={() => navigate('/register')} className="text-foreground hover:bg-muted/50 touch-target">
                       Create Account
                     </DropdownMenuItem>
                   </DropdownMenuContent>
