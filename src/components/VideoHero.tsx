@@ -82,35 +82,35 @@ export default function VideoHero({ videos }: VideoHeroProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
       </div>
 
-      {/* Content Overlay - Responsive */}
-      <div className="relative h-full flex flex-col items-center justify-end container-padding pb-16 sm:pb-20 lg:pb-32 safe-area-inset">
-        {/* Tagline - Fluid typography */}
-        <div className="mb-6 sm:mb-8 text-center animate-fade-in">
-          <h1 className="font-display text-fluid-6xl sm:text-fluid-7xl lg:text-fluid-8xl text-primary mb-2 sm:mb-4 tracking-wider">
+      {/* Content Overlay */}
+      <div className="relative h-full flex flex-col items-center justify-end px-6 pb-32">
+        {/* Tagline */}
+        <div className="mb-8 text-center animate-fade-in">
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl text-primary mb-4 tracking-wider">
             TIMELESS
           </h1>
-          <p className="font-elegant text-fluid-lg sm:text-fluid-xl lg:text-fluid-2xl text-primary/90 tracking-[0.2em] sm:tracking-[0.3em] uppercase">
+          <p className="font-elegant text-xl md:text-2xl text-primary/90 tracking-[0.3em] uppercase">
             Redefine Your Perspective
           </p>
         </div>
 
-        {/* CTA Buttons - Responsive layout and touch-friendly */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-12 sm:mb-16 animate-fade-in animation-delay-300 w-full max-w-md sm:max-w-none">
-          <Link to="/products" className="w-full sm:w-auto">
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-16 animate-fade-in animation-delay-300">
+          <Link to="/products">
             <Button 
               size="lg"
-              className="w-full sm:w-auto group bg-primary/10 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary hover:text-background transition-all duration-500 px-6 sm:px-8 py-4 sm:py-6 text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase touch-target"
+              className="group bg-primary/10 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary hover:text-background transition-all duration-500 px-8 py-6 text-sm tracking-[0.2em] uppercase"
             >
               Shop Now
               <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
           
-          <Link to="/collections" className="w-full sm:w-auto">
+          <Link to="/collections">
             <Button 
               size="lg"
               variant="outline"
-              className="w-full sm:w-auto group bg-transparent backdrop-blur-md border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all duration-500 px-6 sm:px-8 py-4 sm:py-6 text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase touch-target"
+              className="group bg-transparent backdrop-blur-md border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all duration-500 px-8 py-6 text-sm tracking-[0.2em] uppercase"
             >
               Collections
               <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -118,17 +118,17 @@ export default function VideoHero({ videos }: VideoHeroProps) {
           </Link>
         </div>
 
-        {/* Progress Tracker - Responsive positioning */}
-        <div className="absolute bottom-6 sm:bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-2 sm:gap-3">
+        {/* Progress Tracker - Positioned at bottom */}
+        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
           {videos.map((_, index) => (
             <button
               key={index}
               onClick={() => handleVideoClick(index)}
-              className="relative group cursor-pointer touch-target"
+              className="relative group cursor-pointer"
               aria-label={`Go to video ${index + 1}`}
             >
-              {/* Progress Line Background - Responsive size */}
-              <div className="w-10 sm:w-12 lg:w-16 h-[2px] bg-primary/30 rounded-full overflow-hidden transition-all duration-300 group-hover:bg-primary/50">
+              {/* Progress Line Background */}
+              <div className="w-16 h-[2px] bg-primary/30 rounded-full overflow-hidden transition-all duration-300 group-hover:bg-primary/50">
                 {/* Progress Fill */}
                 <div
                   className={`h-full bg-primary rounded-full transition-all duration-300 ${

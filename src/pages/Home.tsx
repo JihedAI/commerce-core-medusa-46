@@ -15,8 +15,8 @@ export default function Home() {
 
   return (
     <Layout isHomePage={true}>
-      {/* Fullscreen Hero - responsive offset for navbar */}
-      <div className="-mt-16 sm:-mt-20">
+      {/* Fullscreen Hero - offset negative margin to go under navbar */}
+      <div className="-mt-20">
         <VideoHero videos={heroVideos} />
       </div>
       

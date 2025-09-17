@@ -129,31 +129,31 @@ const StoreLocator = () => {
   }, []);
 
   return (
-    <section className="w-full section-spacing bg-background">
-      <div className="container mx-auto container-padding">
-        {/* Section Header - Responsive typography */}
-        <div className="text-center mb-12 sm:mb-16">
-          <h2 className="text-fluid-4xl md:text-fluid-5xl font-display font-bold text-foreground mb-4">
+    <section className="w-full py-24 bg-background">
+      <div className="container mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
             Find Us In Stores
           </h2>
-          <div className="w-16 sm:w-24 h-px bg-primary mx-auto"></div>
+          <div className="w-24 h-px bg-primary mx-auto"></div>
         </div>
 
-        {/* Map Container - Responsive sizing */}
+        {/* Map Container */}
         <div className="relative">
           <div 
             ref={mapContainer} 
-            className="w-full h-[300px] sm:h-[400px] lg:h-[500px] rounded-lg shadow-xl"
+            className="w-full h-[500px] rounded-lg shadow-xl"
             style={{ background: 'hsl(0 0% 7%)' }}
           />
         </div>
 
-        {/* CTA Button - Touch-friendly */}
-        <div className="text-center mt-8 sm:mt-12">
+        {/* CTA Button */}
+        <div className="text-center mt-12">
           <Button 
             variant="outline" 
             size="lg"
-            className="w-full sm:w-auto px-8 py-3 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 hover:shadow-glow touch-target"
+            className="px-8 py-3 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 hover:shadow-glow"
           >
             View All Locations
           </Button>
