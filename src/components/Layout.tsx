@@ -159,25 +159,25 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   }, [popularSearchPhrases.length]);
 
 
-  const navigation: Navigation[] = [
-    { 
-      name: "Sunglasses", 
-      href: "/categories",
-      hasDropdown: true,
-      items: categoriesData.length > 0 ? categoriesData.map(cat => ({
+  // Create navigation from categories directly
+  const categoryNavItems: Navigation[] = categoriesData.length > 0 
+    ? categoriesData.map(cat => ({
         name: cat.name,
         href: `/categories/${cat.handle}`,
-        children: cat.category_children && cat.category_children.length > 0 
+        hasDropdown: cat.category_children && cat.category_children.length > 0,
+        items: cat.category_children && cat.category_children.length > 0 
           ? cat.category_children.map(child => ({
               name: child.name,
               href: `/categories/${child.handle}`
             }))
           : undefined
-      })) : [
+      }))
+    : [
         { 
           name: 'Men', 
           href: '/categories/men',
-          children: [
+          hasDropdown: true,
+          items: [
             { name: 'Aviator', href: '/categories/men-aviator' },
             { name: 'Wayfarer', href: '/categories/men-wayfarer' },
             { name: 'Sport', href: '/categories/men-sport' }
@@ -186,7 +186,8 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
         { 
           name: 'Women', 
           href: '/categories/women',
-          children: [
+          hasDropdown: true,
+          items: [
             { name: 'Cat Eye', href: '/categories/women-cat-eye' },
             { name: 'Oversized', href: '/categories/women-oversized' },
             { name: 'Retro', href: '/categories/women-retro' }
@@ -195,7 +196,8 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
         { 
           name: 'Sport', 
           href: '/categories/sport',
-          children: [
+          hasDropdown: true,
+          items: [
             { name: 'Running', href: '/categories/sport-running' },
             { name: 'Cycling', href: '/categories/sport-cycling' },
             { name: 'Water Sports', href: '/categories/sport-water' }
@@ -204,10 +206,12 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
         { 
           name: 'Limited Editions', 
           href: '/categories/limited',
-          children: []
+          hasDropdown: false
         }
-      ]
-    },
+      ];
+
+  const navigation: Navigation[] = [
+    ...categoryNavItems,
     { 
       name: "Collections", 
       href: "/collections",
