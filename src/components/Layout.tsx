@@ -24,6 +24,14 @@ interface LayoutProps {
   isHomePage?: boolean;
 }
 
+interface NavigationItem {
+  name: string;
+  href: string;
+  hasDropdown?: boolean;
+  hasUnderline?: boolean;
+  items?: { name: string; href: string; }[];
+}
+
 export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const { cart } = useCart();
   const { customer, logout } = useAuth();
@@ -36,24 +44,26 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch categories using React Query like other components
+  // Fetch categories with nested structure using React Query
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
       try {
         const { product_categories } = await sdk.store.category.list({
-          limit: 100,
-          fields: "id,name,handle"
+          fields: "id,name,handle,category_children.id,category_children.name,category_children.handle",
+          include_descendants_tree: true,
+          parent_category_id: null,
+          limit: 100
         });
-        console.log('Categories fetched:', product_categories);
+        console.log('Nested categories fetched:', product_categories);
         return product_categories || [];
       } catch (error) {
         console.error("Failed to fetch categories:", error);
         return [
-          { id: 'men', name: 'Men', handle: 'men' },
-          { id: 'women', name: 'Women', handle: 'women' },
-          { id: 'sport', name: 'Sport', handle: 'sport' },
-          { id: 'limited', name: 'Limited Editions', handle: 'limited' }
+          { id: 'men', name: 'Men', handle: 'men', category_children: [] },
+          { id: 'women', name: 'Women', handle: 'women', category_children: [] },
+          { id: 'sport', name: 'Sport', handle: 'sport', category_children: [] },
+          { id: 'limited', name: 'Limited Editions', handle: 'limited', category_children: [] }
         ];
       }
     },
@@ -104,21 +114,18 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   }, [popularSearchPhrases.length]);
 
 
-  const navigation = [
-    { 
-      name: "Sunglasses", 
-      href: "/categories",
-      hasDropdown: true,
-      items: categoriesData.length > 0 ? categoriesData.map(cat => ({ 
-        name: cat.name, 
-        href: `/categories/${cat.handle}` 
-      })) : [
-        { name: 'Men', href: '/categories/men' },
-        { name: 'Women', href: '/categories/women' },
-        { name: 'Sport', href: '/categories/sport' },
-        { name: 'Limited Editions', href: '/categories/limited' }
-      ]
-    },
+  // Build navigation items dynamically from categories and collections
+  const navigation: NavigationItem[] = [
+    // Dynamic categories as top-level navigation items
+    ...categoriesData.map(category => ({
+      name: category.name,
+      href: `/categories/${category.handle}`,
+      hasDropdown: category.category_children && category.category_children.length > 0,
+      items: category.category_children?.map(child => ({
+        name: child.name,
+        href: `/categories/${child.handle}`
+      }))
+    })),
     { 
       name: "Collections", 
       href: "/collections",
