@@ -44,27 +44,29 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch categories with proper nested structure following Medusa best practices
-  const { data: categoriesData = [], isLoading: loadingCategories } = useQuery({
+  // Fetch categories with nested structure using React Query
+  const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
       try {
         const { product_categories } = await sdk.store.category.list({
-          // Only top-level categories
-          parent_category_id: null,
-          // Pull descendants so we can render dropdowns
+          fields: "id,name,handle,category_children.id,category_children.name,category_children.handle",
           include_descendants_tree: true,
-          // Keep payload light: top-level + children (id, name, handle)
-          fields: "id,name,handle,category_children.id,category_children.name,category_children.handle,category_children.category_children.id,category_children.category_children.name,category_children.category_children.handle",
+          parent_category_id: null,
+          limit: 100
         });
-        console.log('Categories with nested structure fetched:', product_categories);
+        console.log('Nested categories fetched:', product_categories);
         return product_categories || [];
       } catch (error) {
         console.error("Failed to fetch categories:", error);
-        return [];
+        return [
+          { id: 'men', name: 'Men', handle: 'men', category_children: [] },
+          { id: 'women', name: 'Women', handle: 'women', category_children: [] },
+          { id: 'sport', name: 'Sport', handle: 'sport', category_children: [] },
+          { id: 'limited', name: 'Limited Editions', handle: 'limited', category_children: [] }
+        ];
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Fetch collections using React Query like other components
