@@ -9,7 +9,7 @@ export default function Home() {
   // Sample video URLs - replace with actual video content
   const heroVideos = [
     "https://www.pexels.com/download/video/3326997/",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", 
+    "https://cdn.pixabay.com/video/2025/01/21/253877_large.mp4", 
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
   ];
 
