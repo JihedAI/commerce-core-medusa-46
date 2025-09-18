@@ -13,7 +13,7 @@ import Layout from "@/components/Layout";
 import { useRegion } from "@/contexts/RegionContext";
 
 export default function Products() {
-  const { id: categoryId } = useParams();
+  const { handle: categoryHandle } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentRegion } = useRegion();
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,9 +25,31 @@ export default function Products() {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = 20;
 
+  // Fetch category by handle if categoryHandle is provided
+  const { data: categoryData } = useQuery({
+    queryKey: ["category-by-handle", categoryHandle],
+    queryFn: async () => {
+      if (!categoryHandle) return null;
+      
+      try {
+        // First, find the category by handle
+        const { product_categories } = await sdk.store.category.list({
+          fields: "id,name,handle",
+          handle: categoryHandle
+        });
+        
+        return product_categories?.[0] || null;
+      } catch (error) {
+        console.error("Failed to fetch category by handle:", error);
+        return null;
+      }
+    },
+    enabled: !!categoryHandle,
+  });
+
   // Fetch products using the new SDK
   const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ["products", categoryId, sortBy, page, selectedCollections, selectedCategories, currentRegion?.id],
+    queryKey: ["products", categoryData?.id, sortBy, page, selectedCollections, selectedCategories, currentRegion?.id],
     queryFn: async () => {
       if (!currentRegion) return { products: [], count: 0 };
       
@@ -58,8 +80,8 @@ export default function Products() {
           params.order = "-created_at";
       }
 
-      if (categoryId) {
-        params.category_id = [categoryId];
+      if (categoryData?.id) {
+        params.category_id = [categoryData.id];
       }
 
       if (selectedCollections.length > 0) {
@@ -78,7 +100,7 @@ export default function Products() {
       const { products, count } = await sdk.store.product.list(params);
       return { products: products || [], count: count || 0 };
     },
-    enabled: !!currentRegion,
+    enabled: !!currentRegion && (!categoryHandle || !!categoryData),
   });
 
   // Fetch categories for filters using the new SDK
@@ -136,6 +158,16 @@ export default function Products() {
   return (
     <Layout>
       <div className="min-h-screen bg-background">
+        {/* Page Title - Show category name if viewing a specific category */}
+        {categoryData && (
+          <div className="container mx-auto px-4 pt-8 pb-4">
+            <div className="text-center">
+              <h1 className="text-3xl font-display font-bold mb-2">{categoryData.name}</h1>
+              <p className="text-muted-foreground">Explore our {categoryData.name.toLowerCase()} collection</p>
+            </div>
+          </div>
+        )}
+        
         {/* Collections Pills Section */}
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
