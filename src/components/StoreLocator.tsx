@@ -34,10 +34,10 @@ const StoreLocator = () => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Tunisia bounding box (approximate)
+    // Correct Tunisia bounding box
     const tunisiaBounds: [[number, number], [number, number]] = [
-      [7.0, 30.0],   // Southwest corner [lng, lat]
-      [12.5, 37.5]   // Northeast corner
+      [7.52, 30.24],  // Southwest corner
+      [11.60, 37.54]  // Northeast corner
     ];
 
     mapboxgl.accessToken =
@@ -46,12 +46,12 @@ const StoreLocator = () => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [9.5375, 33.8869], // Center of Tunisia
-      zoom: 5,                   // Adjusted zoom
+      center: [9.5375, 33.8869], // Tunisia center
+      zoom: 5,
       pitch: 0
     });
 
-    // Restrict map to Tunisia
+    // Lock map to Tunisia only
     map.current.setMaxBounds(tunisiaBounds);
 
     // Add navigation controls
@@ -104,6 +104,9 @@ const StoreLocator = () => {
 
         markers.current.push(marker);
       });
+
+      // Fit map to Tunisia bounds on load
+      map.current!.fitBounds(tunisiaBounds, { padding: 40 });
     });
 
     // Cleanup on unmount
