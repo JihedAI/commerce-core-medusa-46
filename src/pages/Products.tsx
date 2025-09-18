@@ -137,95 +137,105 @@ export default function Products() {
     },
   });
 
-  // Fetch product types (brands) and tags from products - unified approach
+  // Fetch all products with types and tags to extract unique values
   const { data: filterData } = useQuery({
     queryKey: ["product-filters"],
     queryFn: async () => {
       try {
-        console.log("🔍 Fetching products for filter data extraction...");
+        console.log("🔍 Fetching products for filter extraction...");
         
-        // Fetch all products with minimal fields but include type and tags
+        // Fetch products with type and tag data
         const { products } = await sdk.store.product.list({
-          limit: 100, // Get a good sample
-          fields: "id,title,type,tags"
+          limit: 100,
+          fields: "id,title,type,tags,type_id"
         });
         
-        console.log("📦 Sample products for analysis:", products?.slice(0, 3));
+        console.log("📦 First product sample:", products?.[0]);
         
         if (!products || products.length === 0) {
-          console.log("⚠️ No products found");
-          return { brands: [], tags: [] };
+          return { productTypes: [], tags: [] };
         }
         
-        // Log the structure of the first product
-        console.log("🔍 First product keys:", Object.keys(products[0] || {}));
-        console.log("🔍 First product type:", products[0]?.type);
-        console.log("🔍 First product tags:", products[0]?.tags);
-        
-        const brandsSet = new Set<string>();
+        // Extract unique product types 
+        const typeIds = new Set<string>();
+        const typeValues = new Set<string>();
         const tagsSet = new Set<string>();
         
         products.forEach((product, index) => {
-          if (index < 5) { // Log first 5 products for debugging
-            console.log(`📦 Product ${index + 1} - ${product.title}:`, {
+          if (index < 3) {
+            console.log(`📦 Product ${index + 1}:`, {
+              title: product.title,
               type: product.type,
-              tags: product.tags,
-              allKeys: Object.keys(product)
+              type_id: product.type_id,
+              tags: product.tags
             });
           }
           
-          // Extract type/brand - try various possible structures
-          if (product.type) {
-            if (typeof product.type === 'string') {
-              brandsSet.add(product.type);
-            } else if (product.type.value) {
-              brandsSet.add(product.type.value);
-            } else if (product.type.id) {
-              brandsSet.add(product.type.id);
-            }
+          // Extract type information
+          if (product.type_id) {
+            typeIds.add(product.type_id);
+          }
+          if (product.type && typeof product.type === 'object' && product.type.value) {
+            typeValues.add(product.type.value);
+          } else if (typeof product.type === 'string') {
+            typeValues.add(product.type);
           }
           
-          // Extract tags - handle both array and single structures
-          if (product.tags) {
-            if (Array.isArray(product.tags)) {
-              product.tags.forEach(tag => {
-                if (typeof tag === 'string') {
-                  tagsSet.add(tag);
-                } else if (tag?.value) {
-                  tagsSet.add(tag.value);
-                } else if (tag?.id) {
-                  tagsSet.add(tag.id);
-                }
-              });
-            } else if (typeof product.tags === 'string') {
-              tagsSet.add(product.tags);
-            }
+          // Extract tags
+          if (product.tags && Array.isArray(product.tags)) {
+            product.tags.forEach((tag) => {
+              if (typeof tag === 'string') {
+                tagsSet.add(tag);
+              } else if (tag?.value) {
+                tagsSet.add(tag.value);
+              }
+            });
           }
         });
         
-        const brands = Array.from(brandsSet).map((brand, index) => ({
-          id: `brand-${index}`,
-          value: brand
-        }));
+        // Now fetch full product type details if we have IDs
+        let productTypes: any[] = [];
+        if (typeIds.size > 0) {
+          try {
+            // Try to fetch product types by their IDs - this might not work in all Medusa setups
+            console.log("🔍 Attempting to fetch product type details for IDs:", Array.from(typeIds));
+            // For now, create objects from the values we already have
+            productTypes = Array.from(typeValues).map((value, index) => ({
+              id: `type-${index}`,
+              value: value
+            }));
+          } catch (error) {
+            console.log("⚠️ Could not fetch product type details, using extracted values");
+            productTypes = Array.from(typeValues).map((value, index) => ({
+              id: `type-${index}`,
+              value: value
+            }));
+          }
+        } else {
+          // Fallback to just the values
+          productTypes = Array.from(typeValues).map((value, index) => ({
+            id: `type-${index}`,
+            value: value
+          }));
+        }
         
         const tags = Array.from(tagsSet).map((tag, index) => ({
           id: `tag-${index}`,
           value: tag
         }));
         
-        console.log("🏷️ Final extracted brands:", brands);
-        console.log("🏷️ Final extracted tags:", tags);
+        console.log("🏷️ Final product types:", productTypes);
+        console.log("🏷️ Final tags:", tags);
         
-        return { brands, tags };
+        return { productTypes, tags };
       } catch (error) {
         console.error("❌ Error fetching filter data:", error);
-        return { brands: [], tags: [] };
+        return { productTypes: [], tags: [] };
       }
     },
   });
 
-  // Remove the separate brand and tag queries since we're combining them
-  const brandsData = filterData?.brands || [];
+  const brandsData = filterData?.productTypes || [];
   const tagsData = filterData?.tags || [];
 
   const handleCollectionToggle = (collectionId: string) => {
@@ -334,9 +344,9 @@ export default function Products() {
                 </SheetHeader>
                 
                 <div className="py-6 space-y-8">
-                  {/* Debug Info */}
+                   {/* Debug Info */}
                   <div className="text-xs text-muted-foreground border-b pb-2">
-                    Debug: Brands: {brandsData?.length || 0} | Tags: {tagsData?.length || 0} | Categories: {categoriesData?.length || 0}
+                    Debug: Product Types: {brandsData?.length || 0} | Tags: {tagsData?.length || 0} | Categories: {categoriesData?.length || 0}
                   </div>
 
                   {/* Sort Options */}
