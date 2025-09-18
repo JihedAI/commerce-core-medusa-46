@@ -68,11 +68,12 @@ export default function ProductCarousel() {
                       {product.title}
                     </p>
                     <p className="text-xs font-light text-foreground/70">
-                      {formatPrice(
-                        product.variants?.[0]?.prices?.[0]?.amount || 0,
-                        product.variants?.[0]?.prices?.[0]?.currency_code || "USD"
-                      )}
-                    </p>
+  {formatPrice(
+    product.variants?.[0]?.calculated_price?.calculated_amount || 0,
+    region.currency_code
+  )}
+</p>
+
                   </div>
                 </div>
               </CarouselItem>
