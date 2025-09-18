@@ -20,6 +20,8 @@ export default function Products() {
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const page = parseInt(searchParams.get("page") || "1");
@@ -49,14 +51,14 @@ export default function Products() {
 
   // Fetch products using the new SDK
   const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ["products", categoryData?.id, sortBy, page, selectedCollections, selectedCategories, currentRegion?.id],
+    queryKey: ["products", categoryData?.id, sortBy, page, selectedCollections, selectedCategories, selectedBrands, selectedTags, currentRegion?.id],
     queryFn: async () => {
       if (!currentRegion) return { products: [], count: 0 };
       
       const params: any = {
         limit,
         offset: (page - 1) * limit,
-        fields: "*variants,*variants.calculated_price,*images,*collection,*categories"
+        fields: "*variants,*variants.calculated_price,*images,*collection,*categories,*type,*tags"
       };
 
       // Add sorting
@@ -90,6 +92,14 @@ export default function Products() {
 
       if (selectedCategories.length > 0) {
         params.category_id = selectedCategories;
+      }
+
+      if (selectedBrands.length > 0) {
+        params.type = selectedBrands;
+      }
+
+      if (selectedTags.length > 0) {
+        params.tags = selectedTags;
       }
 
       // Add region context for pricing
@@ -127,6 +137,65 @@ export default function Products() {
     },
   });
 
+  // Fetch product types (brands) for filters
+  const { data: brandsData } = useQuery({
+    queryKey: ["product-types"],
+    queryFn: async () => {
+      try {
+        // Fetch all products to extract unique types
+        const { products } = await sdk.store.product.list({
+          limit: 1000,
+          fields: "type"
+        });
+        
+        // Extract unique types
+        const uniqueTypes = Array.from(
+          new Set(
+            products
+              ?.map(p => p.type?.value || p.type)
+              .filter(type => type && typeof type === 'string' && type.trim() !== "")
+          )
+        ).map((type, index) => ({
+          id: `type-${index}`,
+          value: type
+        }));
+        
+        return uniqueTypes || [];
+      } catch (error) {
+        console.error("Failed to fetch product types:", error);
+        return [];
+      }
+    },
+  });
+
+  // Fetch product tags for filters
+  const { data: tagsData } = useQuery({
+    queryKey: ["product-tags"],
+    queryFn: async () => {
+      try {
+        // Fetch all products to extract unique tags
+        const { products } = await sdk.store.product.list({
+          limit: 1000,
+          fields: "tags"
+        });
+        
+        // Extract unique tags
+        const allTags = products?.flatMap(p => p.tags || []) || [];
+        const uniqueTags = Array.from(
+          new Set(allTags.map(tag => tag.value))
+        ).map((value, index) => ({
+          id: `tag-${index}`,
+          value: value
+        }));
+        
+        return uniqueTags || [];
+      } catch (error) {
+        console.error("Failed to fetch product tags:", error);
+        return [];
+      }
+    },
+  });
+
   const handleCollectionToggle = (collectionId: string) => {
     setSelectedCollections((prev) =>
       prev.includes(collectionId)
@@ -140,6 +209,22 @@ export default function Products() {
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
         : [...prev, categoryId]
+    );
+  };
+
+  const handleBrandToggle = (brandValue: string) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brandValue)
+        ? prev.filter((value) => value !== brandValue)
+        : [...prev, brandValue]
+    );
+  };
+
+  const handleTagToggle = (tagValue: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagValue)
+        ? prev.filter((value) => value !== tagValue)
+        : [...prev, tagValue]
     );
   };
 
@@ -248,7 +333,7 @@ export default function Products() {
                   {categoriesData && categoriesData.length > 0 && (
                     <div>
                       <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
-                      <div className="space-y-3">
+                      <div className="space-y-3 max-h-48 overflow-y-auto">
                         {categoriesData.map((category: any) => (
                           <div key={category.id} className="flex items-center space-x-3">
                             <Checkbox
@@ -258,6 +343,48 @@ export default function Products() {
                             />
                             <Label htmlFor={category.id} className="text-sm cursor-pointer">
                               {category.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Brands (Product Types) */}
+                  {brandsData && brandsData.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
+                      <div className="space-y-3 max-h-48 overflow-y-auto">
+                        {brandsData.map((brand: any) => (
+                          <div key={brand.id} className="flex items-center space-x-3">
+                            <Checkbox
+                              id={`brand-${brand.id}`}
+                              checked={selectedBrands.includes(brand.value)}
+                              onCheckedChange={() => handleBrandToggle(brand.value)}
+                            />
+                            <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer">
+                              {brand.value}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tags */}
+                  {tagsData && tagsData.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
+                      <div className="space-y-3 max-h-48 overflow-y-auto">
+                        {tagsData.map((tag: any) => (
+                          <div key={tag.id} className="flex items-center space-x-3">
+                            <Checkbox
+                              id={`tag-${tag.id}`}
+                              checked={selectedTags.includes(tag.value)}
+                              onCheckedChange={() => handleTagToggle(tag.value)}
+                            />
+                            <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer">
+                              {tag.value}
                             </Label>
                           </div>
                         ))}
@@ -303,6 +430,8 @@ export default function Products() {
                   setSearchQuery("");
                   setSelectedCategories([]);
                   setSelectedCollections([]);
+                  setSelectedBrands([]);
+                  setSelectedTags([]);
                 }}
               >
                 Clear Filters
