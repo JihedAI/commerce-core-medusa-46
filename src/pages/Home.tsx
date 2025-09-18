@@ -10,7 +10,7 @@ export default function Home() {
   const heroVideos = [
     "https://www.pexels.com/download/video/9872557/",
     "https://cdn.pixabay.com/video/2025/01/21/253877_large.mp4", 
-    "https://assets.mixkit.co/videos/44547/44547-720.mp4"
+    "https://www.pexels.com/download/video/6118572/"
   ];
 
   return (
