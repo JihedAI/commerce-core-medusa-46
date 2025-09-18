@@ -1,33 +1,39 @@
-import React, { useEffect, useState } from "react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { medusa } from "@/lib/medusa";
-import { formatPrice } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
-import { useRegion } from "@/contexts/RegionContext";
-import Autoplay from "embla-carousel-autoplay";
+import React, { useEffect, useState } from "react"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { medusa } from "@/lib/medusa"
+import { formatPrice } from "@/lib/utils"
+import { useNavigate } from "react-router-dom"
+import Autoplay from "embla-carousel-autoplay"
+import { useRegion } from "@/providers/region" // ✅ import region context
 
 export default function ProductCarousel() {
-  const [products, setProducts] = useState<any[]>([]);
-  const navigate = useNavigate();
-  const { currentRegion } = useRegion();
+  const [products, setProducts] = useState<any[]>([])
+  const navigate = useNavigate()
+  const { region } = useRegion() // ✅ get region from context
 
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!region) return // wait until region is available
+
       try {
-        const { products } = await medusa.products.list({ limit: 10 });
-        setProducts(products);
+        const { products } = await medusa.products.list({
+          limit: 10,
+          fields: "*variants.calculated_price", // ✅ request calculated prices
+          region_id: region.id, // ✅ pass region for correct pricing
+        })
+        setProducts(products)
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("Failed to fetch products:", error)
       }
-    };
-    fetchProducts();
-  }, []);
+    }
+    fetchProducts()
+  }, [region]) // ✅ refetch when region changes
 
   const plugin = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
-  );
+  )
 
-  if (!products.length) return null;
+  if (!products.length) return null
 
   return (
     <section className="w-full py-20 px-8 lg:px-16">
@@ -69,13 +75,12 @@ export default function ProductCarousel() {
                     <p className="text-sm font-sans tracking-wide text-foreground/90 mb-1">
                       {product.title}
                     </p>
-                     <p className="text-xs font-light text-foreground/70">
-  {formatPrice(
-    product.variants?.[0]?.calculated_price?.calculated_amount || 0,
-    currentRegion?.currency_code || "USD"
-  )}
-</p>
-
+                    <p className="text-xs font-light text-foreground/70">
+                      {formatPrice(
+                        product.variants?.[0]?.calculated_price?.calculated_amount || 0,
+                        region?.currency_code || "USD" // ✅ safe access region currency
+                      )}
+                    </p>
                   </div>
                 </div>
               </CarouselItem>
@@ -88,5 +93,5 @@ export default function ProductCarousel() {
         </Carousel>
       </div>
     </section>
-  );
+  )
 }
