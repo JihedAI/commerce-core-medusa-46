@@ -138,15 +138,18 @@ export default function Products() {
   });
 
   // Fetch product types (brands) for filters
-  const { data: brandsData } = useQuery({
+  const { data: brandsData, error: brandsError, isLoading: brandsLoading } = useQuery({
     queryKey: ["product-types"],
     queryFn: async () => {
       try {
+        console.log("🔍 Fetching product types/brands...");
         // Fetch all products to extract unique types
         const { products } = await sdk.store.product.list({
           limit: 1000,
           fields: "type"
         });
+        
+        console.log("📦 Products fetched for types:", products?.length, products?.slice(0, 3));
         
         // Extract unique types
         const uniqueTypes = Array.from(
@@ -160,24 +163,28 @@ export default function Products() {
           value: type
         }));
         
+        console.log("🏷️ Unique brands/types found:", uniqueTypes);
         return uniqueTypes || [];
       } catch (error) {
-        console.error("Failed to fetch product types:", error);
+        console.error("❌ Failed to fetch product types:", error);
         return [];
       }
     },
   });
 
   // Fetch product tags for filters
-  const { data: tagsData } = useQuery({
+  const { data: tagsData, error: tagsError, isLoading: tagsLoading } = useQuery({
     queryKey: ["product-tags"],
     queryFn: async () => {
       try {
+        console.log("🔍 Fetching product tags...");
         // Fetch all products to extract unique tags
         const { products } = await sdk.store.product.list({
           limit: 1000,
           fields: "tags"
         });
+        
+        console.log("📦 Products fetched for tags:", products?.length, products?.slice(0, 3));
         
         // Extract unique tags
         const allTags = products?.flatMap(p => p.tags || []) || [];
@@ -188,9 +195,10 @@ export default function Products() {
           value: value
         }));
         
+        console.log("🏷️ Unique tags found:", uniqueTags);
         return uniqueTags || [];
       } catch (error) {
-        console.error("Failed to fetch product tags:", error);
+        console.error("❌ Failed to fetch product tags:", error);
         return [];
       }
     },
@@ -302,6 +310,15 @@ export default function Products() {
                 </SheetHeader>
                 
                 <div className="py-6 space-y-8">
+                  {/* Debug Info */}
+                  <div className="text-xs text-muted-foreground border-b pb-2">
+                    Debug: Brands: {brandsData?.length || 0} | Tags: {tagsData?.length || 0} | Categories: {categoriesData?.length || 0}
+                    {brandsLoading && " (Loading brands...)"}
+                    {tagsLoading && " (Loading tags...)"}
+                    {brandsError && " (Brand error)"}
+                    {tagsError && " (Tag error)"}
+                  </div>
+
                   {/* Sort Options */}
                   <div>
                     <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
