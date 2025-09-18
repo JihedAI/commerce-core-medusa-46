@@ -9,29 +9,34 @@ import { useRegion } from "@/providers/region" // ✅ import region context
 export default function ProductCarousel() {
   const [products, setProducts] = useState<any[]>([])
   const navigate = useNavigate()
-  const { region } = useRegion() // ✅ get region from context
+  const { region } = useRegion() // ✅ get region object
 
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!region) return // wait until region is available
+      if (!region) return // wait until region is ready
 
       try {
         const { products } = await medusa.products.list({
           limit: 10,
-          fields: "*variants.calculated_price", // ✅ request calculated prices
-          region_id: region.id, // ✅ pass region for correct pricing
+          fields: "*variants.calculated_price",
+          region_id: region.id, // ✅ region-aware pricing
         })
         setProducts(products)
       } catch (error) {
         console.error("Failed to fetch products:", error)
       }
     }
+
     fetchProducts()
-  }, [region]) // ✅ refetch when region changes
+  }, [region])
 
   const plugin = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
   )
+
+  if (!region) {
+    return <div>Loading...</div> // ✅ guard until region is available
+  }
 
   if (!products.length) return null
 
@@ -78,7 +83,7 @@ export default function ProductCarousel() {
                     <p className="text-xs font-light text-foreground/70">
                       {formatPrice(
                         product.variants?.[0]?.calculated_price?.calculated_amount || 0,
-                        region?.currency_code || "USD" // ✅ safe access region currency
+                        region.currency_code // ✅ safe usage now
                       )}
                     </p>
                   </div>
