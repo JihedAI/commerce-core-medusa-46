@@ -56,52 +56,30 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch categories with comprehensive debugging
+  // Fetch categories using official Medusa documentation approach
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
-      console.log('🔍 Starting category fetch...');
+      console.log('🔍 Starting category fetch using official Medusa approach...');
       try {
-        // Try different approaches to fetch categories
-        console.log('📡 Attempting to fetch all categories first...');
-        
-        // First, try to get all categories to see what exists
+        // First, check what categories exist in backend
+        console.log('📡 Checking all categories in backend...');
         const allCategoriesResponse = await sdk.store.category.list({
           limit: 100,
-          fields: "id,name,handle,parent_category_id,rank"
+          fields: "id,name,handle,parent_category_id"
         });
         console.log('📋 All categories in backend:', allCategoriesResponse.product_categories);
         
-        // Now try to get top-level categories with children
-        console.log('📡 Fetching top-level categories with children...');
-        let { product_categories } = await sdk.store.category.list({
-          parent_category_id: null,        
-          include_descendants_tree: true,  
-          order: "rank",                   
-          limit: 100,
-          fields: "id,name,handle,rank,category_children.id,category_children.name,category_children.handle,category_children.rank",
+        // Use the exact approach from Medusa docs
+        console.log('📡 Fetching categories as hierarchy (official docs approach)...');
+        const { product_categories } = await sdk.store.category.list({
+          fields: "id,name,handle,category_children.id,category_children.name,category_children.handle",
+          include_descendants_tree: true,
+          parent_category_id: null,
         });
         
-        // If no top-level categories found, try without parent filter
-        if (!product_categories || product_categories.length === 0) {
-          console.log('⚠️ No top-level categories found, trying without parent filter...');
-          const fallbackResponse = await sdk.store.category.list({
-            include_descendants_tree: true,  
-            order: "rank",                   
-            limit: 100,
-            fields: "id,name,handle,rank,parent_category_id,category_children.id,category_children.name,category_children.handle,category_children.rank",
-          });
-          console.log('🔄 Fallback categories response:', fallbackResponse.product_categories);
-          
-          // Filter to top-level categories manually
-          product_categories = fallbackResponse.product_categories?.filter(cat => 
-            !cat.parent_category_id || cat.parent_category_id === null
-          ) || [];
-          console.log('🔧 Manually filtered top-level categories:', product_categories);
-        }
-        
-        console.log('✅ Top-level categories with children:', product_categories);
-        console.log('📊 Total categories found:', product_categories?.length || 0);
+        console.log('✅ Categories fetched using official approach:', product_categories);
+        console.log('📊 Total top-level categories:', product_categories?.length || 0);
         
         if (product_categories && product_categories.length > 0) {
           product_categories.forEach((cat, index) => {
@@ -109,14 +87,43 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
               id: cat.id,
               name: cat.name,
               handle: cat.handle,
-              rank: cat.rank,
               children_count: cat.category_children?.length || 0,
               children: cat.category_children?.map(child => ({
                 name: child.name,
                 handle: child.handle
-              }))
+              })) || []
             });
           });
+        } else {
+          console.log('⚠️ No top-level categories found with official approach');
+          
+          // Fallback: try getting all categories and filter manually
+          console.log('🔄 Trying fallback approach...');
+          const allCategories = allCategoriesResponse.product_categories || [];
+          const topLevelCategories = allCategories.filter(cat => 
+            !cat.parent_category_id || cat.parent_category_id === null
+          );
+          console.log('🔧 Manual filter found top-level categories:', topLevelCategories);
+          
+          if (topLevelCategories.length > 0) {
+            // Fetch each top-level category with its children
+            const categoriesWithChildren = await Promise.all(
+              topLevelCategories.map(async (cat) => {
+                try {
+                  const response = await sdk.store.category.retrieve(cat.id, {
+                    fields: "id,name,handle,category_children.id,category_children.name,category_children.handle",
+                    include_descendants_tree: true,
+                  });
+                  return response.product_category;
+                } catch (error) {
+                  console.error(`Failed to fetch children for category ${cat.name}:`, error);
+                  return cat;
+                }
+              })
+            );
+            console.log('🎯 Categories with children fetched:', categoriesWithChildren);
+            return categoriesWithChildren;
+          }
         }
         
         return product_categories || [];
