@@ -195,29 +195,11 @@ export default function Products() {
           }
         });
         
-        // Now fetch full product type details if we have IDs
-        let productTypes: any[] = [];
-        if (typeIds.size > 0) {
-          try {
-            console.log("🔍 Attempting to fetch product type details for IDs:", Array.from(typeIds));
-            productTypes = Array.from(typeValues).map((value, index) => ({
-              id: `type-${index}`,
-              value: value
-            }));
-          } catch (error) {
-            console.log("⚠️ Could not fetch product type details, using extracted values");
-            productTypes = Array.from(typeValues).map((value, index) => ({
-              id: `type-${index}`,
-              value: value
-            }));
-          }
-        } else {
-          // Fallback to just the values
-          productTypes = Array.from(typeValues).map((value, index) => ({
-            id: `type-${index}`,
-            value: value
-          }));
-        }
+        // Create product types
+        let productTypes: any[] = Array.from(typeValues).map((value, index) => ({
+          id: `type-${index}`,
+          value: value
+        }));
         
         const tags = Array.from(tagsSet).map((tag, index) => ({
           id: `tag-${index}`,
@@ -353,10 +335,12 @@ export default function Products() {
                   </div>
                 </SheetHeader>
                 
-                <div className="py-6 space-y-8">
+                 <div className="py-6 space-y-8">
                    {/* Debug Info */}
                   <div className="text-xs text-muted-foreground border-b pb-2">
                     Debug: Product Types: {brandsData?.length || 0} | Tags: {tagsData?.length || 0} | Categories: {categoriesData?.length || 0}
+                    <br />Filter Loading: {filterLoading ? 'YES' : 'NO'} | Filter Error: {filterError ? 'YES' : 'NO'}
+                    <br />Filter Data: {filterData ? 'EXISTS' : 'NULL'}
                   </div>
 
                   {/* Sort Options */}
