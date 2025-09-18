@@ -7,6 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { RegionProvider } from "@/contexts/RegionContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { CursorProvider } from "@/components/CursorProvider";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -36,10 +37,11 @@ const App = () => (
       <AuthProvider>
         <RegionProvider>
           <CartProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+            <CursorProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
@@ -56,8 +58,9 @@ const App = () => (
                   <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </CursorProvider>
           </CartProvider>
         </RegionProvider>
       </AuthProvider>

@@ -15,8 +15,8 @@ export default function FloatingProductCard({ product }: FloatingProductCardProp
   const imageUrl = product.thumbnail || product.images?.[0]?.url;
 
   return (
-    <Link to={`/products/${product.handle}`}>
-      <div className="group relative overflow-hidden transition-all duration-500 hover:scale-105">
+    <Link to={`/products/${product.handle}`} data-cursor-hover>
+      <div className="group relative overflow-hidden transition-all duration-500 hover:scale-105" data-cursor-hover>
         {/* Product Image - Floating on neutral background */}
         <div className="relative aspect-square bg-muted/30 rounded-2xl overflow-hidden">
           {imageUrl ? (
@@ -39,6 +39,7 @@ export default function FloatingProductCard({ product }: FloatingProductCardProp
             size="icon"
             variant="ghost"
             className="absolute bottom-3 right-3 w-8 h-8 bg-white/20 backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-500 hover:bg-white/30"
+            data-cursor-hover
             onClick={(e) => {
               e.preventDefault();
               // Add to wishlist logic here
