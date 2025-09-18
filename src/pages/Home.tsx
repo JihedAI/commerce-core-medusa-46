@@ -8,7 +8,7 @@ import Layout from "@/components/Layout";
 export default function Home() {
   // Sample video URLs - replace with actual video content
   const heroVideos = [
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "https://www.pexels.com/download/video/3326997/",
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", 
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
   ];
