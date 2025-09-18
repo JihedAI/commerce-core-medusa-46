@@ -56,22 +56,77 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch categories with proper ranking using Medusa SDK
+  // Fetch categories with comprehensive debugging
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
+      console.log('🔍 Starting category fetch...');
       try {
-        const { product_categories } = await sdk.store.category.list({
-          parent_category_id: null,        // only top-level categories
-          include_descendants_tree: true,  // include nested children
-          order: "rank",                   // sort by rank ascending
-          // keep payload lean but include what you need:
-          fields: "id,name,handle,rank,category_children.id,category_children.name,category_children.handle,category_children.rank,category_children.category_children.id,category_children.category_children.name,category_children.category_children.handle,category_children.category_children.rank",
+        // Try different approaches to fetch categories
+        console.log('📡 Attempting to fetch all categories first...');
+        
+        // First, try to get all categories to see what exists
+        const allCategoriesResponse = await sdk.store.category.list({
+          limit: 100,
+          fields: "id,name,handle,parent_category_id,rank"
         });
-        console.log('Categories fetched with ranking:', product_categories);
+        console.log('📋 All categories in backend:', allCategoriesResponse.product_categories);
+        
+        // Now try to get top-level categories with children
+        console.log('📡 Fetching top-level categories with children...');
+        let { product_categories } = await sdk.store.category.list({
+          parent_category_id: null,        
+          include_descendants_tree: true,  
+          order: "rank",                   
+          limit: 100,
+          fields: "id,name,handle,rank,category_children.id,category_children.name,category_children.handle,category_children.rank",
+        });
+        
+        // If no top-level categories found, try without parent filter
+        if (!product_categories || product_categories.length === 0) {
+          console.log('⚠️ No top-level categories found, trying without parent filter...');
+          const fallbackResponse = await sdk.store.category.list({
+            include_descendants_tree: true,  
+            order: "rank",                   
+            limit: 100,
+            fields: "id,name,handle,rank,parent_category_id,category_children.id,category_children.name,category_children.handle,category_children.rank",
+          });
+          console.log('🔄 Fallback categories response:', fallbackResponse.product_categories);
+          
+          // Filter to top-level categories manually
+          product_categories = fallbackResponse.product_categories?.filter(cat => 
+            !cat.parent_category_id || cat.parent_category_id === null
+          ) || [];
+          console.log('🔧 Manually filtered top-level categories:', product_categories);
+        }
+        
+        console.log('✅ Top-level categories with children:', product_categories);
+        console.log('📊 Total categories found:', product_categories?.length || 0);
+        
+        if (product_categories && product_categories.length > 0) {
+          product_categories.forEach((cat, index) => {
+            console.log(`📁 Category ${index + 1}:`, {
+              id: cat.id,
+              name: cat.name,
+              handle: cat.handle,
+              rank: cat.rank,
+              children_count: cat.category_children?.length || 0,
+              children: cat.category_children?.map(child => ({
+                name: child.name,
+                handle: child.handle
+              }))
+            });
+          });
+        }
+        
         return product_categories || [];
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("❌ Failed to fetch categories:", error);
+        console.error("Error details:", {
+          message: error.message,
+          status: error.status,
+          response: error.response
+        });
         return [];
       }
     },
@@ -122,18 +177,30 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   }, [popularSearchPhrases.length]);
 
 
-  // Create navigation from categories directly - only use fetched data
-  const categoryNavItems: Navigation[] = categoriesData.map(cat => ({
-    name: cat.name,
-    href: `/categories/${cat.handle}`,
-    hasDropdown: cat.category_children && cat.category_children.length > 0,
-    items: cat.category_children && cat.category_children.length > 0 
-      ? cat.category_children.map(child => ({
-          name: child.name,
-          href: `/categories/${child.handle}`
-        }))
-      : undefined
-  }));
+  // Create navigation from categories with detailed logging
+  console.log('🔧 Building navigation from categories data:', categoriesData);
+  
+  const categoryNavItems: Navigation[] = categoriesData.map(cat => {
+    console.log('📝 Processing category for nav:', {
+      name: cat.name,
+      handle: cat.handle,
+      children: cat.category_children?.length || 0
+    });
+    
+    return {
+      name: cat.name,
+      href: `/categories/${cat.handle}`,
+      hasDropdown: cat.category_children && cat.category_children.length > 0,
+      items: cat.category_children && cat.category_children.length > 0 
+        ? cat.category_children.map(child => ({
+            name: child.name,
+            href: `/categories/${child.handle}`
+          }))
+        : undefined
+    };
+  });
+  
+  console.log('🚀 Final category navigation items:', categoryNavItems);
 
   const navigation: Navigation[] = [
     ...categoryNavItems,
@@ -157,6 +224,21 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Debug Panel - Remove in production */}
+      <div className="fixed top-20 right-4 z-50 bg-red-500/90 text-white p-4 rounded text-xs max-w-sm">
+        <h3 className="font-bold mb-2">🐛 Debug Info</h3>
+        <p>Categories loaded: {categoriesData.length}</p>
+        <p>Category nav items: {categoryNavItems.length}</p>
+        <p>Collections: {collectionsData.length}</p>
+        {categoriesData.length > 0 && (
+          <details className="mt-2">
+            <summary className="cursor-pointer">Categories Detail</summary>
+            <pre className="mt-1 text-xs overflow-auto max-h-32">
+              {JSON.stringify(categoriesData.map(c => ({ name: c.name, handle: c.handle, children: c.category_children?.length })), null, 1)}
+            </pre>
+          </details>
+        )}
+      </div>
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-700 ease-out ${
         hasScrolled 
