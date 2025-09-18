@@ -138,7 +138,7 @@ export default function Products() {
   });
 
   // Fetch all products with types and tags to extract unique values
-  const { data: filterData } = useQuery({
+  const { data: filterData, isLoading: filterLoading, error: filterError } = useQuery({
     queryKey: ["product-filters"],
     queryFn: async () => {
       try {
@@ -151,8 +151,10 @@ export default function Products() {
         });
         
         console.log("📦 First product sample:", products?.[0]);
+        console.log("📦 Total products found for filters:", products?.length || 0);
         
         if (!products || products.length === 0) {
+          console.log("⚠️ No products found for filter extraction");
           return { productTypes: [], tags: [] };
         }
         
@@ -197,9 +199,7 @@ export default function Products() {
         let productTypes: any[] = [];
         if (typeIds.size > 0) {
           try {
-            // Try to fetch product types by their IDs - this might not work in all Medusa setups
             console.log("🔍 Attempting to fetch product type details for IDs:", Array.from(typeIds));
-            // For now, create objects from the values we already have
             productTypes = Array.from(typeValues).map((value, index) => ({
               id: `type-${index}`,
               value: value
@@ -233,6 +233,16 @@ export default function Products() {
         return { productTypes: [], tags: [] };
       }
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  console.log("🐛 Filter query state:", { 
+    isLoading: filterLoading, 
+    hasError: !!filterError, 
+    error: filterError?.message,
+    dataLength: filterData ? Object.keys(filterData).length : 0,
+    brandsCount: filterData?.productTypes?.length || 0,
+    tagsCount: filterData?.tags?.length || 0
   });
 
   const brandsData = filterData?.productTypes || [];

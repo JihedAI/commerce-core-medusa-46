@@ -4,7 +4,7 @@ import ProductCarousel from "@/components/ProductCarousel"
 import CollectionsShowcase from "@/components/CollectionsShowcase"
 import StoreLocator from "@/components/StoreLocator"
 import Layout from "@/components/Layout"
-import { RegionProvider } from "@/providers/region" // ✅ import provider
+
 
 export default function Home() {
   // Replace with your actual video content
@@ -16,21 +16,19 @@ export default function Home() {
 
   return (
     <Layout isHomePage={true}>
-      <RegionProvider> {/* ✅ wrap children so useRegion works */}
-        {/* Fullscreen Hero */}
-        <div className="-mt-20">
-          <VideoHero videos={heroVideos} />
-        </div>
+      {/* Fullscreen Hero */}
+      <div className="-mt-20">
+        <VideoHero videos={heroVideos} />
+      </div>
 
-        {/* Product Carousel Section */}
-        <ProductCarousel />
+      {/* Product Carousel Section */}
+      <ProductCarousel />
 
-        {/* Collections Showcase Section */}
-        <CollectionsShowcase />
+      {/* Collections Showcase Section */}
+      <CollectionsShowcase />
 
-        {/* Store Locator Section */}
-        <StoreLocator />
-      </RegionProvider>
+      {/* Store Locator Section */}
+      <StoreLocator />
     </Layout>
   )
 }
