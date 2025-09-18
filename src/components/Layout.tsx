@@ -237,23 +237,6 @@ export default function Layout({
     hasUnderline: true
   }];
   return <div className="min-h-screen bg-background">
-      {/* Debug Panel - Remove in production */}
-      <div className="fixed top-20 right-4 z-50 bg-red-500/90 text-white p-4 rounded text-xs max-w-sm">
-        <h3 className="font-bold mb-2">🐛 Debug Info</h3>
-        <p>Categories loaded: {categoriesData.length}</p>
-        <p>Category nav items: {categoryNavItems.length}</p>
-        <p>Collections: {collectionsData.length}</p>
-        {categoriesData.length > 0 && <details className="mt-2">
-            <summary className="cursor-pointer">Categories Detail</summary>
-            <pre className="mt-1 text-xs overflow-auto max-h-32">
-              {JSON.stringify(categoriesData.map(c => ({
-            name: c.name,
-            handle: c.handle,
-            children: c.category_children?.length
-          })), null, 1)}
-            </pre>
-          </details>}
-      </div>
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 h-20 transition-all duration-700 ease-out ${hasScrolled ? 'bg-background/70 backdrop-blur-[20px] border-b border-white/10 shadow-lg' : 'bg-transparent'}`}>
         <nav className="w-full h-full px-[30px]">
@@ -322,7 +305,7 @@ export default function Layout({
                             </div>
                           </div>
                         </div>
-                      </div> : <Link to={item.href} className={`font-medium text-[10px] tracking-[0.15em] uppercase...`}>
+                      </div> : <Link to={item.href} className={`font-medium text-xs tracking-[0.15em] uppercase transition-all duration-500 relative group ${hasScrolled ? 'text-foreground hover:text-foreground/80' : 'text-primary/80 hover:text-primary'} ${item.hasUnderline ? 'after:content-[""] after:absolute after:w-full after:h-0.5 after:bottom-0 after:left-0 after:bg-current after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100' : ''}`}>
                         {item.name}
                       </Link>}
                   </div>)}
