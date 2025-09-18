@@ -56,21 +56,22 @@ export default function Layout({ children, isHomePage = false }: LayoutProps) {
   const [collections, setCollections] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);
 
-  // Fetch nested categories using proper Medusa SDK method
+  // Fetch categories with proper ranking using Medusa SDK
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
       try {
         const { product_categories } = await sdk.store.category.list({
-          fields: "id,name,handle,description,category_children.id,category_children.name,category_children.handle",
-          include_descendants_tree: true,
-          parent_category_id: null, // Get top-level categories with their children
-          limit: 100
+          parent_category_id: null,        // only top-level categories
+          include_descendants_tree: true,  // include nested children
+          order: "rank",                   // sort by rank ascending
+          // keep payload lean but include what you need:
+          fields: "id,name,handle,rank,category_children.id,category_children.name,category_children.handle,category_children.rank,category_children.category_children.id,category_children.category_children.name,category_children.category_children.handle,category_children.category_children.rank",
         });
-        console.log('Nested categories fetched:', product_categories);
+        console.log('Categories fetched with ranking:', product_categories);
         return product_categories || [];
       } catch (error) {
-        console.error("Failed to fetch nested categories:", error);
+        console.error("Failed to fetch categories:", error);
         return [];
       }
     },
