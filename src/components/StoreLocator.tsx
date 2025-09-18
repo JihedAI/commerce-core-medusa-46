@@ -10,36 +10,19 @@ interface Store {
   coordinates: [number, number];
 }
 
+// Example stores – update with Tunisia-specific ones later
 const stores: Store[] = [
   {
     id: '1',
-    name: 'New York Flagship',
-    address: '123 Fifth Avenue, New York, NY 10001',
-    coordinates: [-73.9857, 40.7484]
+    name: 'Tunis Center',
+    address: 'Avenue Habib Bourguiba, Tunis',
+    coordinates: [10.1815, 36.8065]
   },
   {
     id: '2',
-    name: 'London Boutique',
-    address: '45 Bond Street, London W1S 4QT, UK',
-    coordinates: [-0.1419, 51.5074]
-  },
-  {
-    id: '3',
-    name: 'Paris Atelier',
-    address: '25 Rue Saint-Honoré, 75001 Paris, France',
-    coordinates: [2.3364, 48.8606]
-  },
-  {
-    id: '4',
-    name: 'Tokyo Gallery',
-    address: '1-1-1 Ginza, Chuo City, Tokyo 104-0061, Japan',
-    coordinates: [139.7640, 35.6762]
-  },
-  {
-    id: '5',
-    name: 'Los Angeles Studio',
-    address: '9600 Wilshire Blvd, Beverly Hills, CA 90212',
-    coordinates: [-118.4048, 34.0669]
+    name: 'Sfax Branch',
+    address: 'Rue de la République, Sfax',
+    coordinates: [10.7603, 34.7406]
   }
 ];
 
@@ -51,29 +34,37 @@ const StoreLocator = () => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Initialize map with embedded access token
-    mapboxgl.accessToken = 'pk.eyJ1IjoiamloZWRjaCIsImEiOiJjbWZrMHg0MjQxOHVwMmlxcTFzNzBoenYyIn0.pNIB0Etu0zDd_pcaAdDtpg';
-    
+    // Tunisia bounding box (approximate)
+    const tunisiaBounds: [[number, number], [number, number]] = [
+      [7.0, 30.0],   // Southwest corner [lng, lat]
+      [12.5, 37.5]   // Northeast corner
+    ];
+
+    mapboxgl.accessToken =
+      'pk.eyJ1IjoiamloZWRjaCIsImEiOiJjbWZrMHg0MjQxOHVwMmlxcTFzNzBoenYyIn0.pNIB0Etu0zDd_pcaAdDtpg';
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      zoom: 1.5,
-      center: [0, 20],
-      pitch: 0,
+      center: [9.5375, 33.8869], // Center of Tunisia
+      zoom: 5,                   // Adjusted zoom
+      pitch: 0
     });
+
+    // Restrict map to Tunisia
+    map.current.setMaxBounds(tunisiaBounds);
 
     // Add navigation controls
     map.current.addControl(
       new mapboxgl.NavigationControl({
-        visualizePitch: false,
+        visualizePitch: false
       }),
       'top-right'
     );
 
-    // Wait for map to load before adding markers
+    // Add markers after map load
     map.current.on('load', () => {
       stores.forEach((store) => {
-        // Create custom marker element
         const markerElement = document.createElement('div');
         markerElement.className = 'store-marker';
         markerElement.innerHTML = `
@@ -81,7 +72,6 @@ const StoreLocator = () => {
           <div class="marker-glow"></div>
         `;
 
-        // Create tooltip
         const tooltip = document.createElement('div');
         tooltip.className = 'store-tooltip';
         tooltip.innerHTML = `
@@ -92,7 +82,6 @@ const StoreLocator = () => {
         `;
         document.body.appendChild(tooltip);
 
-        // Create marker
         const marker = new mapboxgl.Marker({
           element: markerElement,
           anchor: 'center'
@@ -100,11 +89,8 @@ const StoreLocator = () => {
           .setLngLat(store.coordinates)
           .addTo(map.current!);
 
-        // Add hover interactions
-        markerElement.addEventListener('mouseenter', (e) => {
+        markerElement.addEventListener('mouseenter', () => {
           markerElement.classList.add('hovered');
-          
-          // Position tooltip
           const rect = markerElement.getBoundingClientRect();
           tooltip.style.left = `${rect.left + rect.width / 2}px`;
           tooltip.style.top = `${rect.top - 10}px`;
@@ -120,9 +106,9 @@ const StoreLocator = () => {
       });
     });
 
-    // Cleanup
+    // Cleanup on unmount
     return () => {
-      markers.current.forEach(marker => marker.remove());
+      markers.current.forEach((marker) => marker.remove());
       markers.current = [];
       map.current?.remove();
     };
@@ -131,27 +117,24 @@ const StoreLocator = () => {
   return (
     <section className="w-full py-24 bg-background">
       <div className="container mx-auto px-6">
-        {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
-            Find Us In Stores
+            Find Us In Tunisia
           </h2>
           <div className="w-24 h-px bg-primary mx-auto"></div>
         </div>
 
-        {/* Map Container */}
         <div className="relative">
-          <div 
-            ref={mapContainer} 
+          <div
+            ref={mapContainer}
             className="w-full h-[500px] rounded-lg shadow-xl"
             style={{ background: 'hsl(0 0% 7%)' }}
           />
         </div>
 
-        {/* CTA Button */}
         <div className="text-center mt-12">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="lg"
             className="px-8 py-3 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 hover:shadow-glow"
           >
