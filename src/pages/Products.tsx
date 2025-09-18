@@ -137,102 +137,96 @@ export default function Products() {
     },
   });
 
-  // Fetch product types (brands) for filters
-  const { data: brandsData, error: brandsError, isLoading: brandsLoading } = useQuery({
-    queryKey: ["product-types"],
+  // Fetch product types (brands) and tags from products - unified approach
+  const { data: filterData } = useQuery({
+    queryKey: ["product-filters"],
     queryFn: async () => {
       try {
-        console.log("🔍 Fetching product types/brands...");
-        // First, let's fetch products with all available fields to see structure
+        console.log("🔍 Fetching products for filter data extraction...");
+        
+        // Fetch all products with minimal fields but include type and tags
         const { products } = await sdk.store.product.list({
-          limit: 50,
-          fields: "*variants,*categories,*collection,*type,*tags,id,title,handle"
+          limit: 100, // Get a good sample
+          fields: "id,title,type,tags"
         });
         
-        console.log("📦 Full product data for types analysis:", products?.slice(0, 2));
+        console.log("📦 Sample products for analysis:", products?.slice(0, 3));
         
         if (!products || products.length === 0) {
           console.log("⚠️ No products found");
-          return [];
-        }
-
-        // Log first product structure to understand data format
-        console.log("🔍 First product structure:", Object.keys(products[0] || {}));
-        console.log("🔍 First product type field:", products[0]?.type);
-        
-        // Extract unique types - try multiple possible field paths
-        const typesSet = new Set<string>();
-        
-        products.forEach(product => {
-          // Try different possible paths for type
-          const typeValue = product.type_id || product.type?.id || product.type?.value || product.type;
-          if (typeValue && typeof typeValue === 'string') {
-            typesSet.add(typeValue);
-          }
-        });
-        
-        const uniqueTypes = Array.from(typesSet).map((type, index) => ({
-          id: `type-${index}`,
-          value: type
-        }));
-        
-        console.log("🏷️ Unique brands/types found:", uniqueTypes);
-        return uniqueTypes;
-      } catch (error) {
-        console.error("❌ Failed to fetch product types:", error);
-        return [];
-      }
-    },
-  });
-
-  // Fetch product tags for filters
-  const { data: tagsData, error: tagsError, isLoading: tagsLoading } = useQuery({
-    queryKey: ["product-tags"],
-    queryFn: async () => {
-      try {
-        console.log("🔍 Fetching product tags...");
-        // Fetch products with tags
-        const { products } = await sdk.store.product.list({
-          limit: 50,
-          fields: "*variants,*categories,*collection,*type,*tags,id,title,handle"
-        });
-        
-        console.log("📦 Full product data for tags analysis:", products?.slice(0, 2));
-        console.log("🔍 First product tags field:", products?.[0]?.tags);
-        
-        if (!products || products.length === 0) {
-          console.log("⚠️ No products found for tags");
-          return [];
+          return { brands: [], tags: [] };
         }
         
-        // Extract unique tags - try multiple possible paths
+        // Log the structure of the first product
+        console.log("🔍 First product keys:", Object.keys(products[0] || {}));
+        console.log("🔍 First product type:", products[0]?.type);
+        console.log("🔍 First product tags:", products[0]?.tags);
+        
+        const brandsSet = new Set<string>();
         const tagsSet = new Set<string>();
         
-        products.forEach(product => {
-          const tags = product.tags;
-          if (Array.isArray(tags)) {
-            tags.forEach(tag => {
-              const tagValue = tag.id || tag.value || tag;
-              if (tagValue && typeof tagValue === 'string') {
-                tagsSet.add(tagValue);
-              }
+        products.forEach((product, index) => {
+          if (index < 5) { // Log first 5 products for debugging
+            console.log(`📦 Product ${index + 1} - ${product.title}:`, {
+              type: product.type,
+              tags: product.tags,
+              allKeys: Object.keys(product)
             });
+          }
+          
+          // Extract type/brand - try various possible structures
+          if (product.type) {
+            if (typeof product.type === 'string') {
+              brandsSet.add(product.type);
+            } else if (product.type.value) {
+              brandsSet.add(product.type.value);
+            } else if (product.type.id) {
+              brandsSet.add(product.type.id);
+            }
+          }
+          
+          // Extract tags - handle both array and single structures
+          if (product.tags) {
+            if (Array.isArray(product.tags)) {
+              product.tags.forEach(tag => {
+                if (typeof tag === 'string') {
+                  tagsSet.add(tag);
+                } else if (tag?.value) {
+                  tagsSet.add(tag.value);
+                } else if (tag?.id) {
+                  tagsSet.add(tag.id);
+                }
+              });
+            } else if (typeof product.tags === 'string') {
+              tagsSet.add(product.tags);
+            }
           }
         });
         
-        const uniqueTags = Array.from(tagsSet).map((tag, index) => ({
+        const brands = Array.from(brandsSet).map((brand, index) => ({
+          id: `brand-${index}`,
+          value: brand
+        }));
+        
+        const tags = Array.from(tagsSet).map((tag, index) => ({
           id: `tag-${index}`,
           value: tag
         }));
         
-        console.log("🏷️ Unique tags found:", uniqueTags);
-        return uniqueTags;
+        console.log("🏷️ Final extracted brands:", brands);
+        console.log("🏷️ Final extracted tags:", tags);
+        
+        return { brands, tags };
       } catch (error) {
-        console.error("❌ Failed to fetch product tags:", error);
-        return [];
+        console.error("❌ Error fetching filter data:", error);
+        return { brands: [], tags: [] };
       }
     },
   });
+
+  // Remove the separate brand and tag queries since we're combining them
+  const brandsData = filterData?.brands || [];
+  const tagsData = filterData?.tags || [];
 
   const handleCollectionToggle = (collectionId: string) => {
     setSelectedCollections((prev) =>
@@ -343,10 +337,6 @@ export default function Products() {
                   {/* Debug Info */}
                   <div className="text-xs text-muted-foreground border-b pb-2">
                     Debug: Brands: {brandsData?.length || 0} | Tags: {tagsData?.length || 0} | Categories: {categoriesData?.length || 0}
-                    {brandsLoading && " (Loading brands...)"}
-                    {tagsLoading && " (Loading tags...)"}
-                    {brandsError && " (Brand error)"}
-                    {tagsError && " (Tag error)"}
                   </div>
 
                   {/* Sort Options */}
