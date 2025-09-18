@@ -143,28 +143,41 @@ export default function Products() {
     queryFn: async () => {
       try {
         console.log("🔍 Fetching product types/brands...");
-        // Fetch all products to extract unique types
+        // First, let's fetch products with all available fields to see structure
         const { products } = await sdk.store.product.list({
-          limit: 1000,
-          fields: "type"
+          limit: 50,
+          fields: "*variants,*categories,*collection,*type,*tags,id,title,handle"
         });
         
-        console.log("📦 Products fetched for types:", products?.length, products?.slice(0, 3));
+        console.log("📦 Full product data for types analysis:", products?.slice(0, 2));
         
-        // Extract unique types
-        const uniqueTypes = Array.from(
-          new Set(
-            products
-              ?.map(p => p.type?.value || p.type)
-              .filter(type => type && typeof type === 'string' && type.trim() !== "")
-          )
-        ).map((type, index) => ({
+        if (!products || products.length === 0) {
+          console.log("⚠️ No products found");
+          return [];
+        }
+
+        // Log first product structure to understand data format
+        console.log("🔍 First product structure:", Object.keys(products[0] || {}));
+        console.log("🔍 First product type field:", products[0]?.type);
+        
+        // Extract unique types - try multiple possible field paths
+        const typesSet = new Set<string>();
+        
+        products.forEach(product => {
+          // Try different possible paths for type
+          const typeValue = product.type_id || product.type?.id || product.type?.value || product.type;
+          if (typeValue && typeof typeValue === 'string') {
+            typesSet.add(typeValue);
+          }
+        });
+        
+        const uniqueTypes = Array.from(typesSet).map((type, index) => ({
           id: `type-${index}`,
           value: type
         }));
         
         console.log("🏷️ Unique brands/types found:", uniqueTypes);
-        return uniqueTypes || [];
+        return uniqueTypes;
       } catch (error) {
         console.error("❌ Failed to fetch product types:", error);
         return [];
@@ -178,25 +191,42 @@ export default function Products() {
     queryFn: async () => {
       try {
         console.log("🔍 Fetching product tags...");
-        // Fetch all products to extract unique tags
+        // Fetch products with tags
         const { products } = await sdk.store.product.list({
-          limit: 1000,
-          fields: "tags"
+          limit: 50,
+          fields: "*variants,*categories,*collection,*type,*tags,id,title,handle"
         });
         
-        console.log("📦 Products fetched for tags:", products?.length, products?.slice(0, 3));
+        console.log("📦 Full product data for tags analysis:", products?.slice(0, 2));
+        console.log("🔍 First product tags field:", products?.[0]?.tags);
         
-        // Extract unique tags
-        const allTags = products?.flatMap(p => p.tags || []) || [];
-        const uniqueTags = Array.from(
-          new Set(allTags.map(tag => tag.value))
-        ).map((value, index) => ({
+        if (!products || products.length === 0) {
+          console.log("⚠️ No products found for tags");
+          return [];
+        }
+        
+        // Extract unique tags - try multiple possible paths
+        const tagsSet = new Set<string>();
+        
+        products.forEach(product => {
+          const tags = product.tags;
+          if (Array.isArray(tags)) {
+            tags.forEach(tag => {
+              const tagValue = tag.id || tag.value || tag;
+              if (tagValue && typeof tagValue === 'string') {
+                tagsSet.add(tagValue);
+              }
+            });
+          }
+        });
+        
+        const uniqueTags = Array.from(tagsSet).map((tag, index) => ({
           id: `tag-${index}`,
-          value: value
+          value: tag
         }));
         
         console.log("🏷️ Unique tags found:", uniqueTags);
-        return uniqueTags || [];
+        return uniqueTags;
       } catch (error) {
         console.error("❌ Failed to fetch product tags:", error);
         return [];
