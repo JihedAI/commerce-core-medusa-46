@@ -110,7 +110,7 @@ export default function OrderDetails() {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency.toUpperCase(),
-    }).format(amount / 100);
+    }).format(amount / 1);
   };
 
   const formatAddress = (address: Address) => {

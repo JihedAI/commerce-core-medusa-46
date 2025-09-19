@@ -17,7 +17,7 @@ export function formatPrice(amount: number = 0, currencyCode: string = "USD"): s
     currency: currencyCode.toUpperCase(),
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(amount / 100); // Medusa stores prices in cents
+  }).format(amount / 1); // Medusa stores prices in cents
 }
 
 export function truncateText(text: string, maxLength: number = 100): string {
