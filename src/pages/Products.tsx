@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 import ProductCard from "@/components/ProductCard";
@@ -503,117 +504,157 @@ function FilterContent({
   selectedTags, 
   handleTagToggle 
 }: any) {
+  const [openSections, setOpenSections] = useState({
+    collections: true,
+    sort: true,
+    categories: false,
+    brands: false,
+    tags: false
+  });
+
+  const toggleSection = (section: keyof typeof openSections) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Collections Quick Filter */}
-      <div>
-        <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Collections</h3>
-        <div className="flex flex-wrap gap-2">
-          {collectionsData?.slice(0, 4).map((collection: any) => (
-            <button
-              key={collection.id}
-              onClick={() => handleCollectionToggle(collection.id)}
-              className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
-                selectedCollections.includes(collection.id)
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background hover:bg-muted border-border'
-              }`}
-            >
-              {collection.title}
-            </button>
-          ))}
-        </div>
-      </div>
+      <Collapsible open={openSections.collections} onOpenChange={() => toggleSection('collections')}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
+          <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Collections</h3>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.collections ? 'rotate-180' : ''}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 pt-2">
+          <div className="flex flex-wrap gap-2">
+            {collectionsData?.slice(0, 4).map((collection: any) => (
+              <button
+                key={collection.id}
+                onClick={() => handleCollectionToggle(collection.id)}
+                className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
+                  selectedCollections.includes(collection.id)
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background hover:bg-muted border-border'
+                }`}
+              >
+                {collection.title}
+              </button>
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Sort Options */}
-      <div>
-        <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
-        <div className="space-y-2">
-          {[
-            { value: "newest", label: "Newest" },
-            { value: "price-low", label: "Price: Low to High" },
-            { value: "price-high", label: "Price: High to Low" },
-            { value: "a-z", label: "A–Z" },
-          ].map((option) => (
-            <label key={option.value} className="flex items-center space-x-3 cursor-pointer group">
-              <input
-                type="radio"
-                name="sort"
-                value={option.value}
-                checked={sortBy === option.value}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-3.5 h-3.5 text-primary border-border"
-              />
-              <span className="text-sm group-hover:text-foreground transition-colors">{option.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      <Collapsible open={openSections.sort} onOpenChange={() => toggleSection('sort')}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
+          <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.sort ? 'rotate-180' : ''}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 pt-2">
+          <div className="space-y-2">
+            {[
+              { value: "newest", label: "Newest" },
+              { value: "price-low", label: "Price: Low to High" },
+              { value: "price-high", label: "Price: High to Low" },
+              { value: "a-z", label: "A–Z" },
+            ].map((option) => (
+              <label key={option.value} className="flex items-center space-x-3 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="sort"
+                  value={option.value}
+                  checked={sortBy === option.value}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-3.5 h-3.5 text-primary border-border"
+                />
+                <span className="text-sm group-hover:text-foreground transition-colors">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Categories */}
       {categoriesData && categoriesData.length > 0 && (
-        <div>
-          <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {categoriesData.map((category: any) => (
-              <div key={category.id} className="flex items-center space-x-3 group">
-                <Checkbox
-                  id={category.id}
-                  checked={selectedCategories.includes(category.id)}
-                  onCheckedChange={() => handleCategoryToggle(category.id)}
-                  className="w-4 h-4"
-                />
-                <Label htmlFor={category.id} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                  {category.name}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Collapsible open={openSections.categories} onOpenChange={() => toggleSection('categories')}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
+            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.categories ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-3 pt-2">
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {categoriesData.map((category: any) => (
+                <div key={category.id} className="flex items-center space-x-3 group">
+                  <Checkbox
+                    id={category.id}
+                    checked={selectedCategories.includes(category.id)}
+                    onCheckedChange={() => handleCategoryToggle(category.id)}
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor={category.id} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
+                    {category.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {/* Brands */}
       {brandsData && brandsData.length > 0 && (
-        <div>
-          <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {brandsData.map((brand: any) => (
-              <div key={brand.id} className="flex items-center space-x-3 group">
-                <Checkbox
-                  id={`brand-${brand.id}`}
-                  checked={selectedBrands.includes(brand.id)}
-                  onCheckedChange={() => handleBrandToggle(brand.id)}
-                  className="w-4 h-4"
-                />
-                <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                  {brand.value}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Collapsible open={openSections.brands} onOpenChange={() => toggleSection('brands')}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
+            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.brands ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-3 pt-2">
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {brandsData.map((brand: any) => (
+                <div key={brand.id} className="flex items-center space-x-3 group">
+                  <Checkbox
+                    id={`brand-${brand.id}`}
+                    checked={selectedBrands.includes(brand.id)}
+                    onCheckedChange={() => handleBrandToggle(brand.id)}
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
+                    {brand.value}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {/* Tags */}
       {tagsData && tagsData.length > 0 && (
-        <div>
-          <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {tagsData.map((tag: any) => (
-              <div key={tag.id} className="flex items-center space-x-3 group">
-                <Checkbox
-                  id={`tag-${tag.id}`}
-                  checked={selectedTags.includes(tag.id)}
-                  onCheckedChange={() => handleTagToggle(tag.id)}
-                  className="w-4 h-4"
-                />
-                <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                  {tag.value}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Collapsible open={openSections.tags} onOpenChange={() => toggleSection('tags')}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
+            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.tags ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-3 pt-2">
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {tagsData.map((tag: any) => (
+                <div key={tag.id} className="flex items-center space-x-3 group">
+                  <Checkbox
+                    id={`tag-${tag.id}`}
+                    checked={selectedTags.includes(tag.id)}
+                    onCheckedChange={() => handleTagToggle(tag.id)}
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
+                    {tag.value}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );
