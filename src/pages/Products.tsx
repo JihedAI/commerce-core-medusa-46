@@ -102,11 +102,11 @@ export default function Products() {
       }
 
       if (selectedTags.length > 0) {
-        console.log("🏷️ Filtering with tag values:", selectedTags);
+        console.log("🏷️ Filtering with tag IDs:", selectedTags);
         console.log("🏷️ Available tags data:", tagsData);
         
-        // selectedTags already contains tag values, use them directly
-        params.tags = selectedTags;
+        // Use tag IDs directly for filtering
+        params.tag_id = selectedTags;
       }
 
       // Add region context for pricing
@@ -230,7 +230,8 @@ export default function Products() {
           return [];
         }
         
-        const tagsSet = new Set<string>();
+        const tagsSet = new Set();
+        const tagsArray: Array<{id: string, value: string}> = [];
         
         products.forEach((product, index) => {
           if (index < 3) { // Log first 3 products for debugging
@@ -245,27 +246,42 @@ export default function Products() {
           if (product.tags) {
             if (Array.isArray(product.tags)) {
               product.tags.forEach(tag => {
+                let tagId = '';
+                let tagValue = '';
+                
                 if (typeof tag === 'string') {
-                  tagsSet.add(tag);
+                  tagId = tag;
+                  tagValue = tag;
+                } else if (tag?.id && tag?.value) {
+                  tagId = tag.id;
+                  tagValue = tag.value;
                 } else if (tag?.value) {
-                  tagsSet.add(tag.value);
-                } else if (tag?.id) {
-                  tagsSet.add(tag.id);
+                  tagId = tag.value;
+                  tagValue = tag.value;
+                }
+                
+                if (tagId && tagValue && !tagsSet.has(tagId)) {
+                  tagsSet.add(tagId);
+                  tagsArray.push({
+                    id: tagId,
+                    value: tagValue
+                  });
                 }
               });
             } else if (typeof product.tags === 'string') {
-              tagsSet.add(product.tags);
+              if (!tagsSet.has(product.tags)) {
+                tagsSet.add(product.tags);
+                tagsArray.push({
+                  id: product.tags,
+                  value: product.tags
+                });
+              }
             }
           }
         });
         
-        const tags = Array.from(tagsSet).map((tag, index) => ({
-          id: `tag-${index}`,
-          value: tag
-        }));
-        
-        console.log("🏷️ Final extracted tags:", tags);
-        return tags;
+        console.log("🏷️ Final extracted tags:", tagsArray);
+        return tagsArray;
       } catch (error) {
         console.error("❌ Error fetching product tags:", error);
         return [];
@@ -444,10 +460,10 @@ export default function Products() {
                       <div className="space-y-2 max-h-40 overflow-y-auto">
                         {tagsData.map((tag: any) => (
                           <div key={tag.id} className="flex items-center space-x-3 group">
-                            <Checkbox
-                              id={`tag-${tag.id}`}
-                              checked={selectedTags.includes(tag.value)}
-                              onCheckedChange={() => handleTagToggle(tag.value)}
+                             <Checkbox
+                               id={`tag-${tag.id}`}
+                               checked={selectedTags.includes(tag.id)}
+                               onCheckedChange={() => handleTagToggle(tag.id)}
                               className="w-4 h-4"
                             />
                             <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
