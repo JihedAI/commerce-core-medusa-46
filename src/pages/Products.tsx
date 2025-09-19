@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Filter, Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
@@ -22,7 +21,7 @@ export default function Products() {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
 
   const page = parseInt(searchParams.get("page") || "1");
   const limit = 20;
@@ -327,82 +326,54 @@ export default function Products() {
           </div>
         )}
         
-        {/* Collections Pills Section */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex flex-wrap gap-2 flex-1">
-              {collectionsData?.slice(0, 6).map((collection) => (
-                <button
-                  key={collection.id}
-                  onClick={() => handleCollectionToggle(collection.id)}
-                  className={`group px-4 py-2 backdrop-blur-sm border rounded-full transition-all duration-300 hover:scale-105 ${
-                    selectedCollections.includes(collection.id)
-                      ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20'
-                      : 'bg-muted/40 border-border/40 hover:bg-muted/60'
-                  }`}
-                >
-                  <span className={`text-xs font-medium transition-colors ${
-                    selectedCollections.includes(collection.id)
-                      ? 'text-primary-foreground'
-                      : 'group-hover:text-primary'
-                  }`}>
-                    {collection.title}
-                  </span>
-                </button>
-              ))}
-            </div>
-            
-            {/* Filter Icon */}
-            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-4 h-12 w-12 rounded-full bg-muted/50 backdrop-blur-sm border border-border/50 hover:bg-muted/80 transition-all duration-300"
-                >
-                  <Filter className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 bg-background/95 backdrop-blur-xl border-l border-border/50">
-                <SheetHeader className="border-b border-border/50 pb-4">
-                  <div className="flex items-center justify-between">
-                    <SheetTitle className="text-lg font-semibold">Filters</SheetTitle>
-                    <SheetClose asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </SheetClose>
-                  </div>
-                </SheetHeader>
+        <div className="container mx-auto px-4">
+          <div className="flex gap-8">
+            {/* Left Sidebar Filter */}
+            <div className="w-80 flex-shrink-0">
+              <div className="sticky top-6 bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-sm">
+                <h2 className="text-lg font-semibold mb-6 text-foreground">Filters</h2>
                 
-                <div className="py-6 space-y-8">
-                  {/* Debug Info */}
-                  <div className="text-xs text-muted-foreground border-b pb-2">
-                    Debug: Brands: {brandsData?.length || 0} | Tags: {tagsData?.length || 0} | Categories: {categoriesData?.length || 0}
+                <div className="space-y-8">
+                  {/* Collections Quick Filter */}
+                  <div>
+                    <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Collections</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {collectionsData?.slice(0, 4).map((collection) => (
+                        <button
+                          key={collection.id}
+                          onClick={() => handleCollectionToggle(collection.id)}
+                          className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
+                            selectedCollections.includes(collection.id)
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background hover:bg-muted border-border'
+                          }`}
+                        >
+                          {collection.title}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Sort Options */}
                   <div>
-                    <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
-                    <div className="space-y-3">
+                    <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
+                    <div className="space-y-2">
                       {[
+                        { value: "newest", label: "Newest" },
                         { value: "price-low", label: "Price: Low to High" },
                         { value: "price-high", label: "Price: High to Low" },
-                        { value: "newest", label: "Newest to Oldest" },
-                        { value: "oldest", label: "Oldest to Newest" },
-                        { value: "a-z", label: "Alphabetical (A–Z)" },
-                        { value: "z-a", label: "Alphabetical (Z–A)" },
+                        { value: "a-z", label: "A–Z" },
                       ].map((option) => (
-                        <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                        <label key={option.value} className="flex items-center space-x-3 cursor-pointer group">
                           <input
                             type="radio"
                             name="sort"
                             value={option.value}
                             checked={sortBy === option.value}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="w-4 h-4 text-primary"
+                            className="w-3.5 h-3.5 text-primary border-border"
                           />
-                          <span className="text-sm">{option.label}</span>
+                          <span className="text-sm group-hover:text-foreground transition-colors">{option.label}</span>
                         </label>
                       ))}
                     </div>
@@ -411,16 +382,17 @@ export default function Products() {
                   {/* Categories */}
                   {categoriesData && categoriesData.length > 0 && (
                     <div>
-                      <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
-                      <div className="space-y-3 max-h-48 overflow-y-auto">
+                      <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
                         {categoriesData.map((category: any) => (
-                          <div key={category.id} className="flex items-center space-x-3">
+                          <div key={category.id} className="flex items-center space-x-3 group">
                             <Checkbox
                               id={category.id}
                               checked={selectedCategories.includes(category.id)}
                               onCheckedChange={() => handleCategoryToggle(category.id)}
+                              className="w-4 h-4"
                             />
-                            <Label htmlFor={category.id} className="text-sm cursor-pointer">
+                            <Label htmlFor={category.id} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
                               {category.name}
                             </Label>
                           </div>
@@ -432,16 +404,17 @@ export default function Products() {
                   {/* Brands (Product Types) */}
                   {brandsData && brandsData.length > 0 && (
                     <div>
-                      <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
-                      <div className="space-y-3 max-h-48 overflow-y-auto">
+                      <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
                         {brandsData.map((brand: any) => (
-                          <div key={brand.id} className="flex items-center space-x-3">
+                          <div key={brand.id} className="flex items-center space-x-3 group">
                             <Checkbox
                               id={`brand-${brand.id}`}
                               checked={selectedBrands.includes(brand.value)}
                               onCheckedChange={() => handleBrandToggle(brand.value)}
+                              className="w-4 h-4"
                             />
-                            <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer">
+                            <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
                               {brand.value}
                             </Label>
                           </div>
@@ -453,16 +426,17 @@ export default function Products() {
                   {/* Tags */}
                   {tagsData && tagsData.length > 0 && (
                     <div>
-                      <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
-                      <div className="space-y-3 max-h-48 overflow-y-auto">
+                      <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
                         {tagsData.map((tag: any) => (
-                          <div key={tag.id} className="flex items-center space-x-3">
+                          <div key={tag.id} className="flex items-center space-x-3 group">
                             <Checkbox
                               id={`tag-${tag.id}`}
                               checked={selectedTags.includes(tag.value)}
                               onCheckedChange={() => handleTagToggle(tag.value)}
+                              className="w-4 h-4"
                             />
-                            <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer">
+                            <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
                               {tag.value}
                             </Label>
                           </div>
@@ -471,58 +445,59 @@ export default function Products() {
                     </div>
                   )}
                 </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+              </div>
+            </div>
 
-          {/* Search Bar */}
-          <div className="relative mb-8">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search for a product…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-14 pl-12 pr-4 bg-muted/30 backdrop-blur-sm border border-border/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:bg-muted/50 transition-all duration-300"
-              />
+            {/* Main Content */}
+            <div className="flex-1 min-w-0">
+              {/* Search Bar */}
+              <div className="mb-8">
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-background/50 border-border/50 focus:bg-background transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Products Section */}
+              {productsLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                  {[...Array(10)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-muted/30 rounded-2xl animate-pulse" />
+                  ))}
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-muted-foreground mb-4 text-lg">
+                    {searchQuery ? `No products found for "${searchQuery}"` : "No products found"}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategories([]);
+                      setSelectedCollections([]);
+                      setSelectedBrands([]);
+                      setSelectedTags([]);
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                  {filteredProducts.map((product) => (
+                    <FloatingProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-
-        {/* Products Section */}
-        <div className="container mx-auto px-4 pb-16">
-          {productsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="aspect-square bg-muted/30 rounded-2xl animate-pulse" />
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground mb-4 text-lg">
-                {searchQuery ? `No products found for "${searchQuery}"` : "No products found"}
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategories([]);
-                  setSelectedCollections([]);
-                  setSelectedBrands([]);
-                  setSelectedTags([]);
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-              {filteredProducts.map((product) => (
-                <FloatingProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </Layout>
