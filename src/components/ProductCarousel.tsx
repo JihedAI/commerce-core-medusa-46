@@ -1,44 +1,33 @@
-import React, { useEffect, useState } from "react"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { medusa } from "@/lib/medusa"
-import { formatPrice } from "@/lib/utils"
-import { useNavigate } from "react-router-dom"
-import Autoplay from "embla-carousel-autoplay"
-import { useRegion } from "@/contexts/RegionContext"
+import React, { useEffect, useState } from "react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { medusa } from "@/lib/medusa";
+import { formatPrice } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useRegion } from "@/contexts/RegionContext";
+import Autoplay from "embla-carousel-autoplay";
 
 export default function ProductCarousel() {
-  const [products, setProducts] = useState<any[]>([])
-  const navigate = useNavigate()
-  const { currentRegion } = useRegion()
+  const [products, setProducts] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const { currentRegion } = useRegion();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!currentRegion) return
-
       try {
-        const { products } = await medusa.products.list({
-          limit: 10,
-          fields: "*variants.calculated_price",
-          region_id: currentRegion.id,
-        })
-        setProducts(products)
+        const { products } = await medusa.products.list({ limit: 10 });
+        setProducts(products);
       } catch (error) {
-        console.error("Failed to fetch products:", error)
+        console.error("Failed to fetch products:", error);
       }
-    }
-
-    fetchProducts()
-  }, [currentRegion])
+    };
+    fetchProducts();
+  }, []);
 
   const plugin = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
-  )
+  );
 
-  if (!currentRegion) {
-    return <div>Loading...</div>
-  }
-
-  if (!products.length) return null
+  if (!products.length) return null;
 
   return (
     <section className="w-full py-20 px-8 lg:px-16">
@@ -80,12 +69,13 @@ export default function ProductCarousel() {
                     <p className="text-sm font-sans tracking-wide text-foreground/90 mb-1">
                       {product.title}
                     </p>
-                    <p className="text-xs font-light text-foreground/70">
-                      {formatPrice(
-                        product.variants?.[0]?.calculated_price?.calculated_amount || 0,
-                        currentRegion.currency_code
-                      )}
-                    </p>
+                     <p className="text-xs font-light text-foreground/70">
+  {formatPrice(
+    product.variants?.[0]?.calculated_price?.calculated_amount || 0,
+    currentRegion?.currency_code || "USD"
+  )}
+</p>
+
                   </div>
                 </div>
               </CarouselItem>
@@ -98,5 +88,5 @@ export default function ProductCarousel() {
         </Carousel>
       </div>
     </section>
-  )
+  );
 }
