@@ -62,14 +62,8 @@ export default function Products() {
         fields: "*variants,*variants.calculated_price,*images,*collection,*categories,*type,*tags"
       };
 
-      // Add sorting
+      // Only apply server-side sorting for simple fields
       switch (sortBy) {
-        case "price-low":
-          params.order = "variants.calculated_price";
-          break;
-        case "price-high":
-          params.order = "-variants.calculated_price";
-          break;
         case "oldest":
           params.order = "created_at";
           break;
@@ -79,6 +73,7 @@ export default function Products() {
         case "z-a":
           params.order = "-title";
           break;
+        case "newest":
         default:
           params.order = "-created_at";
       }
@@ -333,15 +328,26 @@ export default function Products() {
     });
   };
 
-  // Filter products based on search query
+  // Filter and sort products based on search query and sort option
   const filteredProducts = useMemo(() => {
     if (!productsData?.products) return [];
     
-    return productsData.products.filter(product =>
+    let products = productsData.products.filter(product =>
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [productsData?.products, searchQuery]);
+
+    // Apply client-side sorting for price-based sorting
+    if (sortBy === "price-low" || sortBy === "price-high") {
+      products = products.sort((a, b) => {
+        const aPrice = a.variants?.[0]?.calculated_price?.calculated_amount || 0;
+        const bPrice = b.variants?.[0]?.calculated_price?.calculated_amount || 0;
+        return sortBy === "price-low" ? aPrice - bPrice : bPrice - aPrice;
+      });
+    }
+    
+    return products;
+  }, [productsData?.products, searchQuery, sortBy]);
 
   const totalPages = Math.ceil((productsData?.count || 0) / limit);
 
