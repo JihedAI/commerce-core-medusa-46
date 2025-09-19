@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
-import FloatingProductCard from "@/components/FloatingProductCard";
+import ProductCard from "@/components/ProductCard";
 import Layout from "@/components/Layout";
 import { useRegion } from "@/contexts/RegionContext";
 
@@ -357,131 +358,82 @@ export default function Products() {
         )}
         
         <div className="container mx-auto px-4">
+          {/* Mobile Filter Button and Search */}
+          <div className="lg:hidden mb-6">
+            <div className="flex gap-3">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex-shrink-0">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                  <SheetHeader className="p-6 border-b">
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="p-6 overflow-y-auto">
+                    <FilterContent 
+                      collectionsData={collectionsData}
+                      selectedCollections={selectedCollections}
+                      handleCollectionToggle={handleCollectionToggle}
+                      sortBy={sortBy}
+                      setSortBy={setSortBy}
+                      categoriesData={categoriesData}
+                      selectedCategories={selectedCategories}
+                      handleCategoryToggle={handleCategoryToggle}
+                      brandsData={brandsData}
+                      selectedBrands={selectedBrands}
+                      handleBrandToggle={handleBrandToggle}
+                      tagsData={tagsData}
+                      selectedTags={selectedTags}
+                      handleTagToggle={handleTagToggle}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex gap-8">
-            {/* Left Sidebar Filter */}
-            <div className="w-80 flex-shrink-0">
+            {/* Desktop Sidebar Filter */}
+            <div className="hidden lg:block w-80 flex-shrink-0">
               <div className="sticky top-6 bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-sm">
                 <h2 className="text-lg font-semibold mb-6 text-foreground">Filters</h2>
-                
-                <div className="space-y-8">
-                  {/* Collections Quick Filter */}
-                  <div>
-                    <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Collections</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {collectionsData?.slice(0, 4).map((collection) => (
-                        <button
-                          key={collection.id}
-                          onClick={() => handleCollectionToggle(collection.id)}
-                          className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
-                            selectedCollections.includes(collection.id)
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-background hover:bg-muted border-border'
-                          }`}
-                        >
-                          {collection.title}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Sort Options */}
-                  <div>
-                    <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
-                    <div className="space-y-2">
-                      {[
-                        { value: "newest", label: "Newest" },
-                        { value: "price-low", label: "Price: Low to High" },
-                        { value: "price-high", label: "Price: High to Low" },
-                        { value: "a-z", label: "A–Z" },
-                      ].map((option) => (
-                        <label key={option.value} className="flex items-center space-x-3 cursor-pointer group">
-                          <input
-                            type="radio"
-                            name="sort"
-                            value={option.value}
-                            checked={sortBy === option.value}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="w-3.5 h-3.5 text-primary border-border"
-                          />
-                          <span className="text-sm group-hover:text-foreground transition-colors">{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Categories */}
-                  {categoriesData && categoriesData.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {categoriesData.map((category: any) => (
-                          <div key={category.id} className="flex items-center space-x-3 group">
-                            <Checkbox
-                              id={category.id}
-                              checked={selectedCategories.includes(category.id)}
-                              onCheckedChange={() => handleCategoryToggle(category.id)}
-                              className="w-4 h-4"
-                            />
-                            <Label htmlFor={category.id} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                              {category.name}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Brands (Product Types) */}
-                  {brandsData && brandsData.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {brandsData.map((brand: any) => (
-                          <div key={brand.id} className="flex items-center space-x-3 group">
-                            <Checkbox
-                              id={`brand-${brand.id}`}
-                              checked={selectedBrands.includes(brand.id)}
-                              onCheckedChange={() => handleBrandToggle(brand.id)}
-                              className="w-4 h-4"
-                            />
-                            <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                              {brand.value}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tags */}
-                  {tagsData && tagsData.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {tagsData.map((tag: any) => (
-                          <div key={tag.id} className="flex items-center space-x-3 group">
-                             <Checkbox
-                               id={`tag-${tag.id}`}
-                               checked={selectedTags.includes(tag.id)}
-                               onCheckedChange={() => handleTagToggle(tag.id)}
-                              className="w-4 h-4"
-                            />
-                            <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                              {tag.value}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <FilterContent 
+                  collectionsData={collectionsData}
+                  selectedCollections={selectedCollections}
+                  handleCollectionToggle={handleCollectionToggle}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  categoriesData={categoriesData}
+                  selectedCategories={selectedCategories}
+                  handleCategoryToggle={handleCategoryToggle}
+                  brandsData={brandsData}
+                  selectedBrands={selectedBrands}
+                  handleBrandToggle={handleBrandToggle}
+                  tagsData={tagsData}
+                  selectedTags={selectedTags}
+                  handleTagToggle={handleTagToggle}
+                />
               </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1 min-w-0">
-              {/* Search Bar */}
-              <div className="mb-8">
+              {/* Desktop Search Bar */}
+              <div className="hidden lg:block mb-8">
                 <div className="relative max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -520,9 +472,9 @@ export default function Products() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                   {filteredProducts.map((product) => (
-                    <FloatingProductCard key={product.id} product={product} />
+                    <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
               )}
@@ -534,4 +486,135 @@ export default function Products() {
   );
 }
 
-// Remove the FilterContent component as it's no longer needed
+// Filter content component for reuse
+function FilterContent({ 
+  collectionsData, 
+  selectedCollections, 
+  handleCollectionToggle, 
+  sortBy, 
+  setSortBy, 
+  categoriesData, 
+  selectedCategories, 
+  handleCategoryToggle, 
+  brandsData, 
+  selectedBrands, 
+  handleBrandToggle, 
+  tagsData, 
+  selectedTags, 
+  handleTagToggle 
+}: any) {
+  return (
+    <div className="space-y-8">
+      {/* Collections Quick Filter */}
+      <div>
+        <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Collections</h3>
+        <div className="flex flex-wrap gap-2">
+          {collectionsData?.slice(0, 4).map((collection: any) => (
+            <button
+              key={collection.id}
+              onClick={() => handleCollectionToggle(collection.id)}
+              className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
+                selectedCollections.includes(collection.id)
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background hover:bg-muted border-border'
+              }`}
+            >
+              {collection.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Sort Options */}
+      <div>
+        <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
+        <div className="space-y-2">
+          {[
+            { value: "newest", label: "Newest" },
+            { value: "price-low", label: "Price: Low to High" },
+            { value: "price-high", label: "Price: High to Low" },
+            { value: "a-z", label: "A–Z" },
+          ].map((option) => (
+            <label key={option.value} className="flex items-center space-x-3 cursor-pointer group">
+              <input
+                type="radio"
+                name="sort"
+                value={option.value}
+                checked={sortBy === option.value}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-3.5 h-3.5 text-primary border-border"
+              />
+              <span className="text-sm group-hover:text-foreground transition-colors">{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Categories */}
+      {categoriesData && categoriesData.length > 0 && (
+        <div>
+          <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {categoriesData.map((category: any) => (
+              <div key={category.id} className="flex items-center space-x-3 group">
+                <Checkbox
+                  id={category.id}
+                  checked={selectedCategories.includes(category.id)}
+                  onCheckedChange={() => handleCategoryToggle(category.id)}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor={category.id} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
+                  {category.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Brands */}
+      {brandsData && brandsData.length > 0 && (
+        <div>
+          <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {brandsData.map((brand: any) => (
+              <div key={brand.id} className="flex items-center space-x-3 group">
+                <Checkbox
+                  id={`brand-${brand.id}`}
+                  checked={selectedBrands.includes(brand.id)}
+                  onCheckedChange={() => handleBrandToggle(brand.id)}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
+                  {brand.value}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tags */}
+      {tagsData && tagsData.length > 0 && (
+        <div>
+          <h3 className="font-medium mb-4 text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {tagsData.map((tag: any) => (
+              <div key={tag.id} className="flex items-center space-x-3 group">
+                <Checkbox
+                  id={`tag-${tag.id}`}
+                  checked={selectedTags.includes(tag.id)}
+                  onCheckedChange={() => handleTagToggle(tag.id)}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
+                  {tag.value}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
