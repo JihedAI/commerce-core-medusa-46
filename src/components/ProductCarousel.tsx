@@ -3,13 +3,11 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { medusa } from "@/lib/medusa";
 import { formatPrice } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { useRegion } from "@/contexts/RegionContext";
 import Autoplay from "embla-carousel-autoplay";
 
 export default function ProductCarousel() {
   const [products, setProducts] = useState<any[]>([]);
   const navigate = useNavigate();
-  const { currentRegion } = useRegion();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -69,13 +67,12 @@ export default function ProductCarousel() {
                     <p className="text-sm font-sans tracking-wide text-foreground/90 mb-1">
                       {product.title}
                     </p>
-                     <p className="text-xs font-light text-foreground/70">
-  {formatPrice(
-    product.variants?.[0]?.calculated_price?.calculated_amount || 0,
-    currentRegion?.currency_code || "USD"
-  )}
-</p>
-
+                    <p className="text-xs font-light text-foreground/70">
+                      {formatPrice(
+                        product.variants?.[0]?.prices?.[0]?.amount || 0,
+                        product.variants?.[0]?.prices?.[0]?.currency_code || "USD"
+                      )}
+                    </p>
                   </div>
                 </div>
               </CarouselItem>
