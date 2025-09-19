@@ -109,9 +109,10 @@ export default function Products() {
         });
         console.log("🏷️ Filtering with tag values:", tagValues);
         console.log("🏷️ Available tags data:", tagsData);
+        console.log("🏷️ selectedTags:", selectedTags);
         
-        // Try different parameter names for tags - Medusa v2 might use tag_id
-        params.tag_id = tagValues;
+        // Try using 'tags' parameter instead of 'tag_id'
+        params.tags = tagValues;
       }
 
       // Add region context for pricing
