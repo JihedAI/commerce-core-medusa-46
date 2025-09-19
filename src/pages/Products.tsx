@@ -102,7 +102,12 @@ export default function Products() {
       }
 
       if (selectedTags.length > 0) {
-        params.tag_id = selectedTags;
+        // Convert tag IDs back to values for API filtering
+        const tagValues = selectedTags.map(tagId => {
+          const tag = tagsData.find(t => t.id === tagId);
+          return tag?.value || tagId;
+        });
+        params.tags = tagValues;
       }
 
       // Add region context for pricing
@@ -300,12 +305,12 @@ export default function Products() {
     });
   };
 
-  const handleTagToggle = (tagValue: string) => {
-    console.log("🏷️ Toggling tag:", tagValue, "Current tags:", selectedTags);
+  const handleTagToggle = (tagId: string) => {
+    console.log("🏷️ Toggling tag:", tagId, "Current tags:", selectedTags);
     setSelectedTags((prev) => {
-      const newSelection = prev.includes(tagValue)
-        ? prev.filter((value) => value !== tagValue)
-        : [...prev, tagValue];
+      const newSelection = prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId];
       console.log("🏷️ New tag selection:", newSelection);
       return newSelection;
     });
