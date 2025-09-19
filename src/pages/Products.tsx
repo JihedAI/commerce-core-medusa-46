@@ -102,17 +102,11 @@ export default function Products() {
       }
 
       if (selectedTags.length > 0) {
-        // Convert tag IDs back to values for API filtering
-        const tagValues = selectedTags.map(tagId => {
-          const tag = tagsData.find(t => t.id === tagId);
-          return tag?.value || tagId;
-        });
-        console.log("🏷️ Filtering with tag values:", tagValues);
+        console.log("🏷️ Filtering with tag values:", selectedTags);
         console.log("🏷️ Available tags data:", tagsData);
-        console.log("🏷️ selectedTags:", selectedTags);
         
-        // Try using 'tags' parameter instead of 'tag_id'
-        params.tags = tagValues;
+        // selectedTags already contains tag values, use them directly
+        params.tags = selectedTags;
       }
 
       // Add region context for pricing
