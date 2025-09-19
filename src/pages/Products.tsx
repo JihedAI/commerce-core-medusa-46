@@ -107,7 +107,11 @@ export default function Products() {
           const tag = tagsData.find(t => t.id === tagId);
           return tag?.value || tagId;
         });
-        params.tags = tagValues;
+        console.log("🏷️ Filtering with tag values:", tagValues);
+        console.log("🏷️ Available tags data:", tagsData);
+        
+        // Try different parameter names for tags - Medusa v2 might use tag_id
+        params.tag_id = tagValues;
       }
 
       // Add region context for pricing
@@ -234,7 +238,7 @@ export default function Products() {
         const tagsSet = new Set<string>();
         
         products.forEach((product, index) => {
-          if (index < 5) { // Log first 5 products for debugging
+          if (index < 3) { // Log first 3 products for debugging
             console.log(`📦 Product ${index + 1} - ${product.title}:`, {
               type: product.type,
               tags: product.tags,
