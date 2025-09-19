@@ -81,24 +81,28 @@ export default function Products() {
           params.order = "-created_at";
       }
 
+      // Handle category filters - combine categoryData and selectedCategories
+      const categoryIds = [];
       if (categoryData?.id) {
-        params.category_id = [categoryData.id];
+        categoryIds.push(categoryData.id);
+      }
+      if (selectedCategories.length > 0) {
+        categoryIds.push(...selectedCategories);
+      }
+      if (categoryIds.length > 0) {
+        params.category_id = categoryIds;
       }
 
       if (selectedCollections.length > 0) {
         params.collection_id = selectedCollections;
       }
 
-      if (selectedCategories.length > 0) {
-        params.category_id = selectedCategories;
-      }
-
       if (selectedBrands.length > 0) {
-        params.type = selectedBrands;
+        params.type_id = selectedBrands;
       }
 
       if (selectedTags.length > 0) {
-        params.tags = selectedTags;
+        params.tag_id = selectedTags;
       }
 
       // Add region context for pricing
@@ -285,20 +289,26 @@ export default function Products() {
     );
   };
 
-  const handleBrandToggle = (brandValue: string) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brandValue)
-        ? prev.filter((value) => value !== brandValue)
-        : [...prev, brandValue]
-    );
+  const handleBrandToggle = (brandId: string) => {
+    console.log("🏷️ Toggling brand:", brandId, "Current brands:", selectedBrands);
+    setSelectedBrands((prev) => {
+      const newSelection = prev.includes(brandId)
+        ? prev.filter((id) => id !== brandId)
+        : [...prev, brandId];
+      console.log("🏷️ New brand selection:", newSelection);
+      return newSelection;
+    });
   };
 
   const handleTagToggle = (tagValue: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagValue)
+    console.log("🏷️ Toggling tag:", tagValue, "Current tags:", selectedTags);
+    setSelectedTags((prev) => {
+      const newSelection = prev.includes(tagValue)
         ? prev.filter((value) => value !== tagValue)
-        : [...prev, tagValue]
-    );
+        : [...prev, tagValue];
+      console.log("🏷️ New tag selection:", newSelection);
+      return newSelection;
+    });
   };
 
   // Filter products based on search query
@@ -410,8 +420,8 @@ export default function Products() {
                           <div key={brand.id} className="flex items-center space-x-3 group">
                             <Checkbox
                               id={`brand-${brand.id}`}
-                              checked={selectedBrands.includes(brand.value)}
-                              onCheckedChange={() => handleBrandToggle(brand.value)}
+                              checked={selectedBrands.includes(brand.id)}
+                              onCheckedChange={() => handleBrandToggle(brand.id)}
                               className="w-4 h-4"
                             />
                             <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
