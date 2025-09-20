@@ -4,14 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
 export default function CollectionsShowcase() {
-  // Collection images mapping
+  // Collection images mapping - Real URLs from the internet
   const collectionImages: Record<string, string> = {
-    "sunglasses": "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&h=1000&fit=crop",
-    "contact-lenses": "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&h=1000&fit=crop", 
-    "men": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
-    "women": "https://images.unsplash.com/photo-1494790108755-2616c95f2e1e?w=800&h=1000&fit=crop",
-    "frames": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=800&h=1000&fit=crop",
-    "reading": "https://images.unsplash.com/photo-1559087867-ce4c91325525?w=800&h=1000&fit=crop"
+    "sunglasses": "https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "contact-lenses": "https://images.pexels.com/photos/136404/pexels-photo-136404.jpeg?auto=compress&cs=tinysrgb&w=800", 
+    "men": "https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "women": "https://images.pexels.com/photos/1549280/pexels-photo-1549280.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "frames": "https://images.pexels.com/photos/947885/pexels-photo-947885.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "reading": "https://images.pexels.com/photos/1123262/pexels-photo-1123262.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "eyeglasses": "https://images.pexels.com/photos/1067333/pexels-photo-1067333.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "optical": "https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=800"
   };
 
   // Get image for collection based on handle or title
@@ -32,7 +34,7 @@ export default function CollectionsShowcase() {
     }
     
     // Default fallback image
-    return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=1000&fit=crop";
+    return "https://images.pexels.com/photos/983947/pexels-photo-983947.jpeg?auto=compress&cs=tinysrgb&w=800";
   };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections"],
