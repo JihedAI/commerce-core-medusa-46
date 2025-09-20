@@ -118,23 +118,6 @@ export default function ProductDetail() {
     enabled: !!product?.collection?.id && !!region,
   });
 
-  // Fetch all products for explore section
-  const { data: exploreProducts } = useQuery({
-    queryKey: ["explore-products", region?.id, product?.id],
-    queryFn: async () => {
-      if (!region) return [];
-      
-      const { products } = await sdk.store.product.list({
-        limit: 12,
-        fields: "+variants.calculated_price,+images,+collection",
-        region_id: region.id
-      });
-      
-      // Filter out the current product
-      return products?.filter(p => p.id !== product?.id) || [];
-    },
-    enabled: !!region && !!product,
-  });
 
   const handleAddToCart = async () => {
     if (!selectedVariant || !region) {
@@ -452,103 +435,75 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Explore Our Products Section */}
-      {exploreProducts && exploreProducts.length > 0 && (
-        <div className="bg-background py-24">
+      {/* Similar Products Section */}
+      {relatedProducts && relatedProducts.length > 0 && (
+        <div className="bg-muted/30 py-16">
           <div className="container mx-auto px-8">
             {/* Section Header */}
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-display font-bold text-foreground mb-4 tracking-wide">
-                Explore Our Products
+            <div className="mb-12">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">
+                Similar Products
               </h2>
-              <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Discover our curated collection of premium products, each crafted with attention to detail and modern elegance.
+              <p className="text-muted-foreground">
+                More items from {product.collection?.title || 'this collection'}
               </p>
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {exploreProducts.slice(0, 8).map((exploreProduct, index) => (
-                <div
-                  key={exploreProduct.id}
-                  className="group animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {relatedProducts.slice(0, 6).map((relatedProduct) => (
+                <Link
+                  key={relatedProduct.id}
+                  to={`/products/${relatedProduct.handle}`}
+                  className="group block"
                 >
-                  <Link
-                    to={`/products/${exploreProduct.handle}`}
-                    className="block"
-                  >
-                    <div className="bg-card rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 border border-border/50 hover:border-primary/20">
-                      {/* Product Image */}
-                      <div className="aspect-square overflow-hidden bg-muted relative">
-                        <img
-                          src={exploreProduct.thumbnail || "/placeholder.svg"}
-                          alt={exploreProduct.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "/placeholder.svg";
-                          }}
-                        />
-                        
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        
-                        {/* Quick Actions */}
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90"
-                          >
-                            <Heart className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-6">
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
-                            {exploreProduct.title}
-                          </h3>
-                          
-                          {exploreProduct.collection && (
-                            <Badge variant="secondary" className="text-xs">
-                              {exploreProduct.collection.title}
-                            </Badge>
-                          )}
-                          
-                          {exploreProduct.variants?.[0]?.calculated_price && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg font-bold text-foreground">
-                                {formatPrice(
-                                  exploreProduct.variants[0].calculated_price.calculated_amount_with_tax || 
-                                  exploreProduct.variants[0].calculated_price.calculated_amount || 0,
-                                  currency
-                                )}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  <div className="bg-background rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md border border-border/50">
+                    {/* Product Image */}
+                    <div className="aspect-square overflow-hidden bg-muted/50">
+                      <img
+                        src={relatedProduct.thumbnail || "/placeholder.svg"}
+                        alt={relatedProduct.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder.svg";
+                        }}
+                      />
                     </div>
-                  </Link>
-                </div>
+
+                    {/* Product Info */}
+                    <div className="p-3">
+                      <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 mb-1">
+                        {relatedProduct.title}
+                      </h3>
+                      
+                      {relatedProduct.variants?.[0]?.calculated_price && (
+                        <div className="text-sm font-semibold text-muted-foreground">
+                          {formatPrice(
+                            relatedProduct.variants[0].calculated_price.calculated_amount_with_tax || 
+                            relatedProduct.variants[0].calculated_price.calculated_amount || 0,
+                            currency
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
 
-            {/* View All Button */}
-            <div className="text-center mt-16">
-              <Button
-                onClick={() => navigate('/products')}
-                variant="outline"
-                className="px-12 py-4 text-base font-medium rounded-full border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-              >
-                View All Products
-              </Button>
-            </div>
+            {/* View Collection Button */}
+            {product.collection && (
+              <div className="text-center mt-8">
+                <Button
+                  onClick={() => navigate(`/collections/${product.collection?.handle || product.collection?.id}`)}
+                  variant="ghost"
+                  className="text-sm hover:bg-primary/10"
+                >
+                  View All in {product.collection.title}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
