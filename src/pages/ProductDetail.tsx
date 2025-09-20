@@ -59,7 +59,7 @@ export default function ProductDetail() {
         // Fetch product by handle using the list method
         const queryParams: any = {
           handle,
-          fields: "*variants.calculated_price,+variants.options,+images,+collection,+metadata,+weight,+length,+width,+height",
+          fields: "*variants.calculated_price,+variants.options,+images,+collection,+categories,+metadata,+weight,+length,+width,+height,+thumbnail",
           limit: 1
         };
         
@@ -99,23 +99,23 @@ export default function ProductDetail() {
     fetchData();
   }, [handle]);
 
-  // Fetch related products
+  // Fetch related products by categories
   const { data: relatedProducts } = useQuery({
-    queryKey: ["related-products", product?.collection?.id, region?.id],
+    queryKey: ["related-products", product?.categories?.[0]?.id, region?.id],
     queryFn: async () => {
-      if (!product?.collection?.id || !region) return [];
+      if (!product?.categories?.[0]?.id || !region) return [];
       
       const { products } = await sdk.store.product.list({
-        collection_id: [product.collection.id],
+        category_id: [product.categories[0].id],
         limit: 6,
-        fields: "+variants.calculated_price,+images,+collection",
+        fields: "+variants.calculated_price,+images,+collection,+categories,+thumbnail",
         region_id: region.id
       });
       
       // Filter out the current product
       return products?.filter(p => p.handle !== product.handle) || [];
     },
-    enabled: !!product?.collection?.id && !!region,
+    enabled: !!product?.categories?.[0]?.id && !!region,
   });
 
 
@@ -445,7 +445,7 @@ export default function ProductDetail() {
                 Similar Products
               </h2>
               <p className="text-muted-foreground">
-                More items from {product.collection?.title || 'this collection'}
+                More items from {product.categories?.[0]?.name || 'this category'}
               </p>
             </div>
 
