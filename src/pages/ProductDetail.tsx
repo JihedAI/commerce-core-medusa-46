@@ -59,7 +59,7 @@ export default function ProductDetail() {
         // Fetch product by handle using the list method
         const queryParams: any = {
           handle,
-          fields: "*variants.calculated_price,+variants.options,+images,+collection,+categories,+metadata,+weight,+length,+width,+height",
+          fields: "*variants.calculated_price,+variants.options,+images,+collection,+metadata,+weight,+length,+width,+height",
           limit: 1
         };
         
@@ -99,23 +99,23 @@ export default function ProductDetail() {
     fetchData();
   }, [handle]);
 
-  // Fetch related products by categories
+  // Fetch related products
   const { data: relatedProducts } = useQuery({
-    queryKey: ["related-products", product?.categories?.[0]?.id, region?.id],
+    queryKey: ["related-products", product?.collection?.id, region?.id],
     queryFn: async () => {
-      if (!product?.categories?.[0]?.id || !region) return [];
+      if (!product?.collection?.id || !region) return [];
       
       const { products } = await sdk.store.product.list({
-        category_id: [product.categories[0].id],
+        collection_id: [product.collection.id],
         limit: 6,
-        fields: "+variants.calculated_price,+images,+categories",
+        fields: "+variants.calculated_price,+images,+collection",
         region_id: region.id
       });
       
       // Filter out the current product
       return products?.filter(p => p.handle !== product.handle) || [];
     },
-    enabled: !!product?.categories?.[0]?.id && !!region,
+    enabled: !!product?.collection?.id && !!region,
   });
 
 
@@ -445,7 +445,7 @@ export default function ProductDetail() {
                 Similar Products
               </h2>
               <p className="text-muted-foreground">
-                More items from {product.categories?.[0]?.name || 'this category'}
+                More items from {product.collection?.title || 'this collection'}
               </p>
             </div>
 
@@ -492,15 +492,15 @@ export default function ProductDetail() {
               ))}
             </div>
 
-            {/* View Category Button */}
-            {product.categories?.[0] && (
+            {/* View Collection Button */}
+            {product.collection && (
               <div className="text-center mt-8">
                 <Button
-                  onClick={() => navigate(`/categories/${product.categories[0].handle || product.categories[0].id}`)}
+                  onClick={() => navigate(`/collections/${product.collection?.handle || product.collection?.id}`)}
                   variant="ghost"
                   className="text-sm hover:bg-primary/10"
                 >
-                  View All in {product.categories[0].name}
+                  View All in {product.collection.title}
                 </Button>
               </div>
             )}
