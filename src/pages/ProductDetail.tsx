@@ -99,30 +99,63 @@ export default function ProductDetail() {
     fetchData();
   }, [handle]);
 
-  // Fetch related products by categories
-  const { data: relatedProducts } = useQuery({
-    queryKey: ["related-products", product?.categories?.[0]?.id, region?.id],
+  // Fetch related products by categories (with fallback to collections)
+  const { data: relatedProducts, error: relatedError } = useQuery({
+    queryKey: ["related-products", product?.categories?.[0]?.id, product?.collection?.id, region?.id],
     queryFn: async () => {
-      if (!product?.categories?.[0]?.id || !region) return [];
+      console.log("🔍 Fetching related products...");
+      console.log("Product categories:", product?.categories);
+      console.log("Product collection:", product?.collection);
+      console.log("Selected category ID:", product?.categories?.[0]?.id);
+      console.log("Region ID:", region?.id);
       
-      const { products } = await sdk.store.product.list({
-        category_id: [product.categories[0].id],
-        limit: 12, // Fetch more to account for filtering
-        fields: "+variants.calculated_price,+images,+thumbnail,+categories",
+      if (!region) {
+        console.log("❌ Missing region, returning empty array");
+        return [];
+      }
+
+      let queryParams: any = {
+        limit: 12,
+        fields: "+variants.calculated_price,+images,+thumbnail,+categories,+collection",
         region_id: region.id
-      });
+      };
+
+      // Try categories first, fallback to collection
+      if (product?.categories?.[0]?.id) {
+        console.log("🏷️ Using category ID for query");
+        queryParams.category_id = [product.categories[0].id];
+      } else if (product?.collection?.id) {
+        console.log("📁 Using collection ID for query");
+        queryParams.collection_id = [product.collection.id];
+      } else {
+        console.log("❌ No category or collection found, returning empty array");
+        return [];
+      }
+      
+      const { products } = await sdk.store.product.list(queryParams);
+      
+      console.log("📦 Fetched products:", products?.length || 0);
+      console.log("Raw products:", products);
       
       // Filter out current product and products without images
-      const filteredProducts = products?.filter(p => 
-        p.handle !== product.handle && 
-        (p.thumbnail || (p.images && p.images.length > 0))
-      ) || [];
+      const filteredProducts = products?.filter(p => {
+        const hasImages = p.thumbnail || (p.images && p.images.length > 0);
+        console.log(`Product ${p.title}: has images = ${hasImages}, thumbnail = ${p.thumbnail}`);
+        return p.handle !== product.handle && hasImages;
+      }) || [];
+      
+      console.log("✅ Filtered products with images:", filteredProducts.length);
+      console.log("Final filtered products:", filteredProducts);
       
       // Return max 6 products
       return filteredProducts.slice(0, 6);
     },
-    enabled: !!product?.categories?.[0]?.id && !!region,
+    enabled: !!region && (!!product?.categories?.[0]?.id || !!product?.collection?.id),
   });
+
+  // Debug logging for related products
+  console.log("🎯 Related products query result:", relatedProducts);
+  console.log("🎯 Related products error:", relatedError);
 
 
   const handleAddToCart = async () => {
@@ -442,6 +475,11 @@ export default function ProductDetail() {
       </div>
 
       {/* Similar Products Section */}
+      {(() => {
+        console.log("🎨 Rendering check - relatedProducts:", relatedProducts);
+        console.log("🎨 Should render similar products:", relatedProducts && relatedProducts.length > 0);
+        return null;
+      })()}
       {relatedProducts && relatedProducts.length > 0 && (
         <div className="bg-muted/30 py-16">
           <div className="container mx-auto px-8">
@@ -451,7 +489,7 @@ export default function ProductDetail() {
                 Similar Products
               </h2>
               <p className="text-muted-foreground">
-                More items from {product.categories?.[0]?.name || 'this category'}
+                More items from {product.categories?.[0]?.name || product.collection?.title || 'related items'}
               </p>
             </div>
 
@@ -498,15 +536,21 @@ export default function ProductDetail() {
               ))}
             </div>
 
-            {/* View Category Button */}
-            {product.categories?.[0] && (
+            {/* View Category/Collection Button */}
+            {(product.categories?.[0] || product.collection) && (
               <div className="text-center mt-8">
                 <Button
-                  onClick={() => navigate(`/categories/${product.categories[0]?.handle || product.categories[0]?.id}`)}
+                  onClick={() => {
+                    if (product.categories?.[0]) {
+                      navigate(`/categories/${product.categories[0]?.handle || product.categories[0]?.id}`);
+                    } else if (product.collection) {
+                      navigate(`/collections/${product.collection?.handle || product.collection?.id}`);
+                    }
+                  }}
                   variant="ghost"
                   className="text-sm hover:bg-primary/10"
                 >
-                  View All in {product.categories[0].name}
+                  View All in {product.categories?.[0]?.name || product.collection?.title}
                 </Button>
               </div>
             )}
