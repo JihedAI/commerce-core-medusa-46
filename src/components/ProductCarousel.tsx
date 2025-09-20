@@ -19,10 +19,11 @@ export default function ProductCarousel() {
         const { products } = await sdk.store.product.list({
           tag_id: TAG_ID,
           limit: 10,
-          fields: "+thumbnail,+images,+tags"
+          fields: "+thumbnail,+images,+tags,+variants,+variants.calculated_price"
         });
         
         console.log("Fetched products by tag:", products.length);
+        console.log("Sample product data:", products[0]); // Debug log
         
         // Get tag name from the first product's tags if available
         if (products.length > 0 && products[0].tags) {
@@ -37,7 +38,11 @@ export default function ProductCarousel() {
         console.error("Failed to fetch products:", error);
         // Fallback to regular product fetch if tag filtering fails
         try {
-          const { products } = await sdk.store.product.list({ limit: 10 });
+          const { products } = await sdk.store.product.list({ 
+            limit: 10,
+            fields: "+thumbnail,+images,+variants,+variants.calculated_price"
+          });
+          console.log("Fallback products:", products);
           setProducts(products);
         } catch (fallbackError) {
           console.error("Fallback fetch also failed:", fallbackError);
@@ -95,7 +100,9 @@ export default function ProductCarousel() {
                     </p>
                     <p className="text-xs font-light text-foreground/70">
                       {formatPrice(
+                        product.variants?.[0]?.calculated_price?.calculated_amount || 
                         product.variants?.[0]?.prices?.[0]?.amount || 0,
+                        product.variants?.[0]?.calculated_price?.currency_code ||
                         product.variants?.[0]?.prices?.[0]?.currency_code || "USD"
                       )}
                     </p>
