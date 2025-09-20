@@ -59,7 +59,7 @@ export default function ProductDetail() {
         // Fetch product by handle using the list method
         const queryParams: any = {
           handle,
-          fields: "+variants.calculated_price,+variants.options,+images,+collection,+metadata,+weight,+length,+width,+height",
+          fields: "*variants.calculated_price,+variants.options,+images,+collection,+metadata,+weight,+length,+width,+height",
           limit: 1
         };
         
