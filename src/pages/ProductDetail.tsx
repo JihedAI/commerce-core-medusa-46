@@ -220,85 +220,86 @@ export default function ProductDetail() {
 
   return (
     <Layout>
-      <div className="flex flex-col">
-        {/* Main Product Image */}
-        <div className="w-full h-[600px] relative overflow-hidden mb-4">
-          {product.images && product.images.length > 0 ? (
-            <img
-              src={selectedImage || product.thumbnail || "/placeholder.svg"}
-              alt={product.title}
-              className="w-full h-full object-contain transition-transform duration-700 hover:scale-110 animate-fade-in"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.svg";
-              }}
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground">No image available</span>
+      <div className="flex gap-8 p-8 min-h-screen">
+        {/* Left Column - Images (60%) */}
+        <div className="w-[60%]">
+          {/* Main Product Image */}
+          <div className="w-full h-[600px] relative overflow-hidden mb-4 bg-muted rounded-lg">
+            {product.images && product.images.length > 0 ? (
+              <img
+                src={selectedImage || product.thumbnail || "/placeholder.svg"}
+                alt={product.title}
+                className="w-full h-full object-contain transition-transform duration-700 hover:scale-110 animate-fade-in"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/placeholder.svg";
+                }}
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-muted-foreground">No image available</span>
+              </div>
+            )}
+          </div>
+
+          {/* Additional Images Row - Only show if more than one image */}
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto">
+              {product.images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setCurrentImageIndex(index);
+                    setSelectedImage(image.url);
+                  }}
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                    currentImageIndex === index
+                      ? 'border-primary'
+                      : 'border-border hover:border-muted-foreground'
+                  }`}
+                >
+                  <img
+                    src={image.url}
+                    alt={`${product.title} view ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/placeholder.svg";
+                    }}
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
-
-        {/* Additional Images Row - Only show if more than one image */}
-        {product.images && product.images.length > 1 && (
-          <div className="flex gap-4 justify-center px-8 overflow-x-auto">
-            {product.images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentImageIndex(index);
-                  setSelectedImage(image.url);
-                }}
-                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                  currentImageIndex === index
-                    ? 'border-primary'
-                    : 'border-border hover:border-muted-foreground'
-                }`}
-              >
-                <img
-                  src={image.url}
-                  alt={`${product.title} view ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/placeholder.svg";
-                  }}
-                />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      <div className="flex mt-8" style={{ minHeight: 'calc(100vh - 45rem)' }}>
-        {/* Left Column - Product Details (70%) */}
-        <div className="w-[70%] p-8">
+        
+        {/* Right Column - Product Details & Purchase (40%) */}
+        <div className="w-[40%] space-y-8">
           {/* Product Name */}
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-4">
             {product.title}
           </h1>
 
           {/* Price */}
-          <div className="mb-8">
+          <div className="mb-6">
             {price?.calculated_amount_with_tax ? (
               <div className="flex items-baseline gap-4">
-                <span className="text-3xl font-semibold text-foreground">
+                <span className="text-2xl font-semibold text-foreground">
                   {formatPrice(price.calculated_amount_with_tax, currency)}
                 </span>
                 {price.original_amount_with_tax && 
                  price.calculated_amount_with_tax !== price.original_amount_with_tax && (
-                  <span className="text-xl text-muted-foreground line-through">
+                  <span className="text-lg text-muted-foreground line-through">
                     {formatPrice(price.original_amount_with_tax, currency)}
                   </span>
                 )}
               </div>
             ) : price?.calculated_amount ? (
-              <span className="text-3xl font-semibold text-foreground">
+              <span className="text-2xl font-semibold text-foreground">
                 {formatPrice(price.calculated_amount, currency)}
               </span>
             ) : (
-              <span className="text-xl text-muted-foreground">
+              <span className="text-lg text-muted-foreground">
                 Price available in cart
               </span>
             )}
@@ -306,92 +307,23 @@ export default function ProductDetail() {
 
           {/* Description */}
           {product.description && (
-            <div className="mb-8">
-              <p className="text-lg text-muted-foreground leading-relaxed">
+            <div className="mb-6">
+              <p className="text-muted-foreground leading-relaxed">
                 {product.description}
               </p>
             </div>
           )}
 
-          {/* Product Details */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Product Details</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {product.weight && (
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">Weight:</span>
-                  <span className="text-foreground font-medium">{product.weight}g</span>
-                </div>
-              )}
-              {product.length && (
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">Length:</span>
-                  <span className="text-foreground font-medium">{product.length}cm</span>
-                </div>
-              )}
-              {product.width && (
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">Width:</span>
-                  <span className="text-foreground font-medium">{product.width}cm</span>
-                </div>
-              )}
-              {product.height && (
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">Height:</span>
-                  <span className="text-foreground font-medium">{product.height}cm</span>
-                </div>
-              )}
-              {product.metadata && Object.keys(product.metadata).length > 0 && (
-                Object.entries(product.metadata).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-2 border-b border-border">
-                    <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span>
-                    <span className="text-foreground font-medium">{String(value)}</span>
-                  </div>
-                ))
-              )}
-              {(!product.weight && !product.length && !product.width && !product.height && (!product.metadata || Object.keys(product.metadata).length === 0)) && (
-                <div className="col-span-2 text-center py-4 text-muted-foreground">
-                  No additional product details available
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Shipping Information */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Shipping Information</h3>
-            <div className="bg-muted/30 rounded-lg p-6 space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Standard Shipping (5-7 days):</span>
-                <span className="text-foreground font-medium">$9.99</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Express Shipping (2-3 days):</span>
-                <span className="text-foreground font-medium">$19.99</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Free shipping:</span>
-                <span className="text-foreground font-medium">Orders over $100</span>
-              </div>
-              <p className="text-muted-foreground text-xs mt-4">
-                All orders are processed within 1-2 business days. You will receive a tracking number once your order has shipped.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column - Purchase Options (30%) */}
-        <div className="w-[30%] p-8 border-l border-border">
           {/* Color Variants */}
           {product.variants && product.variants.length > 1 && (
-            <div className="mb-8">
-              <h4 className="text-lg font-medium text-foreground mb-4">Available Options</h4>
+            <div className="mb-6">
+              <h4 className="text-lg font-medium text-foreground mb-3">Available Options</h4>
               <div className="flex gap-3">
                 {product.variants.map((variant, index) => (
                   <button
                     key={variant.id}
                     onClick={() => handleVariantSelect(variant)}
-                    className={`w-12 h-12 rounded-full border-2 transition-all ${
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${
                       selectedVariant?.id === variant.id
                         ? 'border-foreground shadow-lg'
                         : 'border-border hover:border-muted-foreground'
@@ -407,8 +339,8 @@ export default function ProductDetail() {
           )}
 
           {/* Quantity Selector */}
-          <div className="mb-8">
-            <h4 className="text-lg font-medium text-foreground mb-4">Quantity</h4>
+          <div className="mb-6">
+            <h4 className="text-lg font-medium text-foreground mb-3">Quantity</h4>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -430,13 +362,13 @@ export default function ProductDetail() {
           <Button
             onClick={handleAddToCart}
             disabled={isAddingToCart || !selectedVariant}
-            className="w-full py-4 mb-6 bg-foreground text-background hover:bg-foreground/90 text-base font-semibold rounded-xl transition-all hover:shadow-xl"
+            className="w-full py-3 mb-6 bg-foreground text-background hover:bg-foreground/90 font-semibold rounded-xl transition-all hover:shadow-xl"
           >
             {isAddingToCart ? "Adding..." : "Add to Bag"}
           </Button>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 mb-8">
+          <div className="flex gap-3 mb-6">
             <Button variant="outline" size="sm" className="flex-1">
               <Heart className="w-4 h-4 mr-2" />
               Save
@@ -447,116 +379,77 @@ export default function ProductDetail() {
             </Button>
           </div>
 
-          {/* Related Products Section */}
-          {relatedProducts && relatedProducts.length > 0 && (
-            <div>
-              <h4 className="text-lg font-medium text-foreground mb-4">
-                You might also like
-              </h4>
-              <div className="space-y-4">
-                {relatedProducts.slice(0, 3).map((relatedProduct) => (
-                  <Link
-                    key={relatedProduct.id}
-                    to={`/products/${relatedProduct.handle}`}
-                    className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group"
-                  >
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      <img
-                        src={relatedProduct.thumbnail || "/placeholder.svg"}
-                        alt={relatedProduct.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "/placeholder.svg";
-                        }}
-                      />
+          {/* Product Details Accordion */}
+          <Accordion type="single" collapsible className="mb-6">
+            <AccordionItem value="details">
+              <AccordionTrigger className="text-lg font-medium">Product Details</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 text-sm">
+                  {product.weight && (
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Weight:</span>
+                      <span className="text-foreground font-medium">{product.weight}g</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                        {relatedProduct.title}
-                      </p>
-                      {relatedProduct.variants?.[0]?.calculated_price && (
-                        <p className="text-sm text-muted-foreground">
-                          {formatPrice(
-                            relatedProduct.variants[0].calculated_price.calculated_amount_with_tax || 
-                            relatedProduct.variants[0].calculated_price.calculated_amount || 0,
-                            currency
-                          )}
-                        </p>
-                      )}
+                  )}
+                  {product.length && (
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Length:</span>
+                      <span className="text-foreground font-medium">{product.length}cm</span>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
+                  {product.width && (
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Width:</span>
+                      <span className="text-foreground font-medium">{product.width}cm</span>
+                    </div>
+                  )}
+                  {product.height && (
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Height:</span>
+                      <span className="text-foreground font-medium">{product.height}cm</span>
+                    </div>
+                  )}
+                  {product.metadata && Object.keys(product.metadata).length > 0 && (
+                    Object.entries(product.metadata).map(([key, value]) => (
+                      <div key={key} className="flex justify-between py-2 border-b border-border">
+                        <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span>
+                        <span className="text-foreground font-medium">{String(value)}</span>
+                      </div>
+                    ))
+                  )}
+                  {(!product.weight && !product.length && !product.width && !product.height && (!product.metadata || Object.keys(product.metadata).length === 0)) && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No additional product details available
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="shipping">
+              <AccordionTrigger className="text-lg font-medium">Shipping Information</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Standard Shipping (5-7 days):</span>
+                    <span className="text-foreground font-medium">$9.99</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Express Shipping (2-3 days):</span>
+                    <span className="text-foreground font-medium">$19.99</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Free shipping:</span>
+                    <span className="text-foreground font-medium">Orders over $100</span>
+                  </div>
+                  <p className="text-muted-foreground text-xs mt-4">
+                    All orders are processed within 1-2 business days. You will receive a tracking number once your order has shipped.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
-      </div>
-
-        {/* Right Column - Product Info (30%) */}
-        <div className="w-[30%] h-full p-12">
-          {/* Product Name */}
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {product.title}
-          </h1>
-
-          {/* Price */}
-          <div className="mb-6">
-            {price?.calculated_amount_with_tax ? (
-              <>
-                <span className="text-2xl font-medium text-foreground">
-                  {formatPrice(price.calculated_amount_with_tax, currency)}
-                </span>
-                {price.original_amount_with_tax && 
-                 price.calculated_amount_with_tax !== price.original_amount_with_tax && (
-                  <span className="ml-3 text-lg text-muted-foreground line-through">
-                    {formatPrice(price.original_amount_with_tax, currency)}
-                  </span>
-                )}
-              </>
-            ) : price?.calculated_amount ? (
-              <span className="text-2xl font-medium text-foreground">
-                {formatPrice(price.calculated_amount, currency)}
-              </span>
-            ) : (
-              <span className="text-lg text-muted-foreground">
-                Price available in cart
-              </span>
-            )}
-          </div>
-
-          {/* Color Variants */}
-          {product.variants && product.variants.length > 1 && (
-            <div className="mb-8">
-              <div className="flex gap-3">
-                {product.variants.map((variant, index) => (
-                  <button
-                    key={variant.id}
-                    onClick={() => handleVariantSelect(variant)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${
-                      selectedVariant?.id === variant.id
-                        ? 'border-foreground shadow-glow'
-                        : 'border-border hover:border-muted-foreground'
-                    }`}
-                    style={{
-                      backgroundColor: variant.options?.find(opt => opt.option?.title?.toLowerCase() === 'color')?.value || 
-                        `hsl(${index * 60}, 50%, 60%)`
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Add to Bag Button */}
-          <Button
-            onClick={handleAddToCart}
-            disabled={isAddingToCart || !selectedVariant}
-            className="w-full py-4 mb-8 bg-foreground text-background hover:bg-foreground/90 text-base font-semibold rounded-xl transition-all hover:shadow-xl"
-          >
-            {isAddingToCart ? "Adding..." : "Add to Bag"}
-          </Button>
-
       </div>
 
       {/* Explore Our Products Section */}
