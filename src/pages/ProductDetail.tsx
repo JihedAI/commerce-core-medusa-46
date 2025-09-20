@@ -56,10 +56,10 @@ export default function ProductDetail() {
         
         setRegion(selectedRegion);
         
-        // Fetch product by handle using the list method
+        // Fetch product by handle including weight, length, width, height
         const queryParams: any = {
           handle,
-          fields: "+variants.calculated_price,+variants.options,+images,+collection",
+          fields: "id,title,description,weight,length,width,height,+variants.calculated_price,+variants.options,+images,+collection",
           limit: 1
         };
         
@@ -350,8 +350,9 @@ export default function ProductDetail() {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pb-6">
                 <div className="space-y-4">
+                  {/* Dynamic Attributes */}
                   <p className="text-sm text-muted-foreground mb-4">
-                    Weight: 500g | Dimensions: 20x10x5cm | Material: Stainless Steel
+                    {`Weight: ${product.weight ?? "N/A"}g | Dimensions: ${product.length ?? "N/A"}x${product.width ?? "N/A"}x${product.height ?? "N/A"}cm`}
                   </p>
                   
                   <h4 className="font-bold text-base text-foreground mb-2">
@@ -466,63 +467,29 @@ All orders are processed within 1-2 business days. You will receive a tracking n
                             target.src = "/placeholder.svg";
                           }}
                         />
-                        
                         {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        
-                        {/* Quick Actions */}
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90"
-                          >
-                            <Heart className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                       </div>
-
+                      
                       {/* Product Info */}
-                      <div className="p-6">
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
-                            {exploreProduct.title}
-                          </h3>
-                          
-                          {exploreProduct.collection && (
-                            <Badge variant="secondary" className="text-xs">
-                              {exploreProduct.collection.title}
-                            </Badge>
-                          )}
-                          
-                          {exploreProduct.variants?.[0]?.calculated_price && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg font-bold text-foreground">
-                                {formatPrice(
-                                  exploreProduct.variants[0].calculated_price.calculated_amount_with_tax || 
-                                  exploreProduct.variants[0].calculated_price.calculated_amount || 0,
-                                  currency
-                                )}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                      <div className="p-5">
+                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {exploreProduct.title}
+                        </h3>
+                        {exploreProduct.variants?.[0]?.calculated_price && (
+                          <p className="text-muted-foreground font-medium">
+                            {formatPrice(
+                              exploreProduct.variants[0].calculated_price.calculated_amount_with_tax || 
+                              exploreProduct.variants[0].calculated_price.calculated_amount || 0,
+                              currency
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </Link>
                 </div>
               ))}
-            </div>
-
-            {/* View All Button */}
-            <div className="text-center mt-16">
-              <Button
-                onClick={() => navigate('/products')}
-                variant="outline"
-                className="px-12 py-4 text-base font-medium rounded-full border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-              >
-                View All Products
-              </Button>
             </div>
           </div>
         </div>
