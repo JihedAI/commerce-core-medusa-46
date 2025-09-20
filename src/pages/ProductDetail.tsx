@@ -224,7 +224,7 @@ export default function ProductDetail() {
         {/* Left Column - Images (60%) */}
         <div className="w-[60%]">
           {/* Main Product Image */}
-          <div className="w-full h-[600px] relative overflow-hidden mb-4 bg-muted rounded-lg">
+          <div className="w-full h-[600px] relative overflow-hidden mb-4 rounded-lg">
             {product.images && product.images.length > 0 ? (
               <img
                 src={selectedImage || product.thumbnail || "/placeholder.svg"}
