@@ -4,6 +4,36 @@ import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
 export default function CollectionsShowcase() {
+  // Collection images mapping
+  const collectionImages: Record<string, string> = {
+    "sunglasses": "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&h=1000&fit=crop",
+    "contact-lenses": "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&h=1000&fit=crop", 
+    "men": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
+    "women": "https://images.unsplash.com/photo-1494790108755-2616c95f2e1e?w=800&h=1000&fit=crop",
+    "frames": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=800&h=1000&fit=crop",
+    "reading": "https://images.unsplash.com/photo-1559087867-ce4c91325525?w=800&h=1000&fit=crop"
+  };
+
+  // Get image for collection based on handle or title
+  const getCollectionImage = (collection: any) => {
+    const handle = collection.handle?.toLowerCase() || '';
+    const title = collection.title?.toLowerCase() || '';
+    
+    // First try to match by handle
+    if (collectionImages[handle]) {
+      return collectionImages[handle];
+    }
+    
+    // Then try to match by keywords in title
+    for (const [key, imageUrl] of Object.entries(collectionImages)) {
+      if (title.includes(key) || handle.includes(key)) {
+        return imageUrl;
+      }
+    }
+    
+    // Default fallback image
+    return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=1000&fit=crop";
+  };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections"],
     queryFn: async () => {
@@ -45,11 +75,14 @@ export default function CollectionsShowcase() {
               to={`/collections/${collection.id}`}
               className="group block"
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+              <div className="relative aspect-[4/5] overflow-hidden bg-muted rounded-lg">
                 {/* Collection Image */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-primary/30">
-                  {/* Placeholder gradient since collections might not have images */}
-                </div>
+                <img
+                  src={getCollectionImage(collection)}
+                  alt={collection.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  loading="lazy"
+                />
                 
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out" />
