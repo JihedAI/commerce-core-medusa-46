@@ -462,11 +462,33 @@ export default function Products() {
                 </div>
               </div>
 
+              {/* Product Results Header */}
+              <div className="flex items-center justify-between mb-6 pb-4 border-b">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-xl font-semibold">
+                    {categoryData ? categoryData.name : "All Products"}
+                  </h2>
+                  <div className="text-sm text-muted-foreground">
+                    {productsLoading ? (
+                      <span>Loading...</span>
+                    ) : (
+                      <span>
+                        Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, productsData?.count || 0)} of {productsData?.count || 0} products
+                        {searchQuery && ` matching "${searchQuery}"`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="hidden sm:block text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </div>
+              </div>
+
               {/* Products Section */}
               {productsLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-                  {[...Array(10)].map((_, i) => (
-                    <div key={i} className="aspect-square bg-muted/30 rounded-2xl animate-pulse" />
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+                  {[...Array(12)].map((_, i) => (
+                    <div key={i} className="aspect-[4/5] bg-muted/30 rounded-2xl animate-pulse" />
                   ))}
                 </div>
               ) : filteredProducts.length === 0 ? (
@@ -489,7 +511,7 @@ export default function Products() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
                     {filteredProducts.map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
