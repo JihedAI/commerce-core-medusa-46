@@ -2,6 +2,8 @@ import React from "react";
 import VideoHero from "@/components/VideoHero";
 import ProductCarousel from "@/components/ProductCarousel";
 import CollectionsShowcase from "@/components/CollectionsShowcase";
+import StorySection from "@/components/StorySection";
+import ExploreBanner from "@/components/ExploreBanner";
 import StoreLocator from "@/components/StoreLocator";
 import Layout from "@/components/Layout";
 
@@ -25,6 +27,12 @@ export default function Home() {
       
       {/* Collections Showcase Section */}
       <CollectionsShowcase />
+      
+      {/* Story Section */}
+      <StorySection />
+      
+      {/* Explore Banner Section */}
+      <ExploreBanner />
       
       {/* Store Locator Section */}
       <StoreLocator />
