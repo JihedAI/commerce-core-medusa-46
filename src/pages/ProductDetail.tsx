@@ -59,7 +59,7 @@ export default function ProductDetail() {
         // Fetch product by handle using the list method
         const queryParams: any = {
           handle,
-          fields: "+variants.calculated_price,+variants.options,+images,+collection",
+          fields: "+variants.calculated_price,+variants.options,+images,+collection,+metadata",
           limit: 1
         };
         
@@ -221,10 +221,11 @@ export default function ProductDetail() {
   return (
     <Layout>
       <div className="flex" style={{ height: 'calc(100vh - 5rem)' }}>
-        {/* Left Column - Product Image (70%) */}
-        <div className="w-[70%] h-full relative overflow-hidden">
-          {product.images && product.images.length > 0 ? (
-            <>
+        {/* Left Column - Product Images (70%) */}
+        <div className="w-[70%] h-full flex flex-col relative overflow-hidden">
+          {/* Main Image Area (85% of left column) */}
+          <div className="flex-1 relative">
+            {product.images && product.images.length > 0 ? (
               <img
                 src={selectedImage || product.thumbnail || "/placeholder.svg"}
                 alt={product.title}
@@ -234,46 +235,42 @@ export default function ProductDetail() {
                   target.src = "/placeholder.svg";
                 }}
               />
-              
-              {/* Image Navigation */}
-              {product.images.length > 1 && (
-                <>
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-muted-foreground">No image available</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Thumbnail Gallery (15% of left column) */}
+          {product.images && product.images.length > 1 && (
+            <div className="h-24 border-t border-border bg-background/50 backdrop-blur-sm p-4">
+              <div className="flex gap-3 h-full overflow-x-auto">
+                {product.images.map((image, index) => (
                   <button
-                    onClick={() => handleImageNavigation('prev')}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-background/20 backdrop-blur-sm border border-border/20 rounded-full flex items-center justify-center text-foreground hover:bg-background/40 transition-colors"
+                    key={index}
+                    onClick={() => {
+                      setCurrentImageIndex(index);
+                      setSelectedImage(image.url);
+                    }}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all hover:border-primary ${
+                      currentImageIndex === index
+                        ? 'border-primary shadow-lg'
+                        : 'border-border hover:border-primary/50'
+                    }`}
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <img
+                      src={image.url}
+                      alt={`${product.title} view ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/placeholder.svg";
+                      }}
+                    />
                   </button>
-                  <button
-                    onClick={() => handleImageNavigation('next')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-background/20 backdrop-blur-sm border border-border/20 rounded-full flex items-center justify-center text-foreground hover:bg-background/40 transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                  
-                  {/* Dots Indicator */}
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setCurrentImageIndex(index);
-                          setSelectedImage(product.images![index].url);
-                        }}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          currentImageIndex === index
-                            ? 'bg-foreground'
-                            : 'bg-foreground/30 hover:bg-foreground/50'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground">No image available</span>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -350,16 +347,59 @@ export default function ProductDetail() {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pb-6">
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Weight: 500g | Dimensions: 20x10x5cm | Material: Stainless Steel
-                  </p>
+                  {/* Product Specifications */}
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-base text-foreground mb-2">
+                      Specifications
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {product.metadata?.height && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Height:</span>
+                          <span className="text-foreground font-medium">{String(product.metadata.height)}</span>
+                        </div>
+                      )}
+                      {product.metadata?.width && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Width:</span>
+                          <span className="text-foreground font-medium">{String(product.metadata.width)}</span>
+                        </div>
+                      )}
+                      {product.metadata?.length && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Length:</span>
+                          <span className="text-foreground font-medium">{String(product.metadata.length)}</span>
+                        </div>
+                      )}
+                      {product.metadata?.weight && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Weight:</span>
+                          <span className="text-foreground font-medium">{String(product.metadata.weight)}</span>
+                        </div>
+                      )}
+                      {product.metadata?.material && (
+                        <div className="flex justify-between col-span-2">
+                          <span className="text-muted-foreground">Material:</span>
+                          <span className="text-foreground font-medium">{String(product.metadata.material)}</span>
+                        </div>
+                      )}
+                      {/* Fallback for products without metadata */}
+                      {!product.metadata?.height && !product.metadata?.width && !product.metadata?.length && !product.metadata?.weight && (
+                        <div className="col-span-2 text-sm text-muted-foreground">
+                          Product specifications not available
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   
-                  <h4 className="font-bold text-base text-foreground mb-2">
-                    Description
-                  </h4>
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {product.description || "This is the detailed description of the product..."}
-                  </p>
+                  <div className="border-t border-border pt-4">
+                    <h4 className="font-bold text-base text-foreground mb-2">
+                      Description
+                    </h4>
+                    <p className="text-sm leading-relaxed text-foreground">
+                      {product.description || "No description available for this product."}
+                    </p>
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
