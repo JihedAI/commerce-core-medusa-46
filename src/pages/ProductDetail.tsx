@@ -108,7 +108,7 @@ export default function ProductDetail() {
       const { products } = await sdk.store.product.list({
         collection_id: [product.collection.id],
         limit: 6,
-        fields: "+variants.calculated_price,+images,+collection",
+        fields: "+variants.calculated_price,+images,+thumbnail,+collection",
         region_id: region.id
       });
       
