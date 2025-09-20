@@ -3,17 +3,22 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
+// Collection Image URLs - Easy to modify
+const COLLECTION_IMAGE_1 = "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
+const COLLECTION_IMAGE_2 = "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg";
+const DEFAULT_COLLECTION_IMAGE = COLLECTION_IMAGE_1;
+
 export default function CollectionsShowcase() {
-  // Collection images mapping - using only your specified images
+  // Collection images mapping - using const URLs above
   const collectionImages: Record<string, string> = {
-    "sunglasses": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
-    "contact-lenses": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg", 
-    "men": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
-    "women": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg",
-    "frames": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
-    "reading": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg",
-    "eyeglasses": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
-    "optical": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg"
+    "sunglasses": COLLECTION_IMAGE_1,
+    "contact-lenses": COLLECTION_IMAGE_2, 
+    "men": COLLECTION_IMAGE_1,
+    "women": COLLECTION_IMAGE_2,
+    "frames": COLLECTION_IMAGE_1,
+    "reading": COLLECTION_IMAGE_2,
+    "eyeglasses": COLLECTION_IMAGE_1,
+    "optical": COLLECTION_IMAGE_2
   };
 
   // Get image for collection based on handle or title
@@ -33,8 +38,8 @@ export default function CollectionsShowcase() {
       }
     }
     
-    // Default fallback image - using your first image
-    return "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
+    // Default fallback image - using default constant
+    return DEFAULT_COLLECTION_IMAGE;
   };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections"],
