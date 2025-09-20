@@ -6,14 +6,14 @@ import { sdk } from "@/lib/sdk";
 export default function CollectionsShowcase() {
   // Collection images mapping - Real URLs from the internet
   const collectionImages: Record<string, string> = {
-    "sunglasses": "https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "contact-lenses": "https://images.pexels.com/photos/136404/pexels-photo-136404.jpeg?auto=compress&cs=tinysrgb&w=800", 
-    "men": "https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "women": "https://images.pexels.com/photos/1549280/pexels-photo-1549280.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "frames": "https://images.pexels.com/photos/947885/pexels-photo-947885.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "reading": "https://images.pexels.com/photos/1123262/pexels-photo-1123262.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "eyeglasses": "https://images.pexels.com/photos/1067333/pexels-photo-1067333.jpeg?auto=compress&cs=tinysrgb&w=800",
-    "optical": "https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=800"
+    "sunglasses": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
+    "contact-lenses": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg", 
+    "men": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
+    "women": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg",
+    "frames": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
+    "reading": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg",
+    "eyeglasses": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
+    "optical": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg"
   };
 
   // Get image for collection based on handle or title
