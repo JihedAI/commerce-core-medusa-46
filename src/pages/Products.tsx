@@ -12,6 +12,15 @@ import { sdk } from "@/lib/sdk";
 import ProductCard from "@/components/ProductCard";
 import Layout from "@/components/Layout";
 import { useRegion } from "@/contexts/RegionContext";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Products() {
   const { handle: categoryHandle } = useParams();
@@ -26,7 +35,7 @@ export default function Products() {
   
 
   const page = parseInt(searchParams.get("page") || "1");
-  const limit = 20;
+  const limit = 12; // 3 products per row × 4 rows = 12 products per page
 
   // Fetch category by handle if categoryHandle is provided
   const { data: categoryData } = useQuery({
@@ -479,11 +488,71 @@ export default function Products() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-12 flex justify-center">
+                      <Pagination>
+                        <PaginationContent>
+                          {page > 1 && (
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                href={`/products?${new URLSearchParams({
+                                  ...Object.fromEntries(searchParams),
+                                  page: (page - 1).toString()
+                                })}`}
+                              />
+                            </PaginationItem>
+                          )}
+                          
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNumber;
+                            if (totalPages <= 5) {
+                              pageNumber = i + 1;
+                            } else if (page <= 3) {
+                              pageNumber = i + 1;
+                            } else if (page >= totalPages - 2) {
+                              pageNumber = totalPages - 4 + i;
+                            } else {
+                              pageNumber = page - 2 + i;
+                            }
+                            
+                            return (
+                              <PaginationItem key={pageNumber}>
+                                <PaginationLink
+                                  href={`/products?${new URLSearchParams({
+                                    ...Object.fromEntries(searchParams),
+                                    page: pageNumber.toString()
+                                  })}`}
+                                  isActive={pageNumber === page}
+                                >
+                                  {pageNumber}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+                          
+                          {page < totalPages && (
+                            <PaginationItem>
+                              <PaginationNext 
+                                href={`/products?${new URLSearchParams({
+                                  ...Object.fromEntries(searchParams),
+                                  page: (page + 1).toString()
+                                })}`}
+                              />
+                            </PaginationItem>
+                          )}
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

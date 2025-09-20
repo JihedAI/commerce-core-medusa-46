@@ -86,9 +86,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link to={`/products/${product.handle}`}>
       <Card className="group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 bg-card border-0 shadow-sm">
-        {/* Image Container */}
+        {/* Image Container - Made larger for better UX */}
         <div 
-          className="relative aspect-square overflow-hidden bg-muted/30"
+          className="relative aspect-[4/5] overflow-hidden bg-muted/30"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
@@ -160,20 +160,20 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Clean Product Info */}
-        <div className="p-4 space-y-2">
-          <div className="space-y-1">
-            <h3 className="font-medium text-base line-clamp-1 text-foreground">{product.title}</h3>
+        {/* Enhanced Product Info - Bigger for better UX */}
+        <div className="p-6 space-y-3">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-lg leading-tight line-clamp-2 text-foreground">{product.title}</h3>
             {product.collection && (
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+              <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
                 {product.collection.title}
               </p>
             )}
           </div>
           
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-2">
             {price && (
-              <span className="font-semibold text-lg text-foreground">
+              <span className="font-bold text-xl text-foreground">
                 {(() => {
                   const amount = price.calculated_amount_with_tax || price.calculated_amount;
                   const currency = price.currency_code || "TND";
@@ -183,7 +183,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
             {hasStock && defaultVariant?.inventory_quantity !== undefined && 
              defaultVariant?.inventory_quantity !== null && defaultVariant.inventory_quantity <= 5 && (
-              <span className="text-xs text-amber-600 font-medium">
+              <span className="text-sm text-amber-600 font-semibold bg-amber-50 px-2 py-1 rounded-full">
                 Only {defaultVariant.inventory_quantity} left
               </span>
             )}
