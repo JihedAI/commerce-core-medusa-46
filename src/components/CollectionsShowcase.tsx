@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
 export default function CollectionsShowcase() {
-  // Collection images mapping - Real URLs from the internet
+  // Collection images mapping - using only your specified images
   const collectionImages: Record<string, string> = {
     "sunglasses": "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg",
     "contact-lenses": "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg", 
@@ -33,8 +33,8 @@ export default function CollectionsShowcase() {
       }
     }
     
-    // Default fallback image
-    return "https://images.pexels.com/photos/983947/pexels-photo-983947.jpeg?auto=compress&cs=tinysrgb&w=800";
+    // Default fallback image - using your first image
+    return "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
   };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections"],
