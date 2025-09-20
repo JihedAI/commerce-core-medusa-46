@@ -45,33 +45,38 @@ export default function CollectionsShowcase() {
               to={`/collections/${collection.id}`}
               className="group block"
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-muted">
-                {/* Collection Image */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-primary/30">
-                  {/* Placeholder gradient since collections might not have images */}
-                </div>
-                
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out" />
-                
-                {/* Content */}
-                <div className="absolute inset-0 flex flex-col justify-end p-8">
-                  {/* Collection Title */}
-                  <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                    <h3 className="font-display text-2xl lg:text-3xl font-bold text-foreground mb-2 opacity-90 group-hover:opacity-100 transition-opacity duration-300">
-                      {collection.title}
-                    </h3>
-                    
-                    {collection.metadata?.description && (
-                      <p className="text-sm text-foreground/70 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-500 delay-100">
-                        {collection.metadata.description as string}
-                      </p>
-                    )}
-                    
-                    {/* Hover indicator */}
-                    <div className="w-0 group-hover:w-12 h-[2px] bg-primary mt-4 transition-all duration-500 delay-200" />
-                  </div>
-                </div>
+<div className="relative aspect-[4/5] overflow-hidden bg-muted">
+  {/* Collection Image */}
+  {collection.metadata?.image && (
+    <img
+      src={collection.metadata.image as string}
+      alt={collection.title}
+      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+    />
+  )}
+
+  {/* Gradient Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-primary/30" />
+
+  {/* Hover Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out" />
+
+  {/* Content */}
+  <div className="absolute inset-0 flex flex-col justify-end p-8">
+    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+      <h3 className="font-display text-2xl lg:text-3xl font-bold text-foreground mb-2 opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+        {collection.title}
+      </h3>
+      {collection.metadata?.description && (
+        <p className="text-sm text-foreground/70 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-500 delay-100">
+          {collection.metadata.description as string}
+        </p>
+      )}
+      <div className="w-0 group-hover:w-12 h-[2px] bg-primary mt-4 transition-all duration-500 delay-200" />
+    </div>
+  </div>
+</div>
+
                 
                 {/* Zoom effect overlay */}
                 <div className="absolute inset-0 bg-background/5 scale-100 group-hover:scale-105 transition-transform duration-700 ease-out" />
