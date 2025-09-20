@@ -1,24 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { medusa } from "@/lib/medusa";
+import { sdk } from "@/lib/sdk";
 import { formatPrice } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
 
 export default function ProductCarousel() {
   const [products, setProducts] = useState<any[]>([]);
+  const [tagName, setTagName] = useState<string>("Featured Products");
   const navigate = useNavigate();
 
+  const TAG_ID = 'ptag_01K59Z4GH70D2TG7P1DAFH844Q';
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProductsAndTag = async () => {
       try {
-        const { products } = await medusa.products.list({ limit: 10 });
+        // Fetch products with the specific tag using query parameters
+        const { products } = await sdk.store.product.list({
+          tag_id: TAG_ID,
+          limit: 10,
+          fields: "+thumbnail,+images,+tags"
+        });
+        
+        console.log("Fetched products by tag:", products.length);
+        
+        // Get tag name from the first product's tags if available
+        if (products.length > 0 && products[0].tags) {
+          const tagObj = products[0].tags.find((tag: any) => tag.id === TAG_ID);
+          if (tagObj) {
+            setTagName(tagObj.value || "Featured Products");
+          }
+        }
+        
         setProducts(products);
       } catch (error) {
         console.error("Failed to fetch products:", error);
+        // Fallback to regular product fetch if tag filtering fails
+        try {
+          const { products } = await sdk.store.product.list({ limit: 10 });
+          setProducts(products);
+        } catch (fallbackError) {
+          console.error("Fallback fetch also failed:", fallbackError);
+        }
       }
     };
-    fetchProducts();
+    fetchProductsAndTag();
   }, []);
 
   const plugin = React.useRef(
@@ -30,7 +56,7 @@ export default function ProductCarousel() {
   return (
     <section className="w-full py-20 px-8 lg:px-16">
       <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-12 text-center">
-        Our Latest Products:
+        {tagName}
       </h2>
       
       <div className="relative group">
