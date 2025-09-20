@@ -3,27 +3,41 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { sdk } from "@/lib/sdk";
 import { formatPrice } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useRegion } from "@/contexts/RegionContext";
 import Autoplay from "embla-carousel-autoplay";
 
 export default function ProductCarousel() {
   const [products, setProducts] = useState<any[]>([]);
   const [tagName, setTagName] = useState<string>("Featured Products");
   const navigate = useNavigate();
+  const { currentRegion } = useRegion();
 
   const TAG_ID = 'ptag_01K59Z4GH70D2TG7P1DAFH844Q';
 
   useEffect(() => {
     const fetchProductsAndTag = async () => {
+      if (!currentRegion) {
+        console.log("No region available yet, waiting...");
+        return;
+      }
+
       try {
-        // Fetch products with the specific tag using query parameters
+        console.log("🔍 Fetching products with region:", currentRegion.id);
+        
+        // Fetch products with the specific tag and region context
         const { products } = await sdk.store.product.list({
           tag_id: TAG_ID,
           limit: 10,
-          fields: "+thumbnail,+images,+tags,+variants,+variants.calculated_price"
+          region_id: currentRegion.id,
+          fields: "+thumbnail,+images,+tags,+variants,+variants.prices,+variants.calculated_price"
         });
         
-        console.log("Fetched products by tag:", products.length);
-        console.log("Sample product data:", products[0]); // Debug log
+        console.log("✅ Fetched products by tag:", products.length);
+        console.log("🔍 Sample product data:", JSON.stringify(products[0], null, 2));
+        
+        if (products[0]?.variants) {
+          console.log("💰 First product variants:", JSON.stringify(products[0].variants, null, 2));
+        }
         
         // Get tag name from the first product's tags if available
         if (products.length > 0 && products[0].tags) {
@@ -35,22 +49,25 @@ export default function ProductCarousel() {
         
         setProducts(products);
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("❌ Failed to fetch products by tag:", error);
         // Fallback to regular product fetch if tag filtering fails
         try {
+          console.log("🔄 Trying fallback approach...");
           const { products } = await sdk.store.product.list({ 
             limit: 10,
-            fields: "+thumbnail,+images,+variants,+variants.calculated_price"
+            region_id: currentRegion.id,
+            fields: "+thumbnail,+images,+variants,+variants.prices,+variants.calculated_price"
           });
-          console.log("Fallback products:", products);
+          console.log("✅ Fallback products fetched:", products.length);
+          console.log("💰 Fallback sample product:", JSON.stringify(products[0], null, 2));
           setProducts(products);
         } catch (fallbackError) {
-          console.error("Fallback fetch also failed:", fallbackError);
+          console.error("❌ Fallback fetch also failed:", fallbackError);
         }
       }
     };
     fetchProductsAndTag();
-  }, []);
+  }, [currentRegion]);
 
   const plugin = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
@@ -99,12 +116,35 @@ export default function ProductCarousel() {
                       {product.title}
                     </p>
                     <p className="text-xs font-light text-foreground/70">
-                      {formatPrice(
-                        product.variants?.[0]?.calculated_price?.calculated_amount || 
-                        product.variants?.[0]?.prices?.[0]?.amount || 0,
-                        product.variants?.[0]?.calculated_price?.currency_code ||
-                        product.variants?.[0]?.prices?.[0]?.currency_code || "USD"
-                      )}
+                      {(() => {
+                        const variant = product.variants?.[0];
+                        if (!variant) {
+                          console.log("⚠️ No variants found for product:", product.title);
+                          return "Price not available";
+                        }
+                        
+                        // Try different price sources
+                        const calculatedPrice = variant.calculated_price?.calculated_amount;
+                        const regionPrice = currentRegion && variant.prices?.find((p: any) => 
+                          p.currency_code === currentRegion.currency_code
+                        );
+                        const firstPrice = variant.prices?.[0];
+                        
+                        console.log(`💰 Price debug for ${product.title}:`, {
+                          calculatedPrice,
+                          regionPrice: regionPrice?.amount,
+                          firstPrice: firstPrice?.amount,
+                          currentRegion: currentRegion?.currency_code
+                        });
+                        
+                        const amount = calculatedPrice || regionPrice?.amount || firstPrice?.amount || 0;
+                        const currency = variant.calculated_price?.currency_code || 
+                                       regionPrice?.currency_code || 
+                                       firstPrice?.currency_code || 
+                                       currentRegion?.currency_code || "USD";
+                        
+                        return formatPrice(amount, currency);
+                      })()}
                     </p>
                   </div>
                 </div>
