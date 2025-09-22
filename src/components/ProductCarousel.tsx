@@ -12,7 +12,7 @@ export default function ProductCarousel() {
   const navigate = useNavigate();
   const { currentRegion } = useRegion();
 
-  const TAG_ID = 'ptag_01K59Z4GH70D2TG7P1DAFH844Q';
+  const TAG_ID = 'ptag_01K5RXNQQETCANE08W17PCH6MB';
 
   useEffect(() => {
     const fetchProductsAndTag = async () => {
