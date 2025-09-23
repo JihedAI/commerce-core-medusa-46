@@ -4,30 +4,19 @@ import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
 export default function CollectionsShowcase() {
+  // Get image for collection from metadata - only show collections with images
+  const getCollectionImage = (collection: any) => {
+    // Only return imgUrl from metadata if it exists
+    if (collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string') {
+      return collection.metadata.imgUrl;
+    }
+    return null; // No fallback - we'll filter these out
+  };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
-      const { collections } = await sdk.store.collection.list({ limit: 20 });
-      console.log('Raw collections:', collections);
-      
-      // Filter only collections that have metadata with imgUrl
-      const collectionsWithImages = collections.filter((collection: any) => {
-        const hasValidImage = collection?.metadata?.imgUrl && 
-                             typeof collection.metadata.imgUrl === 'string' &&
-                             collection.metadata.imgUrl.length > 0;
-        console.log('Collection check:', {
-          id: collection?.id,
-          title: collection?.title,
-          hasMetadata: !!collection?.metadata,
-          hasImgUrl: !!collection?.metadata?.imgUrl,
-          imgUrl: collection?.metadata?.imgUrl,
-          hasValidImage
-        });
-        return hasValidImage;
-      });
-      
-      console.log('Filtered collections with images:', collectionsWithImages);
-      return collectionsWithImages;
+      const { collections } = await sdk.store.collection.list({ limit: 6 });
+      return collections;
     },
     staleTime: 0, // Force fresh data
     refetchOnMount: true, // Always refetch on mount
@@ -60,7 +49,10 @@ export default function CollectionsShowcase() {
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {collections.slice(0, 6).map((collection, index) => (
+          {collections
+            .filter(collection => getCollectionImage(collection)) // Only show collections with metadata images
+            .slice(0, 6)
+            .map((collection, index) => (
             <Link 
               key={collection.id} 
               to={`/collections/${collection.id}`}
@@ -70,13 +62,10 @@ export default function CollectionsShowcase() {
                 {/* Collection Image */}
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src={(collection?.metadata?.imgUrl as string) || ''}
-                    alt={collection?.title || 'Collection'}
+                    src={getCollectionImage(collection)}
+                    alt={collection.title}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     loading="lazy"
-                    onError={(e) => {
-                      console.error('Failed to load collection image:', collection?.metadata?.imgUrl);
-                    }}
                   />
                   
                   {/* Image Overlay */}
