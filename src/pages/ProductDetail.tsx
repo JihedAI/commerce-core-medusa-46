@@ -12,12 +12,6 @@ import { useCart } from "@/contexts/CartContext";
 import { sdk } from "@/lib/sdk";
 import ProductCard from "@/components/ProductCard";
 import Layout from "@/components/Layout";
-// Inside ProductDetail
-const { handle } = useParams<{ handle: string }>();
-const navigate = useNavigate();
-
-// FIX: also get cart here
-const { cart, addItem } = useCart();
 
 // Price formatting utility
 const formatPrice = (amount: number, currency: string = "USD") => {
@@ -30,7 +24,7 @@ const formatPrice = (amount: number, currency: string = "USD") => {
 export default function ProductDetail() {
   const { handle } = useParams<{ handle: string }>();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
   
   const [product, setProduct] = useState<HttpTypes.StoreProduct | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<HttpTypes.StoreProductVariant | null>(null);
