@@ -3,42 +3,18 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
-// Collection Image URLs - Easy to modify
-const COLLECTION_IMAGE_1 = "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
-const COLLECTION_IMAGE_2 = "https://images.pexels.com/photos/12678272/pexels-photo-12678272.jpeg";
-const DEFAULT_COLLECTION_IMAGE = COLLECTION_IMAGE_1;
+// Default fallback image URL
+const DEFAULT_COLLECTION_IMAGE = "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
 
 export default function CollectionsShowcase() {
-  // Collection images mapping - using const URLs above
-  const collectionImages: Record<string, string> = {
-    "sunglasses": COLLECTION_IMAGE_1,
-    "contact-lenses": COLLECTION_IMAGE_2, 
-    "men": COLLECTION_IMAGE_1,
-    "women": COLLECTION_IMAGE_2,
-    "frames": COLLECTION_IMAGE_1,
-    "reading": COLLECTION_IMAGE_2,
-    "eyeglasses": COLLECTION_IMAGE_1,
-    "optical": COLLECTION_IMAGE_2
-  };
-
-  // Get image for collection based on handle or title
+  // Get image for collection from metadata or use fallback
   const getCollectionImage = (collection: any) => {
-    const handle = collection.handle?.toLowerCase() || '';
-    const title = collection.title?.toLowerCase() || '';
-    
-    // First try to match by handle
-    if (collectionImages[handle]) {
-      return collectionImages[handle];
+    // Check if collection has imgUrl in metadata
+    if (collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string') {
+      return collection.metadata.imgUrl;
     }
     
-    // Then try to match by keywords in title
-    for (const [key, imageUrl] of Object.entries(collectionImages)) {
-      if (title.includes(key) || handle.includes(key)) {
-        return imageUrl;
-      }
-    }
-    
-    // Default fallback image - using default constant
+    // Default fallback image
     return DEFAULT_COLLECTION_IMAGE;
   };
   const { data: collections, isLoading } = useQuery({
