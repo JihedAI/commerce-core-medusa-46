@@ -9,11 +9,16 @@ const DEFAULT_COLLECTION_IMAGE = "https://images.pexels.com/photos/27055609/pexe
 export default function CollectionsShowcase() {
   // Get image for collection from metadata or use fallback
   const getCollectionImage = (collection: any) => {
+    console.log('🖼️ Collection data:', collection);
+    console.log('🗂️ Collection metadata:', collection.metadata);
+    
     // Check if collection has imgUrl in metadata
     if (collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string') {
+      console.log('✅ Using metadata image:', collection.metadata.imgUrl);
       return collection.metadata.imgUrl;
     }
     
+    console.log('⚠️ No metadata imgUrl found, using fallback for:', collection.title);
     // Default fallback image
     return DEFAULT_COLLECTION_IMAGE;
   };
