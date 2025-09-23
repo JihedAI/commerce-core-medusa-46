@@ -65,23 +65,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     initializeCart();
   }, [currentRegion]);
 
-  const createNewCart = async () => {
-    try {
-      if (!currentRegion) {
-        throw new Error("No region selected");
-      }
-
-      const { cart } = await sdk.store.cart.create({
-        region_id: currentRegion.id,
-      });
-      
-      setCart(cart);
-      localStorage.setItem(CART_ID_KEY, cart.id);
-    } catch (error) {
-      console.error("Failed to create cart:", error);
-      throw error;
-    }
-  };
+const createNewCart = async () => {
+  try {
+    const { cart } = await sdk.store.cart.create({
+      region_id: currentRegion?.id, // safe access
+    });
+    setCart(cart);
+    localStorage.setItem("cart_id", cart.id);
+    return cart;
+  } catch (error) {
+    console.error("Failed to create cart:", error);
+    toast({
+      title: "Error",
+      description: "Could not create a new cart",
+      variant: "destructive",
+    });
+    throw error;
+  }
+};
 
   const refreshCart = async () => {
     if (!cart) return;
@@ -94,30 +95,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addItem = async (variantId: string, quantity: number = 1) => {
-    if (!cart) return;
+ const addItem = async (variantId: string, quantity: number = 1) => {
+  try {
+    let activeCart = cart;
 
-    try {
-      await sdk.store.cart.createLineItem(cart.id, {
-        variant_id: variantId,
-        quantity,
-      });
-      
-      await refreshCart();
-      
-      toast({
-        title: "Added to cart",
-        description: `Item added successfully`,
-      });
-    } catch (error) {
-      console.error("Failed to add item:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add item to cart",
-        variant: "destructive",
-      });
+    // Create a cart if it doesn’t exist
+    if (!activeCart) {
+      activeCart = await createNewCart();
     }
-  };
+
+    const { cart: updatedCart } = await sdk.store.cart.createLineItem(activeCart.id, {
+      variant_id: variantId,
+      quantity,
+    });
+
+    setCart(updatedCart);
+
+    toast({
+      title: "Added to cart",
+      description: "Item successfully added",
+    });
+
+    return updatedCart;
+  } catch (error) {
+    console.error("Failed to add item:", error);
+    toast({
+      title: "Error",
+      description: "Failed to add item to cart",
+      variant: "destructive",
+    });
+    throw error;
+  }
+};
 
   const updateItem = async (lineId: string, quantity: number) => {
     if (!cart) return;
