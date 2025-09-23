@@ -20,6 +20,7 @@ export default function CollectionsShowcase() {
     }
     return null; // No fallback - we'll filter these out
   };
+
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
@@ -59,28 +60,9 @@ export default function CollectionsShowcase() {
     refetchOnMount: true, // Always refetch on mount
   });
 
-  if (isLoading) {
-    return (
-      <section className="w-full py-20 px-8 lg:px-16">
-        <div className="container mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-16 text-center">
-            Collections
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[4/5] bg-muted animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!collections?.length) return null;
-
-  // GSAP animations
+  // GSAP animations - MUST be called before any early returns
   useEffect(() => {
-    if (sectionRef.current && titleRef.current && gridRef.current) {
+    if (!isLoading && collections?.length && sectionRef.current && titleRef.current && gridRef.current) {
       const collectionCards = gridRef.current.querySelectorAll('.collection-card');
       
       const tl = gsap.timeline({
@@ -107,7 +89,27 @@ export default function CollectionsShowcase() {
         "-=0.4"
       );
     }
-  }, [collections]);
+  }, [collections, isLoading]);
+
+  // Early returns AFTER all hooks are called
+  if (isLoading) {
+    return (
+      <section className="w-full py-20 px-8 lg:px-16">
+        <div className="container mx-auto">
+          <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-16 text-center">
+            Collections
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="aspect-[4/5] bg-muted animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!collections?.length) return null;
 
   return (
     <section ref={sectionRef} className="w-full py-20 px-8 lg:px-16">
