@@ -67,22 +67,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 const createNewCart = async () => {
   try {
+    if (!currentRegion) {
+      throw new Error("No region selected");
+    }
+
     const { cart } = await sdk.store.cart.create({
-      region_id: currentRegion?.id, // safe access
+      region_id: currentRegion.id,
     });
+
     setCart(cart);
-    localStorage.setItem("cart_id", cart.id);
-    return cart;
+    localStorage.setItem(CART_ID_KEY, cart.id);
+
+    return cart; // ✅ important
   } catch (error) {
     console.error("Failed to create cart:", error);
-    toast({
-      title: "Error",
-      description: "Could not create a new cart",
-      variant: "destructive",
-    });
     throw error;
   }
 };
+
 
   const refreshCart = async () => {
     if (!cart) return;
@@ -95,13 +97,17 @@ const createNewCart = async () => {
     }
   };
 
- const addItem = async (variantId: string, quantity: number = 1) => {
+const addItem = async (variantId: string, quantity: number = 1) => {
   try {
     let activeCart = cart;
 
-    // Create a cart if it doesn’t exist
+    // If no cart, create one
     if (!activeCart) {
       activeCart = await createNewCart();
+    }
+
+    if (!activeCart) {
+      throw new Error("Cart could not be initialized");
     }
 
     const { cart: updatedCart } = await sdk.store.cart.createLineItem(activeCart.id, {
@@ -127,6 +133,7 @@ const createNewCart = async () => {
     throw error;
   }
 };
+
 
   const updateItem = async (lineId: string, quantity: number) => {
     if (!cart) return;
