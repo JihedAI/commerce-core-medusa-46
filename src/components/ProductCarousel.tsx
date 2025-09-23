@@ -79,11 +79,9 @@ export default function ProductCarousel() {
     Autoplay({ delay: 4000, stopOnInteraction: true })
   );
 
-  if (!products.length) return null;
-
-  // GSAP animation on mount
+  // GSAP animation on mount - MUST be called before any early returns
   useEffect(() => {
-    if (sectionRef.current && titleRef.current) {
+    if (products.length > 0 && sectionRef.current && titleRef.current) {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -103,6 +101,9 @@ export default function ProductCarousel() {
       );
     }
   }, [products.length]);
+
+  // Early return AFTER all hooks are called
+  if (!products.length) return null;
 
   return (
     <section ref={sectionRef} className="w-full py-20 px-8 lg:px-16">
