@@ -18,11 +18,13 @@ export default function CollectionsShowcase() {
     return DEFAULT_COLLECTION_IMAGE;
   };
   const { data: collections, isLoading } = useQuery({
-    queryKey: ["featured-collections"],
+    queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
       const { collections } = await sdk.store.collection.list({ limit: 6 });
       return collections;
     },
+    staleTime: 0, // Force fresh data
+    refetchOnMount: true, // Always refetch on mount
   });
 
   if (isLoading) {
