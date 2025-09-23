@@ -3,25 +3,17 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
-// Default fallback image URL
-const DEFAULT_COLLECTION_IMAGE = "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
-
 export default function CollectionsShowcase() {
-  // Get image for collection from metadata or use fallback
-  const getCollectionImage = (collection: any) => {
-    // Check if collection has imgUrl in metadata
-    if (collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string') {
-      return collection.metadata.imgUrl;
-    }
-    
-    // Default fallback image
-    return DEFAULT_COLLECTION_IMAGE;
-  };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
-      const { collections } = await sdk.store.collection.list({ limit: 6 });
-      return collections;
+      const { collections } = await sdk.store.collection.list({ limit: 20 });
+      // Filter only collections that have metadata with imgUrl
+      const collectionsWithImages = collections.filter((collection: any) => 
+        collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string'
+      );
+      console.log('Collections with images:', collectionsWithImages);
+      return collectionsWithImages;
     },
     staleTime: 0, // Force fresh data
     refetchOnMount: true, // Always refetch on mount
@@ -64,10 +56,13 @@ export default function CollectionsShowcase() {
                 {/* Collection Image */}
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src={getCollectionImage(collection)}
+                    src={collection.metadata.imgUrl as string}
                     alt={collection.title}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     loading="lazy"
+                    onError={(e) => {
+                      console.error('Failed to load collection image:', collection.metadata.imgUrl);
+                    }}
                   />
                   
                   {/* Image Overlay */}
