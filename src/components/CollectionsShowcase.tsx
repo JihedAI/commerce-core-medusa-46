@@ -15,8 +15,24 @@ export default function CollectionsShowcase() {
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
+      console.log("🔧 Trying different SDK approaches to get metadata...");
+      
+      // Try 1: Use the older medusa client first
+      try {
+        const { medusa } = await import("@/lib/medusa");
+        const response = await medusa.collections.list({ limit: 20 });
+        console.log("✅ Method 1 (old medusa client):", response.collections?.[0]);
+        if (response.collections?.[0]?.metadata) {
+          console.log("🎉 Found metadata with old client!");
+          return response.collections;
+        }
+      } catch (error) {
+        console.log("❌ Method 1 (old client) failed:", error);
+      }
+
+      // Try 2: Basic SDK call and log what we get
       const { collections } = await sdk.store.collection.list({ limit: 20 });
-      console.log("🔍 Raw collections data:", collections);
+      console.log("🔍 Method 2 - V2 SDK Raw collections data:", collections);
       
       // Debug each collection's metadata
       collections?.forEach((collection, index) => {
@@ -24,7 +40,8 @@ export default function CollectionsShowcase() {
           id: collection.id,
           title: collection.title,
           metadata: collection.metadata,
-          hasImgUrl: !!collection.metadata?.imgUrl
+          hasImgUrl: !!collection.metadata?.imgUrl,
+          allKeys: Object.keys(collection)
         });
       });
       
