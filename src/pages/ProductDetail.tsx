@@ -119,23 +119,26 @@ export default function ProductDetail() {
   });
 
 
-  const handleAddToCart = async () => {
-    if (!selectedVariant || !region) {
-      toast.error("Please select a variant");
-      return;
-    }
+const handleAddToCart = async () => {
+  // Log current state for debugging
+  console.log("selectedVariant", selectedVariant, "region", region, "cart", cart);
 
-    try {
-      setIsAddingToCart(true);
-      await addItem(selectedVariant.id, quantity);
-      toast.success("Added to cart!");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Failed to add to cart");
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
+  if (!selectedVariant || !region) {
+    toast.error("Please select a variant");
+    return;
+  }
+
+  try {
+    setIsAddingToCart(true);
+    await addItem(selectedVariant.id, quantity);
+    toast.success("Added to cart!");
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    toast.error("Failed to add to cart");
+  } finally {
+    setIsAddingToCart(false);
+  }
+};
 
   const handleVariantSelect = (variant: HttpTypes.StoreProductVariant) => {
     setSelectedVariant(variant);
