@@ -8,11 +8,25 @@ export default function CollectionsShowcase() {
     queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
       const { collections } = await sdk.store.collection.list({ limit: 20 });
+      console.log('Raw collections:', collections);
+      
       // Filter only collections that have metadata with imgUrl
-      const collectionsWithImages = collections.filter((collection: any) => 
-        collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string'
-      );
-      console.log('Collections with images:', collectionsWithImages);
+      const collectionsWithImages = collections.filter((collection: any) => {
+        const hasValidImage = collection?.metadata?.imgUrl && 
+                             typeof collection.metadata.imgUrl === 'string' &&
+                             collection.metadata.imgUrl.length > 0;
+        console.log('Collection check:', {
+          id: collection?.id,
+          title: collection?.title,
+          hasMetadata: !!collection?.metadata,
+          hasImgUrl: !!collection?.metadata?.imgUrl,
+          imgUrl: collection?.metadata?.imgUrl,
+          hasValidImage
+        });
+        return hasValidImage;
+      });
+      
+      console.log('Filtered collections with images:', collectionsWithImages);
       return collectionsWithImages;
     },
     staleTime: 0, // Force fresh data
@@ -56,12 +70,12 @@ export default function CollectionsShowcase() {
                 {/* Collection Image */}
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src={collection.metadata.imgUrl as string}
-                    alt={collection.title}
+                    src={(collection?.metadata?.imgUrl as string) || ''}
+                    alt={collection?.title || 'Collection'}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     loading="lazy"
                     onError={(e) => {
-                      console.error('Failed to load collection image:', collection.metadata.imgUrl);
+                      console.error('Failed to load collection image:', collection?.metadata?.imgUrl);
                     }}
                   />
                   
