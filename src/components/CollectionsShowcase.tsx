@@ -15,7 +15,19 @@ export default function CollectionsShowcase() {
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections", "with-metadata"],
     queryFn: async () => {
-      const { collections } = await sdk.store.collection.list({ limit: 6 });
+      const { collections } = await sdk.store.collection.list({ limit: 20 });
+      console.log("🔍 Raw collections data:", collections);
+      
+      // Debug each collection's metadata
+      collections?.forEach((collection, index) => {
+        console.log(`📦 Collection ${index + 1}:`, {
+          id: collection.id,
+          title: collection.title,
+          metadata: collection.metadata,
+          hasImgUrl: !!collection.metadata?.imgUrl
+        });
+      });
+      
       return collections;
     },
     staleTime: 0, // Force fresh data
