@@ -1,6 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Search, Filter, X, ChevronDown } from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +36,8 @@ export default function Products() {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const productGridRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   
 
   const page = parseInt(searchParams.get("page") || "1");
@@ -360,12 +366,49 @@ export default function Products() {
 
   const totalPages = Math.ceil((productsData?.count || 0) / limit);
 
+  // GSAP animations
+  useEffect(() => {
+    if (!productsLoading && filteredProducts.length > 0 && productGridRef.current) {
+      const productCards = productGridRef.current.querySelectorAll('.product-card');
+      
+      // Reset opacity for new products
+      gsap.set(productCards, { opacity: 0, y: 30 });
+      
+      // Animate products in with stagger
+      gsap.to(productCards, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        stagger: 0.1,
+        delay: 0.2
+      });
+    }
+  }, [productsLoading, filteredProducts]);
+
+  // Animate header on mount
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.fromTo(headerRef.current.children, 
+        { opacity: 0, y: 20 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.8, 
+          ease: "power2.out",
+          stagger: 0.1,
+          delay: 0.1
+        }
+      );
+    }
+  }, [categoryData]);
+
   return (
     <Layout>
       <div className="min-h-screen bg-background">
         {/* Page Title - Show category name if viewing a specific category */}
         {categoryData && (
-          <div className="container mx-auto px-4 pt-8 pb-4">
+          <div ref={headerRef} className="container mx-auto px-4 pt-8 pb-4">
             <div className="text-center">
               <h1 className="text-3xl font-display font-bold mb-2">{categoryData.name}</h1>
               <p className="text-muted-foreground">Explore our {categoryData.name.toLowerCase()} collection</p>
@@ -511,9 +554,15 @@ export default function Products() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-                    {filteredProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} />
+                  <div ref={productGridRef} className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+                    {filteredProducts.map((product, index) => (
+                      <div 
+                        key={product.id} 
+                        className="product-card opacity-0"
+                        style={{ '--stagger-delay': `${index * 0.1}s` } as React.CSSProperties}
+                      >
+                        <ProductCard product={product} />
+                      </div>
                     ))}
                   </div>
                   

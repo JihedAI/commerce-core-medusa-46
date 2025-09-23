@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function CollectionsShowcase() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
   // Get image for collection from metadata - only show collections with images
   const getCollectionImage = (collection: any) => {
     // Only return imgUrl from metadata if it exists
@@ -70,14 +78,45 @@ export default function CollectionsShowcase() {
 
   if (!collections?.length) return null;
 
+  // GSAP animations
+  useEffect(() => {
+    if (sectionRef.current && titleRef.current && gridRef.current) {
+      const collectionCards = gridRef.current.querySelectorAll('.collection-card');
+      
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          once: true
+        }
+      });
+
+      tl.fromTo(titleRef.current, 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+      )
+      .fromTo(collectionCards, 
+        { opacity: 0, y: 40 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.6, 
+          ease: "power2.out",
+          stagger: 0.15
+        },
+        "-=0.4"
+      );
+    }
+  }, [collections]);
+
   return (
-    <section className="w-full py-20 px-8 lg:px-16">
+    <section ref={sectionRef} className="w-full py-20 px-8 lg:px-16">
       <div className="container mx-auto">
-        <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-16 text-center">
+        <h2 ref={titleRef} className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-16 text-center opacity-0">
           Collections
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {collections
             .filter(collection => getCollectionImage(collection)) // Only show collections with metadata images
             .slice(0, 6)
@@ -85,7 +124,7 @@ export default function CollectionsShowcase() {
             <Link 
               key={collection.id} 
               to={`/collections/${collection.id}`}
-              className="group block"
+              className="group block collection-card opacity-0"
             >
               <div className="relative overflow-hidden bg-card rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 ease-out">
                 {/* Collection Image */}

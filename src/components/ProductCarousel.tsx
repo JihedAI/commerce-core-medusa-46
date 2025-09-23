@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { sdk } from "@/lib/sdk";
 import { formatPrice } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useRegion } from "@/contexts/RegionContext";
 import Autoplay from "embla-carousel-autoplay";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function ProductCarousel() {
   const [products, setProducts] = useState<any[]>([]);
   const [tagName, setTagName] = useState<string>("Featured Products");
   const navigate = useNavigate();
   const { currentRegion } = useRegion();
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   const TAG_ID = 'ptag_01K5RXNQQETCANE08W17PCH6MB';
 
@@ -75,13 +81,36 @@ export default function ProductCarousel() {
 
   if (!products.length) return null;
 
+  // GSAP animation on mount
+  useEffect(() => {
+    if (sectionRef.current && titleRef.current) {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          once: true
+        }
+      });
+
+      tl.fromTo(titleRef.current, 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+      )
+      .fromTo(sectionRef.current.querySelector('.carousel-container'), 
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+        "-=0.4"
+      );
+    }
+  }, [products.length]);
+
   return (
-    <section className="w-full py-20 px-8 lg:px-16">
-      <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-12 text-center">
+    <section ref={sectionRef} className="w-full py-20 px-8 lg:px-16">
+      <h2 ref={titleRef} className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-12 text-center">
         {tagName}
       </h2>
       
-      <div className="relative group">
+      <div className="carousel-container relative group opacity-0">
         <Carousel
           opts={{
             align: "start",

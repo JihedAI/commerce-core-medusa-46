@@ -1,20 +1,88 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function StorySection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (sectionRef.current && contentRef.current && statsRef.current) {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 70%",
+          once: true
+        }
+      });
+
+      // Animate content blocks
+      const contentBlocks = contentRef.current.children;
+      tl.fromTo(contentBlocks, 
+        { opacity: 0, y: 40 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.8, 
+          ease: "power2.out",
+          stagger: 0.2
+        }
+      );
+
+      // Animate stats with counter effect
+      const statNumbers = statsRef.current.querySelectorAll('.stat-number');
+      statNumbers.forEach((stat, index) => {
+        const finalValue = parseInt(stat.textContent || '0');
+        gsap.fromTo(stat,
+          { textContent: 0 },
+          {
+            textContent: finalValue,
+            duration: 2,
+            ease: "power2.out",
+            delay: 0.5 + (index * 0.1),
+            snap: { textContent: 1 },
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 70%",
+              once: true
+            }
+          }
+        );
+      });
+
+      // Animate stat items and achievement badges
+      const animatedItems = statsRef.current.querySelectorAll('.stat-item, .achievement-item');
+      tl.fromTo(animatedItems, 
+        { opacity: 0, scale: 0.9 },
+        { 
+          opacity: 1, 
+          scale: 1, 
+          duration: 0.6, 
+          ease: "back.out(1.2)",
+          stagger: 0.1
+        },
+        "-=0.5"
+      );
+    }
+  }, []);
+
   return (
-    <section className="w-full py-20 px-8 lg:px-16 bg-secondary/30">
+    <section ref={sectionRef} className="w-full py-20 px-8 lg:px-16 bg-secondary/30">
       <div className="container mx-auto max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Story Content */}
-          <div className="space-y-8">
-            <div className="space-y-4">
+          <div ref={contentRef} className="space-y-8">
+            <div className="space-y-4 opacity-0">
               <h2 className="text-4xl lg:text-5xl font-display font-bold text-foreground">
                 Our Story
               </h2>
               <div className="w-16 h-1 bg-primary"></div>
             </div>
             
-            <div className="space-y-6 text-lg text-foreground/80 leading-relaxed">
+            <div className="opacity-0 space-y-6 text-lg text-foreground/80 leading-relaxed">
               <p>
                 Founded with a vision to revolutionize eyewear, we've been crafting 
                 exceptional glasses that blend style, comfort, and innovation for over 
@@ -35,7 +103,7 @@ export default function StorySection() {
               </p>
             </div>
             
-            <div className="pt-4">
+            <div className="opacity-0 pt-4">
               <button className="bg-primary text-primary-foreground px-8 py-4 font-semibold tracking-wide hover:bg-primary/90 transition-all duration-300 transform hover:scale-105">
                 Learn More About Us
               </button>
@@ -43,32 +111,40 @@ export default function StorySection() {
           </div>
           
           {/* Story Stats */}
-          <div className="space-y-8">
+          <div ref={statsRef} className="space-y-8">
             <div className="grid grid-cols-2 gap-8">
-              <div className="text-center space-y-2">
-                <div className="text-4xl font-bold text-primary">25+</div>
+              <div className="stat-item opacity-0 text-center space-y-2">
+                <div className="text-4xl font-bold text-primary">
+                  <span className="stat-number">25</span>+
+                </div>
                 <div className="text-sm uppercase tracking-wide text-foreground/70">Years Experience</div>
               </div>
               
-              <div className="text-center space-y-2">
-                <div className="text-4xl font-bold text-primary">50K+</div>
+              <div className="stat-item opacity-0 text-center space-y-2">
+                <div className="text-4xl font-bold text-primary">
+                  <span className="stat-number">50000</span>+
+                </div>
                 <div className="text-sm uppercase tracking-wide text-foreground/70">Happy Customers</div>
               </div>
               
-              <div className="text-center space-y-2">
-                <div className="text-4xl font-bold text-primary">1000+</div>
+              <div className="stat-item opacity-0 text-center space-y-2">
+                <div className="text-4xl font-bold text-primary">
+                  <span className="stat-number">1000</span>+
+                </div>
                 <div className="text-sm uppercase tracking-wide text-foreground/70">Frame Styles</div>
               </div>
               
-              <div className="text-center space-y-2">
-                <div className="text-4xl font-bold text-primary">15</div>
+              <div className="stat-item opacity-0 text-center space-y-2">
+                <div className="text-4xl font-bold text-primary">
+                  <span className="stat-number">15</span>
+                </div>
                 <div className="text-sm uppercase tracking-wide text-foreground/70">Store Locations</div>
               </div>
             </div>
             
             {/* Achievement badges */}
             <div className="space-y-4 pt-8">
-              <div className="flex items-center space-x-4 p-4 bg-background/50 rounded-lg">
+              <div className="achievement-item opacity-0 flex items-center space-x-4 p-4 bg-background/50 rounded-lg">
                 <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
                   <span className="text-primary font-bold">★</span>
                 </div>
@@ -78,7 +154,7 @@ export default function StorySection() {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-4 p-4 bg-background/50 rounded-lg">
+              <div className="achievement-item opacity-0 flex items-center space-x-4 p-4 bg-background/50 rounded-lg">
                 <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
                   <span className="text-primary font-bold">♻</span>
                 </div>
