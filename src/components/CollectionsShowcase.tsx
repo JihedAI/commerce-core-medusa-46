@@ -3,19 +3,14 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 
-// Default fallback image URL
-const DEFAULT_COLLECTION_IMAGE = "https://images.pexels.com/photos/27055609/pexels-photo-27055609.jpeg";
-
 export default function CollectionsShowcase() {
-  // Get image for collection from metadata or use fallback
+  // Get image for collection from metadata - only show collections with images
   const getCollectionImage = (collection: any) => {
-    // Check if collection has imgUrl in metadata
+    // Only return imgUrl from metadata if it exists
     if (collection.metadata?.imgUrl && typeof collection.metadata.imgUrl === 'string') {
       return collection.metadata.imgUrl;
     }
-    
-    // Default fallback image
-    return DEFAULT_COLLECTION_IMAGE;
+    return null; // No fallback - we'll filter these out
   };
   const { data: collections, isLoading } = useQuery({
     queryKey: ["featured-collections", "with-metadata"],
@@ -54,7 +49,10 @@ export default function CollectionsShowcase() {
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {collections.slice(0, 6).map((collection, index) => (
+          {collections
+            .filter(collection => getCollectionImage(collection)) // Only show collections with metadata images
+            .slice(0, 6)
+            .map((collection, index) => (
             <Link 
               key={collection.id} 
               to={`/collections/${collection.id}`}
