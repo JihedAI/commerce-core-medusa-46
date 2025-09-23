@@ -1,11 +1,27 @@
-import React from "react";
+import React, { Suspense } from "react";
 import VideoHero from "@/components/VideoHero";
-import ProductCarousel from "@/components/ProductCarousel";
-import CollectionsShowcase from "@/components/CollectionsShowcase";
-import StorySection from "@/components/StorySection";
-import ExploreBanner from "@/components/ExploreBanner";
-import StoreLocator from "@/components/StoreLocator";
 import Layout from "@/components/Layout";
+
+// Lazy load components for better performance
+const ProductCarousel = React.lazy(() => import("@/components/ProductCarousel"));
+const CollectionsShowcase = React.lazy(() => import("@/components/CollectionsShowcase"));
+const StorySection = React.lazy(() => import("@/components/StorySection"));
+const ExploreBanner = React.lazy(() => import("@/components/ExploreBanner"));
+const StoreLocator = React.lazy(() => import("@/components/StoreLocator"));
+
+// Loading component
+const SectionSkeleton = () => (
+  <div className="w-full py-20 px-8 lg:px-16">
+    <div className="animate-pulse space-y-4">
+      <div className="h-8 bg-muted rounded w-1/3 mx-auto"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="aspect-[3/4] bg-muted rounded"></div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export default function Home() {
   // Sample video URLs - replace with actual video content
@@ -23,19 +39,29 @@ export default function Home() {
       </div>
       
       {/* Product Carousel Section */}
-      <ProductCarousel />
+      <Suspense fallback={<SectionSkeleton />}>
+        <ProductCarousel />
+      </Suspense>
       
       {/* Collections Showcase Section */}
-      <CollectionsShowcase />
+      <Suspense fallback={<SectionSkeleton />}>
+        <CollectionsShowcase />
+      </Suspense>
       
       {/* Story Section */}
-      <StorySection />
+      <Suspense fallback={<SectionSkeleton />}>
+        <StorySection />
+      </Suspense>
       
       {/* Explore Banner Section */}
-      <ExploreBanner />
+      <Suspense fallback={<SectionSkeleton />}>
+        <ExploreBanner />
+      </Suspense>
       
       {/* Store Locator Section */}
-      <StoreLocator />
+      <Suspense fallback={<SectionSkeleton />}>
+        <StoreLocator />
+      </Suspense>
     </Layout>
   );
 }

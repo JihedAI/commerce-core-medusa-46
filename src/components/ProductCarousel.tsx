@@ -28,8 +28,6 @@ export default function ProductCarousel() {
       }
 
       try {
-        console.log("🔍 Fetching products with region:", currentRegion.id);
-        
         // Fetch products with the specific tag and region context
         const { products } = await sdk.store.product.list({
           tag_id: TAG_ID,
@@ -37,13 +35,6 @@ export default function ProductCarousel() {
           region_id: currentRegion.id,
           fields: "+thumbnail,+images,+tags,+variants,+variants.prices,+variants.calculated_price"
         });
-        
-        console.log("✅ Fetched products by tag:", products.length);
-        console.log("🔍 Sample product data:", JSON.stringify(products[0], null, 2));
-        
-        if (products[0]?.variants) {
-          console.log("💰 First product variants:", JSON.stringify(products[0].variants, null, 2));
-        }
         
         // Get tag name from the first product's tags if available
         if (products.length > 0 && products[0].tags) {
@@ -55,20 +46,17 @@ export default function ProductCarousel() {
         
         setProducts(products);
       } catch (error) {
-        console.error("❌ Failed to fetch products by tag:", error);
+        console.error("Failed to fetch products by tag:", error);
         // Fallback to regular product fetch if tag filtering fails
         try {
-          console.log("🔄 Trying fallback approach...");
           const { products } = await sdk.store.product.list({ 
             limit: 10,
             region_id: currentRegion.id,
             fields: "+thumbnail,+images,+variants,+variants.prices,+variants.calculated_price"
           });
-          console.log("✅ Fallback products fetched:", products.length);
-          console.log("💰 Fallback sample product:", JSON.stringify(products[0], null, 2));
           setProducts(products);
         } catch (fallbackError) {
-          console.error("❌ Fallback fetch also failed:", fallbackError);
+          console.error("Fallback fetch also failed:", fallbackError);
         }
       }
     };
@@ -149,7 +137,6 @@ export default function ProductCarousel() {
                       {(() => {
                         const variant = product.variants?.[0];
                         if (!variant) {
-                          console.log("⚠️ No variants found for product:", product.title);
                           return "Price not available";
                         }
                         
@@ -159,13 +146,6 @@ export default function ProductCarousel() {
                           p.currency_code === currentRegion.currency_code
                         );
                         const firstPrice = variant.prices?.[0];
-                        
-                        console.log(`💰 Price debug for ${product.title}:`, {
-                          calculatedPrice,
-                          regionPrice: regionPrice?.amount,
-                          firstPrice: firstPrice?.amount,
-                          currentRegion: currentRegion?.currency_code
-                        });
                         
                         const amount = calculatedPrice || regionPrice?.amount || firstPrice?.amount || 0;
                         const currency = variant.calculated_price?.currency_code || 
