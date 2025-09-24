@@ -20,88 +20,22 @@ export default function ProductCarousel({ initialCount = 6 }: ProductCarouselPro
   const TAG_ID = 'ptag_01K5RXNQQETCANE08W17PCH6MB';
 
   useEffect(() => {
-    const fetchProductsAndTag = async () => {
-      if (!currentRegion) {
-        console.log("No region available yet, waiting...");
-        return;
+    if (!currentRegion) return;
+
+    sdk.store.product.list({
+      tag_id: TAG_ID,
+      limit: initialCount,
+      region_id: currentRegion.id,
+      fields: "+thumbnail,+images,+tags,+variants"
+    }).then(({ products }) => {
+      setProducts(products.slice(0, initialCount));
+      if (products[0]?.tags) {
+        const tagObj = products[0].tags.find((tag: any) => tag.id === TAG_ID);
+        if (tagObj) setTagName(tagObj.value || "Featured Products");
       }
+    }).catch(() => setProducts([]));
+  }, [currentRegion, initialCount]);
 
-      try {
-        console.log("🔍 Fetching products with region:", currentRegion.id);
-        
-        // Fetch products with the specific tag and region context
-        const { products } = await sdk.store.product.list({
-          tag_id: TAG_ID,
-          limit: 10,
-          region_id: currentRegion.id,
-          fields: "+thumbnail,+images,+tags,+variants,+variants.prices,+variants.calculated_price"
-        });
-        
-        console.log("✅ Fetched products by tag:", products.length);
-        console.log("🔍 Sample product data:", JSON.stringify(products[0], null, 2));
-        
-        if (products[0]?.variants) {
-          console.log("💰 First product variants:", JSON.stringify(products[0].variants, null, 2));
-        }
-        
-        // Get tag name from the first product's tags if available
-        if (products.length > 0 && products[0].tags) {
-          const tagObj = products[0].tags.find((tag: any) => tag.id === TAG_ID);
-          if (tagObj) {
-            setTagName(tagObj.value || "Featured Products");
-          }
-        }
-        
-        setProducts(products);
-      } catch (error) {
-        console.error("❌ Failed to fetch products by tag:", error);
-        // Fallback to regular product fetch if tag filtering fails
-        try {
-          console.log("🔄 Trying fallback approach...");
-          const { products } = await sdk.store.product.list({ 
-            limit: 10,
-            region_id: currentRegion.id,
-            fields: "+thumbnail,+images,+variants,+variants.prices,+variants.calculated_price"
-          });
-          console.log("✅ Fallback products fetched:", products.length);
-          console.log("💰 Fallback sample product:", JSON.stringify(products[0], null, 2));
-          setProducts(products);
-        } catch (fallbackError) {
-          console.error("❌ Fallback fetch also failed:", fallbackError);
-        }
-      }
-    };
-    fetchProductsAndTag();
-  }, [currentRegion]);
-
-  const plugin = React.useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true })
-  );
-
-  // GSAP animation on mount - MUST be called before any early returns
-  useEffect(() => {
-    if (products.length > 0 && sectionRef.current && titleRef.current) {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-          once: true
-        }
-      });
-
-      tl.fromTo(titleRef.current, 
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
-      )
-      .fromTo(sectionRef.current.querySelector('.carousel-container'), 
-        { opacity: 0, y: 40 },
-        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
-        "-=0.4"
-      );
-    }
-  }, [products.length]);
-
-  // Early return AFTER all hooks are called
   if (!products.length) return null;
 
   return (
@@ -136,26 +70,9 @@ export default function ProductCarousel({ initialCount = 6 }: ProductCarouselPro
                     <p className="text-xs font-light text-foreground/70">
                       {(() => {
                         const variant = product.variants?.[0];
-                        if (!variant) {
-                          console.log("⚠️ No variants found for product:", product.title);
-                          return "Price not available";
-                        }
-                        
-                        // Try different price sources
-                        const calculatedPrice = variant.calculated_price?.calculated_amount;
-                        const regionPrice = currentRegion && variant.prices?.find((p: any) => 
-                          p.currency_code === currentRegion.currency_code
-                        );
-                        const firstPrice = variant.prices?.[0];
-                        
-                        console.log(`💰 Price debug for ${product.title}:`, {
-                          calculatedPrice,
-                          regionPrice: regionPrice?.amount,
-                          firstPrice: firstPrice?.amount,
-                          currentRegion: currentRegion?.currency_code
-                        });
-                        
-                        const amount = calculatedPrice || regionPrice?.amount || firstPrice?.amount || 0;
+                        if (!variant) return "Price N/A";
+                        const price = variant.calculated_price?.calculated_amount ||
+                                      variant.prices?.[0]?.amount || 0;
                         const currency = variant.calculated_price?.currency_code || 
                                          variant.prices?.[0]?.currency_code || "USD";
                         return formatPrice(price, currency);
