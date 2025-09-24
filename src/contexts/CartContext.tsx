@@ -8,7 +8,7 @@ interface CartContextType {
   cart: HttpTypes.StoreCart | null;
   setCart: (cart: HttpTypes.StoreCart | null) => void;
   isLoading: boolean;
-  addItem: (variantId: string, quantity?: number) => Promise<HttpTypes.StoreCart>;
+  addItem: (variantId: string, quantity?: number) => Promise<void>;
   updateItem: (lineId: string, quantity: number) => Promise<void>;
   removeItem: (lineId: string) => Promise<void>;
   applyDiscount: (code: string) => Promise<void>;

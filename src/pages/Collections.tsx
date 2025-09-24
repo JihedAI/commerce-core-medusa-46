@@ -2,19 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { sdk } from "@/lib/sdk";
+import useCollections from "@/hooks/useCollections";
 import Layout from "@/components/Layout";
 import { HttpTypes } from "@medusajs/types";
 
 export default function Collections() {
-  const { data: collections, isLoading } = useQuery({
-    queryKey: ["all-collections"],
-    queryFn: async () => {
-      const { collections } = await sdk.store.collection.list();
-      return collections;
-    },
-  });
+  const { data: collections = [], isLoading } = useCollections({ fields: "id,title,handle,metadata", limit: 100 });
 
   return (
     <Layout>

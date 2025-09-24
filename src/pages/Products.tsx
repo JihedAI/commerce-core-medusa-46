@@ -13,6 +13,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
+import useCollections from "@/hooks/useCollections";
+import useCategories from "@/hooks/useCategories";
 import ProductCard from "@/components/ProductCard";
 import Layout from "@/components/Layout";
 import { useRegion } from "@/contexts/RegionContext";
@@ -44,18 +46,25 @@ export default function Products() {
   const limit = 12; // 3 products per row × 4 rows = 12 products per page
 
   // Fetch category by handle if categoryHandle is provided
+  // Use cached categories when possible to resolve handle -> id
+  const { data: categoriesCache = { flat: [] } } = useCategories({ fields: "id,name,handle,parent_category_id", limit: 100 });
+  const cachedFlat = categoriesCache.flat || [];
+
   const { data: categoryData } = useQuery({
     queryKey: ["category-by-handle", categoryHandle],
     queryFn: async () => {
       if (!categoryHandle) return null;
-      
+
+      // Try cached flat list first
+      const found = cachedFlat.find((c: any) => c.handle === categoryHandle);
+      if (found) return found;
+
       try {
-        // First, find the category by handle
         const { product_categories } = await sdk.store.category.list({
           fields: "id,name,handle",
           handle: categoryHandle
         });
-        
+
         return product_categories?.[0] || null;
       } catch (error) {
         console.error("Failed to fetch category by handle:", error);
@@ -132,29 +141,12 @@ export default function Products() {
     enabled: !!currentRegion && (!categoryHandle || !!categoryData),
   });
 
-  // Fetch categories for filters using the new SDK
-  const { data: categoriesData } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { product_categories } = await sdk.store.category.list({
-        limit: 100,
-        fields: "id,name,handle"
-      });
-      return product_categories || [];
-    },
-  });
+  // Fetch categories for filters using shared hook
+  const { data: categoriesDataRaw = { flat: [] } } = useCategories({ limit: 100, fields: "id,name,handle" });
+  const categoriesData = categoriesDataRaw.flat || [];
 
-  // Fetch collections for filters using the new SDK
-  const { data: collectionsData } = useQuery({
-    queryKey: ["collections"],
-    queryFn: async () => {
-      const { collections } = await sdk.store.collection.list({
-        limit: 100,
-        fields: "id,title,handle"
-      });
-      return collections || [];
-    },
-  });
+  // Fetch collections for filters using shared hook
+  const { data: collectionsData = [] } = useCollections({ limit: 100, fields: "id,title,handle" });
 
   // Fetch product types separately to get their values
   const { data: productTypesData } = useQuery({

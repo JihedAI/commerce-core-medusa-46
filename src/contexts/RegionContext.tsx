@@ -27,30 +27,39 @@ export function RegionProvider({ children }: { children: React.ReactNode }) {
   const [currentRegion, setCurrentRegion] = useState<Region | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRegions = async () => {
-      try {
-        const { regions: fetchedRegions } = await medusa.regions.list();
-        setRegions(fetchedRegions);
-        
-        // Try to find Tunisia region, otherwise use the first available region
-        const tunisiaRegion = fetchedRegions.find((r: Region) => 
-          r.countries?.some(c => c.iso_2 === 'tn' || c.iso_2 === 'TN')
-        );
-        
-        setCurrentRegion(tunisiaRegion || fetchedRegions[0]);
-      } catch (error) {
-        console.error("Failed to fetch regions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = React.useMemo(() => ({
+    regions,
+    currentRegion,
+    isLoading,
+    setCurrentRegion
+  }), [regions, currentRegion, isLoading]);
 
-    fetchRegions();
+  // Memoize the fetch function
+  const fetchRegions = React.useCallback(async () => {
+    try {
+      const { regions: fetchedRegions } = await medusa.regions.list();
+      setRegions(fetchedRegions);
+      
+      // Try to find Tunisia region, otherwise use the first available region
+      const tunisiaRegion = fetchedRegions.find((r: Region) => 
+        r.countries?.some(c => c.iso_2.toLowerCase() === 'tn')
+      );
+      
+      setCurrentRegion(tunisiaRegion || fetchedRegions[0]);
+    } catch (error) {
+      console.error("Failed to fetch regions:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchRegions();
+  }, [fetchRegions]);
+
   return (
-    <RegionContext.Provider value={{ regions, currentRegion, isLoading, setCurrentRegion }}>
+    <RegionContext.Provider value={contextValue}>
       {children}
     </RegionContext.Provider>
   );

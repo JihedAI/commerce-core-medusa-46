@@ -6,8 +6,21 @@ gsap.registerPlugin(ScrollTrigger);
 
 export const useGSAPAnimations = (dependencies: any[] = []) => {
   useEffect(() => {
+    // Debounce scroll events for better performance
+    let scrollTimeout: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        ScrollTrigger.update();
+      }, 100);
+    };
+
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
+
     // Cleanup function to kill all ScrollTriggers on unmount
     return () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      window.removeEventListener('scroll', debouncedScroll);
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, dependencies);

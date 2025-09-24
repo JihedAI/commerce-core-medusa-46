@@ -1,39 +1,12 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ShoppingBag, Search, User, Menu, LogOut, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { sdk } from "@/lib/sdk";
-import CartDrawer from "./CartDrawer";
-import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "./ThemeToggle";
+import React from 'react';
+import { Header } from './Header';
+import { Footer } from './Footer';
+
 interface LayoutProps {
   children: React.ReactNode;
   isHomePage?: boolean;
 }
 
-// Types for navigation structure
-interface NavigationChild {
-  name: string;
-  href: string;
-}
-interface NavigationItem {
-  name: string;
-  href: string;
-  children?: NavigationChild[];
-}
-interface Navigation {
-  name: string;
-  href: string;
-  hasDropdown?: boolean;
-  hasUnderline?: boolean;
-  items?: NavigationItem[];
-}
 export default function Layout({
   children,
   isHomePage = false
@@ -60,7 +33,18 @@ export default function Layout({
   } = useQuery({
     queryKey: ["nav-categories"],
     queryFn: async () => {
+      console.log('🔍 Starting category fetch using official Medusa approach...');
       try {
+        // First, check what categories exist in backend
+        console.log('📡 Checking all categories in backend...');
+        const allCategoriesResponse = await sdk.store.category.list({
+          limit: 100,
+          fields: "id,name,handle,parent_category_id"
+        });
+        console.log('📋 All categories in backend:', allCategoriesResponse.product_categories);
+
+        // Use the exact approach from Medusa docs
+        console.log('📡 Fetching categories as hierarchy (official docs approach)...');
         const {
           product_categories
         } = await sdk.store.category.list({
@@ -68,14 +52,58 @@ export default function Layout({
           include_descendants_tree: true,
           parent_category_id: null
         });
+        console.log('✅ Categories fetched using official approach:', product_categories);
+        console.log('📊 Total top-level categories:', product_categories?.length || 0);
+        if (product_categories && product_categories.length > 0) {
+          product_categories.forEach((cat, index) => {
+            console.log(`📁 Category ${index + 1}:`, {
+              id: cat.id,
+              name: cat.name,
+              handle: cat.handle,
+              children_count: cat.category_children?.length || 0,
+              children: cat.category_children?.map(child => ({
+                name: child.name,
+                handle: child.handle
+              })) || []
+            });
+          });
+        } else {
+          console.log('⚠️ No top-level categories found with official approach');
+
+          // Fallback: try getting all categories and filter manually
+          console.log('🔄 Trying fallback approach...');
+          const allCategories = allCategoriesResponse.product_categories || [];
+          const topLevelCategories = allCategories.filter(cat => !cat.parent_category_id || cat.parent_category_id === null);
+          console.log('🔧 Manual filter found top-level categories:', topLevelCategories);
+          if (topLevelCategories.length > 0) {
+            // Fetch each top-level category with its children
+            const categoriesWithChildren = await Promise.all(topLevelCategories.map(async cat => {
+              try {
+                const response = await sdk.store.category.retrieve(cat.id, {
+                  fields: "id,name,handle,category_children.id,category_children.name,category_children.handle",
+                  include_descendants_tree: true
+                });
+                return response.product_category;
+              } catch (error) {
+                console.error(`Failed to fetch children for category ${cat.name}:`, error);
+                return cat;
+              }
+            }));
+            console.log('🎯 Categories with children fetched:', categoriesWithChildren);
+            return categoriesWithChildren;
+          }
+        }
         return product_categories || [];
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("❌ Failed to fetch categories:", error);
+        console.error("Error details:", {
+          message: error.message,
+          status: error.status,
+          response: error.response
+        });
         return [];
       }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false
+    }
   });
 
   // Fetch collections using React Query like other components
@@ -91,14 +119,29 @@ export default function Layout({
           limit: 100,
           fields: "id,title,handle"
         });
+        console.log('Collections fetched:', collections);
         return collections || [];
       } catch (error) {
         console.error("Failed to fetch collections:", error);
-        return [];
+        return [{
+          id: 'summer',
+          title: 'Summer Shades',
+          handle: 'summer-shades'
+        }, {
+          id: 'luxury',
+          title: 'Luxury Line',
+          handle: 'luxury-line'
+        }, {
+          id: 'limited',
+          title: 'Limited Editions',
+          handle: 'limited-editions'
+        }, {
+          id: 'classic',
+          title: 'Classic Collection',
+          handle: 'classic'
+        }];
       }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false
+    }
   });
   const [searchExpanded, setSearchExpanded] = React.useState(false);
   const itemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
@@ -117,16 +160,25 @@ export default function Layout({
     return () => clearInterval(interval);
   }, [popularSearchPhrases.length]);
 
-  // Create navigation from categories
-  const categoryNavItems: Navigation[] = categoriesData.map(cat => ({
-    name: cat.name,
-    href: `/categories/${cat.handle}`,
-    hasDropdown: cat.category_children && cat.category_children.length > 0,
-    items: cat.category_children && cat.category_children.length > 0 ? cat.category_children.map(child => ({
-      name: child.name,
-      href: `/categories/${child.handle}`
-    })) : undefined
-  }));
+  // Create navigation from categories with detailed logging
+  console.log('🔧 Building navigation from categories data:', categoriesData);
+  const categoryNavItems: Navigation[] = categoriesData.map(cat => {
+    console.log('📝 Processing category for nav:', {
+      name: cat.name,
+      handle: cat.handle,
+      children: cat.category_children?.length || 0
+    });
+    return {
+      name: cat.name,
+      href: `/categories/${cat.handle}`,
+      hasDropdown: cat.category_children && cat.category_children.length > 0,
+      items: cat.category_children && cat.category_children.length > 0 ? cat.category_children.map(child => ({
+        name: child.name,
+        href: `/categories/${child.handle}`
+      })) : undefined
+    };
+  });
+  console.log('🚀 Final category navigation items:', categoryNavItems);
   const navigation: Navigation[] = [...categoryNavItems, {
     name: "Collections",
     href: "/collections",
@@ -339,99 +391,11 @@ export default function Layout({
       </header>
 
       {/* Main Content */}
-      <main className={`flex-1 ${!isHomePage ? 'pt-24' : ''}`}>{children}</main>
+      <main className={`flex-1 ${!isHomePage ? 'pt-24' : ''}`}>
+        {children}
+      </main>
 
-      {/* Footer */}
-      <footer className="bg-muted mt-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div className="col-span-1">
-              <Link to="/" className="flex items-center space-x-2 mb-4">
-                <ShoppingBag className="h-6 w-6 text-primary" />
-                <span className="font-display font-bold text-xl">Modern Store</span>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                Premium quality products with exceptional service.
-              </p>
-            </div>
-
-            {/* Shop */}
-            <div>
-              <h3 className="font-semibold mb-4">Shop</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground">
-                    All Products
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/collections" className="text-sm text-muted-foreground hover:text-foreground">
-                    Collections
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/categories" className="text-sm text-muted-foreground hover:text-foreground">
-                    Sunglasses
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Customer Service */}
-            <div>
-              <h3 className="font-semibold mb-4">Customer Service</h3>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                    Contact Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                    Shipping Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                    Returns & Exchanges
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                    FAQs
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Newsletter */}
-            <div>
-              <h3 className="font-semibold mb-4">Stay Updated</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Subscribe to get special offers and new arrivals.
-              </p>
-              <div className="flex gap-2">
-                <Input type="email" placeholder="Your email" className="flex-1" />
-                <Button>Subscribe</Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="text-sm text-muted-foreground">
-              © 2024 Modern Store. All rights reserved.
-            </p>
-            <div className="flex gap-4 mt-4 sm:mt-0">
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                Privacy Policy
-              </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                Terms of Service
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>;
+      <Footer />
+    </div>
+  );
 }

@@ -16,32 +16,34 @@ export default function VideoHero({ videos }: VideoHeroProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Auto-play functionality
+    // Auto-play functionality with optimized progress tracking
     const playVideo = (index: number) => {
       const video = videoRefs.current[index];
       if (video) {
         video.currentTime = 0;
+        
+        // Add timeupdate event listener for more efficient progress tracking
+        const handleTimeUpdate = () => {
+          const newProgress = (video.currentTime / video.duration) * 100;
+          setProgress(newProgress);
+          
+          if (video.currentTime >= video.duration - 0.1) {
+            const nextVideo = (currentVideo + 1) % videos.length;
+            setCurrentVideo(nextVideo);
+            setProgress(0);
+          }
+        };
+        
+        video.addEventListener('timeupdate', handleTimeUpdate);
         video.play().catch(() => {
           // Handle autoplay restrictions
         });
+        
+        return () => {
+          video.removeEventListener('timeupdate', handleTimeUpdate);
+        };
       }
     };
-
-    // Start progress tracking
-    intervalRef.current = setInterval(() => {
-      const video = videoRefs.current[currentVideo];
-      if (video && video.duration) {
-        const newProgress = (video.currentTime / video.duration) * 100;
-        setProgress(newProgress);
-
-        // Auto-advance to next video when current one ends
-        if (video.currentTime >= video.duration - 0.1) {
-          const nextVideo = (currentVideo + 1) % videos.length;
-          setCurrentVideo(nextVideo);
-          setProgress(0);
-        }
-      }
-    }, 100);
 
     playVideo(currentVideo);
 
@@ -81,22 +83,26 @@ export default function VideoHero({ videos }: VideoHeroProps) {
     <section className="relative h-screen w-full overflow-hidden">
       {/* Fullscreen Video Background */}
       <div className="absolute inset-0">
-        {videos.map((videoSrc, index) => (
-          <video
-            key={index}
-            ref={(el) => (videoRefs.current[index] = el)}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-2000 ${
-              index === currentVideo ? 'opacity-100' : 'opacity-0'
-            }`}
-            muted
-            loop={false}
-            playsInline
-            preload="metadata"
-          >
-            <source src={videoSrc} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        ))}
+        {videos.map((videoSrc, index) => {
+          const shouldLoad = index === currentVideo || index === (currentVideo + 1) % videos.length;
+          return (
+            <video
+              key={index}
+              ref={(el) => (videoRefs.current[index] = el)}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-2000 ${
+                index === currentVideo ? 'opacity-100' : 'opacity-0'
+              }`}
+              muted
+              loop={false}
+              playsInline
+              preload={shouldLoad ? "auto" : "none"}
+              style={{ display: shouldLoad ? 'block' : 'none' }}
+            >
+              {shouldLoad && <source src={videoSrc} type="video/webm" />}
+              Your browser does not support the video tag.
+            </video>
+          );
+        })}
         
         {/* Dark overlay for better text visibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />

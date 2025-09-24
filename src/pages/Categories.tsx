@@ -2,21 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { sdk } from "@/lib/sdk";
+import useCategories from "@/hooks/useCategories";
 import Layout from "@/components/Layout";
 
 export default function Categories() {
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ["all-categories"],
-    queryFn: async () => {
-      const { product_categories } = await sdk.store.category.list({
-        limit: 100,
-        fields: "id,name,handle,description"
-      });
-      return product_categories || [];
-    },
-  });
+  const { data = { flat: [], tree: [] }, isLoading } = useCategories({ limit: 100, fields: "id,name,handle,description,parent_category_id" });
+  const categories = data.flat || [];
 
   return (
     <Layout>
