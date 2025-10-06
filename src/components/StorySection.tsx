@@ -1,10 +1,12 @@
 import React, { useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function StorySection() {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -77,35 +79,28 @@ export default function StorySection() {
           <div ref={contentRef} className="space-y-8">
             <div className="space-y-4 opacity-0">
               <h2 className="text-4xl lg:text-5xl font-display font-bold text-foreground">
-                Our Story
+                {t('story.title', { defaultValue: 'Our Story' })}
               </h2>
               <div className="w-16 h-1 bg-primary"></div>
             </div>
             
             <div className="opacity-0 space-y-6 text-lg text-foreground/80 leading-relaxed">
               <p>
-                Founded with a vision to revolutionize eyewear, we've been crafting 
-                exceptional glasses that blend style, comfort, and innovation for over 
-                two decades.
+                {t('story.paragraph1', { defaultValue: 'Founded with a vision to revolutionize eyewear, we\'ve been crafting exceptional glasses that blend style, comfort, and innovation for over two decades.' })}
               </p>
               
               <p>
-                From our humble beginnings as a small optical shop to becoming a 
-                trusted name in premium eyewear, our journey has been driven by 
-                one simple belief: everyone deserves to see the world clearly 
-                and look great doing it.
+                {t('story.paragraph2', { defaultValue: 'From our humble beginnings as a small optical shop to becoming a trusted name in premium eyewear, our journey has been driven by one simple belief: everyone deserves to see the world clearly and look great doing it.' })}
               </p>
               
               <p>
-                Today, we continue to push boundaries with cutting-edge lens 
-                technology, sustainable materials, and timeless designs that 
-                enhance your natural beauty while protecting your vision.
+                {t('story.paragraph3', { defaultValue: 'Today, we continue to push boundaries with cutting-edge lens technology, sustainable materials, and timeless designs that enhance your natural beauty while protecting your vision.' })}
               </p>
             </div>
             
             <div className="opacity-0 pt-4">
               <button className="bg-primary text-primary-foreground px-8 py-4 font-semibold tracking-wide hover:bg-primary/90 transition-all duration-300 transform hover:scale-105">
-                Learn More About Us
+                {t('story.learnMore', { defaultValue: 'Learn More About Us' })}
               </button>
             </div>
           </div>
@@ -117,28 +112,28 @@ export default function StorySection() {
                 <div className="text-4xl font-bold text-primary">
                   <span className="stat-number">25</span>+
                 </div>
-                <div className="text-sm uppercase tracking-wide text-foreground/70">Years Experience</div>
+                <div className="text-sm uppercase tracking-wide text-foreground/70">{t('story.yearsExperience', { defaultValue: 'Years Experience' })}</div>
               </div>
               
               <div className="stat-item opacity-0 text-center space-y-2">
                 <div className="text-4xl font-bold text-primary">
                   <span className="stat-number">50000</span>+
                 </div>
-                <div className="text-sm uppercase tracking-wide text-foreground/70">Happy Customers</div>
+                <div className="text-sm uppercase tracking-wide text-foreground/70">{t('story.happyCustomers', { defaultValue: 'Happy Customers' })}</div>
               </div>
               
               <div className="stat-item opacity-0 text-center space-y-2">
                 <div className="text-4xl font-bold text-primary">
                   <span className="stat-number">1000</span>+
                 </div>
-                <div className="text-sm uppercase tracking-wide text-foreground/70">Frame Styles</div>
+                <div className="text-sm uppercase tracking-wide text-foreground/70">{t('story.frameStyles', { defaultValue: 'Frame Styles' })}</div>
               </div>
               
               <div className="stat-item opacity-0 text-center space-y-2">
                 <div className="text-4xl font-bold text-primary">
                   <span className="stat-number">15</span>
                 </div>
-                <div className="text-sm uppercase tracking-wide text-foreground/70">Store Locations</div>
+                <div className="text-sm uppercase tracking-wide text-foreground/70">{t('story.storeLocations', { defaultValue: 'Store Locations' })}</div>
               </div>
             </div>
             
@@ -149,8 +144,8 @@ export default function StorySection() {
                   <span className="text-primary font-bold">★</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-foreground">Award Winning Design</div>
-                  <div className="text-sm text-foreground/70">International Eyewear Design Awards 2023</div>
+                  <div className="font-semibold text-foreground">{t('story.awardWinning', { defaultValue: 'Award Winning Design' })}</div>
+                  <div className="text-sm text-foreground/70">{t('story.awardDescription', { defaultValue: 'International Eyewear Design Awards 2023' })}</div>
                 </div>
               </div>
               
@@ -159,8 +154,8 @@ export default function StorySection() {
                   <span className="text-primary font-bold">♻</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-foreground">Eco-Friendly</div>
-                  <div className="text-sm text-foreground/70">Sustainable materials & packaging</div>
+                  <div className="font-semibold text-foreground">{t('story.ecoFriendly', { defaultValue: 'Eco-Friendly' })}</div>
+                  <div className="text-sm text-foreground/70">{t('story.ecoDescription', { defaultValue: 'Sustainable materials & packaging' })}</div>
                 </div>
               </div>
             </div>

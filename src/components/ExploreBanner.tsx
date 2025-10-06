@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function ExploreBanner() {
+  const { t } = useTranslation();
   return (
     <section className="relative w-full h-[70vh] overflow-hidden">
       {/* Background Image */}
@@ -23,21 +25,20 @@ export default function ExploreBanner() {
             <div className="space-y-4">
               <div className="inline-block">
                 <span className="text-sm font-semibold uppercase tracking-wider text-primary bg-primary/10 px-4 py-2 rounded-full">
-                  New Collection
+                  {t('explore.newCollection', { defaultValue: 'New Collection' })}
                 </span>
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-display font-bold text-foreground leading-tight">
-                Explore
-                <span className="block text-primary">The Future</span>
-                <span className="block">Of Vision</span>
+                {t('explore.title1', { defaultValue: 'Explore' })}
+                <span className="block text-primary">{t('explore.title2', { defaultValue: 'The Future' })}</span>
+                <span className="block">{t('explore.title3', { defaultValue: 'Of Vision' })}</span>
               </h1>
             </div>
             
             {/* Description */}
             <p className="text-xl text-foreground/80 leading-relaxed max-w-lg">
-              Discover our cutting-edge eyewear collection where innovation meets style. 
-              Experience unparalleled comfort and crystal-clear vision with our latest designs.
+              {t('explore.description', { defaultValue: 'Discover our cutting-edge eyewear collection where innovation meets style. Experience unparalleled comfort and crystal-clear vision with our latest designs.' })}
             </p>
             
             {/* Call to action buttons */}
@@ -47,7 +48,7 @@ export default function ExploreBanner() {
                 className="group bg-primary text-primary-foreground px-8 py-4 font-semibold tracking-wide hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 text-center"
               >
                 <span className="flex items-center justify-center space-x-2">
-                  <span>Shop Now</span>
+                  <span>{t('hero.shopNow', { defaultValue: 'Shop Now' })}</span>
                   <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -59,7 +60,7 @@ export default function ExploreBanner() {
                 className="group border-2 border-foreground text-foreground px-8 py-4 font-semibold tracking-wide hover:bg-foreground hover:text-background transition-all duration-300 text-center"
               >
                 <span className="flex items-center justify-center space-x-2">
-                  <span>View Collections</span>
+                  <span>{t('explore.viewCollections', { defaultValue: 'View Collections' })}</span>
                   <svg className="w-5 h-5 transform group-hover:rotate-45 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -71,15 +72,15 @@ export default function ExploreBanner() {
             <div className="flex flex-wrap gap-6 pt-8 text-sm">
               <div className="flex items-center space-x-2 text-foreground/70">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <span>Free Shipping</span>
+                <span>{t('explore.freeShipping', { defaultValue: 'Free Shipping' })}</span>
               </div>
               <div className="flex items-center space-x-2 text-foreground/70">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <span>30-Day Returns</span>
+                <span>{t('explore.returns', { defaultValue: '30-Day Returns' })}</span>
               </div>
               <div className="flex items-center space-x-2 text-foreground/70">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <span>Lifetime Warranty</span>
+                <span>{t('explore.warranty', { defaultValue: 'Lifetime Warranty' })}</span>
               </div>
             </div>
           </div>

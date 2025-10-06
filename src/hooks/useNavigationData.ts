@@ -1,7 +1,9 @@
 import { Navigation, NavigationData } from '@/types/navigation';
 import useCategories from '@/hooks/useCategories';
+import { useTranslation } from 'react-i18next';
 
 export function useNavigationData() {
+  const { t } = useTranslation();
   const { data = { flat: [], tree: [] }, isLoading } = useCategories({ includeDescendantsTree: true, fields: "id,name,handle,category_children,description,parent_category_id" });
 
   const categoriesData = data.tree && data.tree.length ? data.tree : data.flat;
@@ -43,7 +45,7 @@ export function useNavigationData() {
   const navigation: NavigationData = [
     ...categoriesData.map(processCategory),
     {
-      name: 'Store',
+      name: t('nav.products'),
       href: '/products',
       hasUnderline: true
     }

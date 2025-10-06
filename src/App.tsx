@@ -8,6 +8,8 @@ import { RegionProvider } from "@/contexts/RegionContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CursorProvider } from "@/components/CursorProvider";
+import NavigationLoader from "@/components/NavigationLoader";
+import ScrollToTop from "@/components/ScrollToTop";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -21,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import CustomerProfile from "./pages/CustomerProfile";
+import GoogleCallback from "./pages/GoogleCallback";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,10 +45,13 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
+                <NavigationLoader />
+                <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/auth/google/callback" element={<GoogleCallback />} />
                   <Route path="/profile" element={<CustomerProfile />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/:handle" element={<ProductDetail />} />

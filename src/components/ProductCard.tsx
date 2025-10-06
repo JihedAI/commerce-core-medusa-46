@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { formatPrice, truncateText } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import OptimizedImage from "@/components/OptimizedImage";
 
 interface ProductCardProps {
   product: HttpTypes.StoreProduct;
@@ -18,19 +19,12 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const defaultVariant = product.variants?.[0];
   const price = defaultVariant?.calculated_price;
   const images = product.images || [];
   const imageUrl = product.thumbnail || images[0]?.url;
   
-  // Debug logging
-  console.log('Product:', product.title);
-  console.log('Default variant:', defaultVariant);
-  console.log('Price object:', price);
-  console.log('Price amount:', price?.calculated_amount || price?.calculated_amount_with_tax);
-  console.log('Price currency:', price?.currency_code);
   
   const hasStock = defaultVariant?.inventory_quantity === undefined || 
                    defaultVariant?.inventory_quantity === null || 
@@ -55,136 +49,55 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // Cycle through images on hover
-  const handleMouseEnter = () => {
-    if (images.length > 1) {
-      intervalRef.current = setInterval(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % images.length);
-      }, 800);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setCurrentImageIndex(0);
-  };
-
-  // Cleanup interval on unmount
-  React.useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+  // Simplify hover behavior to match carousel style (no image cycling)
 
   const currentImage = images[currentImageIndex]?.url || imageUrl;
 
   return (
     <Link to={`/products/${product.handle}`}>
-      <Card className="group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 bg-card border-0 shadow-sm">
-        {/* Image Container - Made larger for better UX */}
-        <div 
-          className="relative aspect-[4/5] overflow-hidden bg-muted/30"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          {currentImage ? (
-            <img
-              src={currentImage}
-              alt={product.title}
-              className="h-full w-full object-cover transition-all duration-700 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <ShoppingBag className="h-12 w-12 text-muted-foreground" />
-            </div>
-          )}
+      <Card className="group relative overflow-visible transition-transform duration-300 hover:-translate-y-0.5 bg-card border-0 shadow-none">
+        {/* Image Container - square like carousel, with subtle hover */}
+        <div className="relative overflow-hidden aspect-square rounded-xl">
+          <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full transition-transform duration-700 group-hover:scale-105">
+            {currentImage ? (
+              <OptimizedImage
+                src={currentImage}
+                alt={product.title}
+                className="h-full w-full object-cover"
+                quality={80}
+                priority={false}
+                fit="cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+              </div>
+            )}
+          </figure>
 
-          {/* Image Dots Indicator */}
-          {images.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {images.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
-                    index === currentImageIndex ? 'bg-primary' : 'bg-white/50'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Minimalist Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {!hasStock && (
+          {/* Minimalist badge */}
+          {!hasStock && (
+            <div className="absolute top-3 left-3">
               <Badge variant="destructive" className="text-xs px-2 py-1 font-medium">
                 Sold Out
               </Badge>
-            )}
-          </div>
-
-          {/* Quick Actions - More Minimalist */}
-          <div className="absolute top-3 right-3 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white text-foreground shadow-sm"
-              onClick={(e) => {
-                e.preventDefault();
-                toast({
-                  title: "Added to wishlist",
-                  description: `${product.title} has been added to your wishlist`,
-                });
-              }}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Modern Add to Cart Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-4 left-4 right-4">
-              <Button
-                size="sm"
-                className="w-full bg-white text-foreground hover:bg-white/90 font-medium"
-                onClick={handleAddToCart}
-                disabled={isLoading || !hasStock}
-              >
-                {isLoading ? "Adding..." : hasStock ? "Add to Cart" : "Out of Stock"}
-              </Button>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Enhanced Product Info - Bigger for better UX */}
-        <div className="p-6 space-y-3">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg leading-tight line-clamp-2 text-foreground">{product.title}</h3>
-            {product.collection && (
-              <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
-                {product.collection.title}
-              </p>
-            )}
-          </div>
-          
-          <div className="flex items-center justify-between pt-2">
+        {/* Info below image to match carousel aesthetics */}
+        <div className="pt-3">
+          <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-2 leading-tight">
+            {product.title}
+          </h3>
+          <div className="mt-1 flex items-center justify-between">
             {price && (
-              <span className="font-bold text-xl text-foreground">
+              <span className="text-xs md:text-sm text-muted-foreground">
                 {(() => {
                   const amount = price.calculated_amount_with_tax || price.calculated_amount;
                   const currency = price.currency_code || "TND";
                   return formatPrice(amount, currency);
                 })()}
-              </span>
-            )}
-            {hasStock && defaultVariant?.inventory_quantity !== undefined && 
-             defaultVariant?.inventory_quantity !== null && defaultVariant.inventory_quantity <= 5 && (
-              <span className="text-sm text-amber-600 font-semibold bg-amber-50 px-2 py-1 rounded-full">
-                Only {defaultVariant.inventory_quantity} left
               </span>
             )}
           </div>

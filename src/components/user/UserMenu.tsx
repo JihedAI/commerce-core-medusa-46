@@ -56,28 +56,22 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Link to="/orders">
+        <Link to="/profile">
+          <DropdownMenuItem>
+            <User className="mr-2 h-4 w-4" />
+            <span>My Profile</span>
+          </DropdownMenuItem>
+        </Link>
+        <Link to="/profile">
           <DropdownMenuItem>
             <Package className="mr-2 h-4 w-4" />
-            <span>Orders</span>
+            <span>My Orders</span>
           </DropdownMenuItem>
         </Link>
-        <Link to="/saved">
-          <DropdownMenuItem>
-            <Heart className="mr-2 h-4 w-4" />
-            <span>Saved Items</span>
-          </DropdownMenuItem>
-        </Link>
-        <Link to="/bag">
+        <Link to="/checkout">
           <DropdownMenuItem>
             <ShoppingBag className="mr-2 h-4 w-4" />
-            <span>Shopping Bag</span>
-          </DropdownMenuItem>
-        </Link>
-        <Link to="/account/settings">
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Checkout</span>
           </DropdownMenuItem>
         </Link>
         <DropdownMenuSeparator />

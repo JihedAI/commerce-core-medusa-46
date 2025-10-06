@@ -1,561 +1,677 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Search, Filter, X, ChevronDown } from "lucide-react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+import React, { useState, useEffect, useMemo, useCallback, Suspense, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Search, ListFilter, ArrowUpDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
-import useCollections from "@/hooks/useCollections";
-import useCategories from "@/hooks/useCategories";
-import ProductCard from "@/components/ProductCard";
 import Layout from "@/components/Layout";
 import { useRegion } from "@/contexts/RegionContext";
+// Simple debounce utility
+const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): ((...args: Parameters<T>) => void) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+import ProductCardOptimized from "@/components/ProductCardOptimized";
+import ProductSkeleton from "@/components/ProductSkeleton";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { scrollToProductsGrid, scrollToTop } from "@/utils/smoothScroll";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
+import { useMedusaProducts } from "@/hooks/useMedusaProducts";
 import { 
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 
-export default function Products() {
+// Optimized filter state management
+interface FilterState {
+  search: string;
+  sortBy: string;
+  collections: string[];
+  categories: string[];
+  brands: string[];
+  tags: string[];
+}
+
+// Helper to chunk an array into rows of a given size
+function chunkIntoRows<T>(items: T[], rowSize: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += rowSize) {
+    rows.push(items.slice(i, i + rowSize));
+  }
+  return rows;
+}
+
+// Memoized filter section component (non-collapsible, chip style)
+const FilterSection = memo(({ 
+  title, 
+  items, 
+  selected, 
+  onToggle,
+  maxItems = 12
+}: { 
+  title: string; 
+  items: any[]; 
+  selected: string[]; 
+  onToggle: (id: string) => void;
+  maxItems?: number;
+}) => {
+  const [showAll, setShowAll] = useState(false);
+
+  const displayItems = useMemo(() => {
+    const limited = items.slice(0, showAll ? items.length : maxItems);
+    return limited.map(item => ({
+      id: item.id,
+      label: item.title || item.name || item.value || item.label
+    }));
+  }, [items, showAll, maxItems]);
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{title}</div>
+      <div className="flex flex-wrap gap-2">
+        {displayItems.map((item) => (
+          <label key={item.id} className={`inline-flex items-center gap-2 px-2 py-1 rounded-full border ${selected.includes(item.id) ? 'border-foreground bg-accent/50' : 'border-border/60 bg-card/40'} hover:bg-accent cursor-pointer`}> 
+            <input
+              type="checkbox"
+              checked={selected.includes(item.id)}
+              onChange={() => onToggle(item.id)}
+              className="h-3 w-3 rounded border-border"
+            />
+            <span className="text-xs whitespace-nowrap">{item.label}</span>
+          </label>
+        ))}
+        {items.length > maxItems && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-xs text-muted-foreground px-2 py-1 hover:text-foreground"
+          >
+            {showAll ? 'Show Less' : `Show All (${items.length})`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// Optimized sort component
+const SortSelect = memo(({ value, onChange, t }: { value: string; onChange: (value: string) => void; t: any }) => (
+  <select 
+    value={value} 
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full p-2 border border-border rounded-md bg-background text-sm"
+  >
+    <option value="created_at">{t('sort.newest')}</option>
+    <option value="price-low">{t('sort.priceLow')}</option>
+    <option value="price-high">{t('sort.priceHigh')}</option>
+    <option value="title">{t('sort.nameAZ')}</option>
+    <option value="-title">{t('sort.nameZA')}</option>
+  </select>
+));
+
+// Lazy load heavy filter components
+const LazyFilterSidebar = React.lazy(() => import("@/components/filters/FilterSidebar").then(module => ({ default: module.FilterSidebar })));
+const LazyFilterDrawer = React.lazy(() => import("@/components/filters/FilterDrawer").then(module => ({ default: module.FilterDrawer })));
+
+// Main optimized Products component
+function ProductsOptimized() {
+  const { t } = useTranslation();
   const { handle: categoryHandle } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentRegion } = useRegion();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const productGridRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
+  const { preloadImages } = useImagePreloader();
   
+  // Optimized state management
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    sortBy: "created_at",
+    collections: [],
+    categories: [],
+    brands: [],
+    tags: [],
+  });
+
+  // Debounced search
+  const debouncedSetSearch = useCallback(
+    debounce((value: string) => setDebouncedSearch(value), 300),
+    []
+  );
+  
+  useEffect(() => {
+    debouncedSetSearch(searchQuery);
+  }, [searchQuery, debouncedSetSearch]);
 
   const page = parseInt(searchParams.get("page") || "1");
-  const limit = 12; // 3 products per row × 4 rows = 12 products per page
+  const limit = 12;
 
-  // Fetch category by handle if categoryHandle is provided
-  // Use cached categories when possible to resolve handle -> id
-  const { data: categoriesCache = { flat: [] } } = useCategories({ fields: "id,name,handle,parent_category_id", limit: 100 });
-  const cachedFlat = categoriesCache.flat || [];
-
+  // Fetch category data
   const { data: categoryData } = useQuery({
     queryKey: ["category-by-handle", categoryHandle],
     queryFn: async () => {
       if (!categoryHandle) return null;
-
-      // Try cached flat list first
-      const found = cachedFlat.find((c: any) => c.handle === categoryHandle);
-      if (found) return found;
-
       try {
         const { product_categories } = await sdk.store.category.list({
           fields: "id,name,handle",
           handle: categoryHandle
         });
-
         return product_categories?.[0] || null;
       } catch (error) {
-        console.error("Failed to fetch category by handle:", error);
+        console.error("Failed to fetch category:", error);
         return null;
       }
     },
     enabled: !!categoryHandle,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch products using the new SDK
-  const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ["products", categoryData?.id, sortBy, page, selectedCollections, selectedCategories, selectedBrands, selectedTags, currentRegion?.id],
-    queryFn: async () => {
-      if (!currentRegion) return { products: [], count: 0 };
-      
-      const params: any = {
+  // Use proper Medusa SDK method with limit and offset
+  const { data: productsData, isLoading } = useMedusaProducts({
+    page,
         limit,
-        offset: (page - 1) * limit,
-        fields: "*variants,*variants.calculated_price,*images,*collection,*categories,*type,*tags"
-      };
-
-      // Only apply server-side sorting for simple fields
-      switch (sortBy) {
-        case "oldest":
-          params.order = "created_at";
-          break;
-        case "a-z":
-          params.order = "title";
-          break;
-        case "z-a":
-          params.order = "-title";
-          break;
-        case "newest":
-        default:
-          params.order = "-created_at";
-      }
-
-      // Handle category filters - combine categoryData and selectedCategories
-      const categoryIds = [];
-      if (categoryData?.id) {
-        categoryIds.push(categoryData.id);
-      }
-      if (selectedCategories.length > 0) {
-        categoryIds.push(...selectedCategories);
-      }
-      if (categoryIds.length > 0) {
-        params.category_id = categoryIds;
-      }
-
-      if (selectedCollections.length > 0) {
-        params.collection_id = selectedCollections;
-      }
-
-      if (selectedBrands.length > 0) {
-        params.type_id = selectedBrands;
-      }
-
-      if (selectedTags.length > 0) {
-        console.log("🏷️ Filtering with tag IDs:", selectedTags);
-        console.log("🏷️ Available tags data:", tagsData);
-        
-        // Use tag IDs directly for filtering
-        params.tag_id = selectedTags;
-      }
-
-      // Add region context for pricing
-      if (currentRegion?.id) {
-        params.region_id = currentRegion.id;
-      }
-
-      const { products, count } = await sdk.store.product.list(params);
-      return { products: products || [], count: count || 0 };
+    filters: {
+      regionId: currentRegion?.id,
+      search: debouncedSearch,
+      sortBy: filters.sortBy,
+      collections: filters.collections.length > 0 ? filters.collections : undefined,
+      categories: filters.categories.length > 0 ? filters.categories : undefined,
+      brands: filters.brands.length > 0 ? filters.brands : undefined,
+      tags: filters.tags.length > 0 ? filters.tags : undefined,
+      categoryId: categoryData?.id,
     },
-    enabled: !!currentRegion && (!categoryHandle || !!categoryData),
   });
 
-  // Fetch categories for filters using shared hook
-  const { data: categoriesDataRaw = { flat: [] } } = useCategories({ limit: 100, fields: "id,name,handle" });
-  const categoriesData = categoriesDataRaw.flat || [];
-
-  // Fetch collections for filters using shared hook
-  const { data: collectionsData = [] } = useCollections({ limit: 100, fields: "id,title,handle" });
-
-  // Fetch product types separately to get their values
-  const { data: productTypesData } = useQuery({
-    queryKey: ["product-types"],
+  // Fetch filter data with aggressive caching
+  const { data: collectionsData } = useQuery({
+    queryKey: ["collections-optimized"],
     queryFn: async () => {
+      const { collections } = await sdk.store.collection.list({
+        limit: 50,
+        fields: "id,title,handle",
+      });
+      return collections || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["categories-optimized"],
+    queryFn: async () => {
+      const { product_categories } = await sdk.store.category.list({
+        limit: 50,
+        fields: "id,name,handle",
+      });
+      return product_categories || [];
+    },
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: facetsData } = useQuery({
+    queryKey: ["facets-optimized", currentRegion?.id],
+    queryFn: async () => {
+      if (!currentRegion?.id) return { brands: [], tags: [] };
+      
       try {
-        console.log("🔍 Fetching product types...");
-        
-        // First try to fetch products with expanded type information
         const { products } = await sdk.store.product.list({
           limit: 100,
-          fields: "id,title,*type"
+          fields: "id,*type,*tags",
+          region_id: currentRegion.id,
         });
-        
-        console.log("📦 Sample products with types:", products?.slice(0, 3));
-        
-        if (!products || products.length === 0) {
-          console.log("⚠️ No products found for types");
-          return [];
-        }
-        
-        const typesSet = new Set();
-        const typesArray: Array<{id: string, value: string}> = [];
-        
-        products.forEach((product, index) => {
-          if (index < 5) { // Log first 5 products for debugging
-            console.log(`📦 Product ${index + 1} - ${product.title}:`, {
-              type: product.type,
-              allKeys: Object.keys(product)
-            });
-          }
-          
-          // Extract type information
+
+        const brands: Array<{ id: string; value: string }> = [];
+        const tags: Array<{ id: string; value: string }> = [];
+        const brandSet = new Set<string>();
+        const tagSet = new Set<string>();
+
+        products.forEach((product: any) => {
           if (product.type) {
-            let typeValue = '';
-            let typeId = '';
-            
-            if (typeof product.type === 'string') {
-              typeValue = product.type;
-              typeId = product.type;
-            } else if (product.type.value) {
-              typeValue = product.type.value;
-              typeId = product.type.id || product.type.value;
-            } else if (product.type.id) {
-              typeValue = product.type.id; // Fallback to ID if no value
-              typeId = product.type.id;
-            }
-            
-            if (typeValue && !typesSet.has(typeId)) {
-              typesSet.add(typeId);
-              typesArray.push({
-                id: typeId,
-                value: typeValue
-              });
+            const typeId = product.type.id || product.type.value || product.type;
+            const typeValue = product.type.value || product.type.id || product.type;
+            if (typeId && !brandSet.has(typeId)) {
+              brandSet.add(typeId);
+              brands.push({ id: typeId, value: typeValue });
             }
           }
-        });
-        
-        console.log("🏷️ Final extracted product types:", typesArray);
-        return typesArray;
-      } catch (error) {
-        console.error("❌ Error fetching product types:", error);
-        return [];
-      }
-    },
-  });
 
-  // Fetch product tags from products
-  const { data: productTagsData } = useQuery({
-    queryKey: ["product-tags"],
-    queryFn: async () => {
-      try {
-        console.log("🔍 Fetching products for tag extraction...");
-        
-        // Fetch products with expanded type and tags information
-        const { products } = await sdk.store.product.list({
-          limit: 100,
-          fields: "id,title,*type,*tags"
-        });
-        
-        console.log("📦 Sample products for tag analysis:", products?.slice(0, 3));
-        
-        if (!products || products.length === 0) {
-          console.log("⚠️ No products found for tags");
-          return [];
-        }
-        
-        const tagsSet = new Set();
-        const tagsArray: Array<{id: string, value: string}> = [];
-        
-        products.forEach((product, index) => {
-          if (index < 3) { // Log first 3 products for debugging
-            console.log(`📦 Product ${index + 1} - ${product.title}:`, {
-              type: product.type,
-              tags: product.tags,
-              allKeys: Object.keys(product)
+          if (product.tags) {
+            const tagArray = Array.isArray(product.tags) ? product.tags : [product.tags];
+            tagArray.forEach((tag: any) => {
+              const tagId = tag.id || tag.value || tag;
+              const tagValue = tag.value || tag.id || tag;
+              if (tagId && !tagSet.has(tagId)) {
+                tagSet.add(tagId);
+                tags.push({ id: tagId, value: tagValue });
+              }
             });
           }
-          
-          // Extract tags - handle both array and single structures
-          if (product.tags) {
-            if (Array.isArray(product.tags)) {
-              product.tags.forEach(tag => {
-                let tagId = '';
-                let tagValue = '';
-                
-                if (typeof tag === 'string') {
-                  tagId = tag;
-                  tagValue = tag;
-                } else if (tag?.id && tag?.value) {
-                  tagId = tag.id;
-                  tagValue = tag.value;
-                } else if (tag?.value) {
-                  tagId = tag.value;
-                  tagValue = tag.value;
-                }
-                
-                if (tagId && tagValue && !tagsSet.has(tagId)) {
-                  tagsSet.add(tagId);
-                  tagsArray.push({
-                    id: tagId,
-                    value: tagValue
-                  });
-                }
-              });
-            } else if (typeof product.tags === 'string') {
-              if (!tagsSet.has(product.tags)) {
-                tagsSet.add(product.tags);
-                tagsArray.push({
-                  id: product.tags,
-                  value: product.tags
-                });
-              }
-            }
-          }
         });
-        
-        console.log("🏷️ Final extracted tags:", tagsArray);
-        return tagsArray;
+
+        return { brands, tags };
       } catch (error) {
-        console.error("❌ Error fetching product tags:", error);
-        return [];
+        console.error("Failed to fetch facets:", error);
+        return { brands: [], tags: [] };
       }
     },
+    enabled: !!currentRegion?.id,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  // Use the separate data sources
-  const brandsData = productTypesData || [];
-  const tagsData = productTagsData || [];
-
-  const handleCollectionToggle = (collectionId: string) => {
-    setSelectedCollections((prev) =>
-      prev.includes(collectionId)
-        ? prev.filter((id) => id !== collectionId)
-        : [...prev, collectionId]
-    );
-  };
-
-  const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
-  const handleBrandToggle = (brandId: string) => {
-    console.log("🏷️ Toggling brand:", brandId, "Current brands:", selectedBrands);
-    setSelectedBrands((prev) => {
-      const newSelection = prev.includes(brandId)
-        ? prev.filter((id) => id !== brandId)
-        : [...prev, brandId];
-      console.log("🏷️ New brand selection:", newSelection);
-      return newSelection;
-    });
-  };
-
-  const handleTagToggle = (tagId: string) => {
-    console.log("🏷️ Toggling tag:", tagId, "Current tags:", selectedTags);
-    setSelectedTags((prev) => {
-      const newSelection = prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId];
-      console.log("🏷️ New tag selection:", newSelection);
-      return newSelection;
-    });
-  };
-
-  // Filter and sort products based on search query and sort option
-  const filteredProducts = useMemo(() => {
-    if (!productsData?.products) return [];
-    
-    let products = productsData.products.filter(product =>
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Apply client-side sorting for price-based sorting
-    if (sortBy === "price-low" || sortBy === "price-high") {
-      products = products.sort((a, b) => {
-        const aPrice = a.variants?.[0]?.calculated_price?.calculated_amount || 0;
-        const bPrice = b.variants?.[0]?.calculated_price?.calculated_amount || 0;
-        return sortBy === "price-low" ? aPrice - bPrice : bPrice - aPrice;
-      });
-    }
-    
-    return products;
-  }, [productsData?.products, searchQuery, sortBy]);
-
+  const products = productsData?.products || [];
   const totalPages = Math.ceil((productsData?.count || 0) / limit);
+  const hasMorePages = productsData?.hasMorePages || false;
 
-  // GSAP animations
-  useEffect(() => {
-    if (!productsLoading && filteredProducts.length > 0 && productGridRef.current) {
-      const productCards = productGridRef.current.querySelectorAll('.product-card');
-      
-      // Reset opacity for new products
-      gsap.set(productCards, { opacity: 0, y: 30 });
-      
-      // Animate products in with stagger
-      gsap.to(productCards, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        stagger: 0.1,
-        delay: 0.2
-      });
-    }
-  }, [productsLoading, filteredProducts]);
+  // Progressive row rendering (rows of 3)
+  const rows = useMemo(() => chunkIntoRows(products, 3), [products]);
+  const [visibleRows, setVisibleRows] = useState(2);
+  const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
-  // Animate header on mount
+  // Reset visible rows when product set changes (new page/filters)
   useEffect(() => {
-    if (headerRef.current) {
-      gsap.fromTo(headerRef.current.children, 
-        { opacity: 0, y: 20 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          duration: 0.8, 
-          ease: "power2.out",
-          stagger: 0.1,
-          delay: 0.1
-        }
-      );
+    setVisibleRows(Math.min(2, rows.length));
+  }, [rows.length]);
+
+  // Intersection observer to reveal next row when scrolling
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    if (visibleRows >= rows.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleRows((prev) => Math.min(prev + 1, rows.length));
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "200px 0px", // start loading a bit before viewport
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [rows.length, visibleRows]);
+
+  // Optimized filter handlers
+  const updateFilter = useCallback((key: keyof FilterState, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 250);
+  }, []);
+
+  const toggleFilter = useCallback((type: 'collections' | 'categories' | 'brands' | 'tags', id: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [type]: prev[type].includes(id) 
+        ? prev[type].filter(item => item !== id)
+        : [...prev[type], id]
+    }));
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 250);
+    // Smooth scroll to products when filter changes
+    setTimeout(() => scrollToProductsGrid(), 200);
+  }, []);
+
+  const clearAllFilters = useCallback(() => {
+    setFilters({
+      search: "",
+      sortBy: "created_at",
+      collections: [],
+      categories: [],
+      brands: [],
+      tags: [],
+    });
+    setSearchQuery("");
+    // Smooth scroll to top when clearing filters
+    setTimeout(() => scrollToTop(), 100);
+  }, []);
+
+  // Smooth scroll to products when page changes
+  useEffect(() => {
+    if (!isLoading && products.length > 0) {
+      setTimeout(() => scrollToProductsGrid(), 100);
     }
-  }, [categoryData]);
+  }, [page, isLoading, products.length]);
+
+  // Preload images for better performance
+  useEffect(() => {
+    if (products.length > 0 && !isLoading) {
+      const imageUrls = products
+        .map((product: any) => product.thumbnail || product.images?.[0]?.url)
+        .filter(Boolean);
+      
+      if (imageUrls.length > 0) {
+        // Preload images in the background
+        preloadImages(imageUrls, { quality: 85, width: 400 });
+      }
+    }
+  }, [products, isLoading, preloadImages]);
+
+  // Memoized filter counts
+  const activeFiltersCount = useMemo(() => {
+    return filters.collections.length + 
+           filters.categories.length + 
+           filters.brands.length + 
+           filters.tags.length;
+  }, [filters]);
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  // Rotating placeholder samples (reuse from header style)
+  const exampleSearches = useMemo(
+    () => [
+      "Ray-Ban",
+      "Oakley Holbrook",
+      "Persol",
+      "Gucci",
+      "Prada Linea",
+      "Carrera",
+      "Maui Jim",
+      "Tom Ford",
+      "Versace",
+      "Dior"
+    ],
+    []
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % exampleSearches.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [exampleSearches.length]);
 
   return (
     <Layout>
       <div className="min-h-screen bg-background">
-        {/* Page Title - Show category name if viewing a specific category */}
+        {/* Header */}
         {categoryData && (
-          <div ref={headerRef} className="container mx-auto px-4 pt-8 pb-4">
-            <div className="text-center">
-              <h1 className="text-3xl font-display font-bold mb-2">{categoryData.name}</h1>
-              <p className="text-muted-foreground">Explore our {categoryData.name.toLowerCase()} collection</p>
-            </div>
+          <div className="container mx-auto px-4 pt-8 pb-4">
+            <h1 className="text-3xl font-bold text-center">{categoryData.name}</h1>
           </div>
         )}
         
         <div className="container mx-auto px-4">
-          {/* Mobile Filter Button and Search */}
-          <div className="lg:hidden mb-6">
-            <div className="flex gap-3">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex-shrink-0">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80 p-0">
-                  <SheetHeader className="p-6 border-b">
-                    <SheetTitle>Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="p-6 overflow-y-auto">
-                    <FilterContent 
-                      collectionsData={collectionsData}
-                      selectedCollections={selectedCollections}
-                      handleCollectionToggle={handleCollectionToggle}
-                      sortBy={sortBy}
-                      setSortBy={setSortBy}
-                      categoriesData={categoriesData}
-                      selectedCategories={selectedCategories}
-                      handleCategoryToggle={handleCategoryToggle}
-                      brandsData={brandsData}
-                      selectedBrands={selectedBrands}
-                      handleBrandToggle={handleBrandToggle}
-                      tagsData={tagsData}
-                      selectedTags={selectedTags}
-                      handleTagToggle={handleTagToggle}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-              
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </div>
+          {/* Mobile Search and Filter (replaced by top filter panel) */}
+          <div className="hidden" />
 
-          <div className="flex gap-8">
-            {/* Desktop Sidebar Filter */}
-            <div className="hidden lg:block w-80 flex-shrink-0">
-              <div className="sticky top-6 bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-sm">
-                <h2 className="text-lg font-semibold mb-6 text-foreground">Filters</h2>
-                <FilterContent 
-                  collectionsData={collectionsData}
-                  selectedCollections={selectedCollections}
-                  handleCollectionToggle={handleCollectionToggle}
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
-                  categoriesData={categoriesData}
-                  selectedCategories={selectedCategories}
-                  handleCategoryToggle={handleCategoryToggle}
-                  brandsData={brandsData}
-                  selectedBrands={selectedBrands}
-                  handleBrandToggle={handleBrandToggle}
-                  tagsData={tagsData}
-                  selectedTags={selectedTags}
-                  handleTagToggle={handleTagToggle}
-                />
-              </div>
-            </div>
+          <div className="space-y-8">
+            {/* Removed always-visible filters panel (now icon-triggered only) */}
 
             {/* Main Content */}
             <div className="flex-1 min-w-0">
-              {/* Desktop Search Bar */}
-              <div className="hidden lg:block mb-8">
-                <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              {/* Global centered search */}
+              <div className="mb-6 flex justify-center px-2">
+                <div className="relative w-full max-w-2xl">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search products..."
+                    className="pl-11 pr-4 h-11 rounded-full shadow-sm border border-border/60 bg-background/70 focus-visible:ring-0 placeholder-transparent"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-background/50 border-border/50 focus:bg-background transition-colors"
                   />
+                  {!searchQuery && (
+                    <div className="pointer-events-none absolute left-11 right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <div className="relative h-[1.3em] overflow-hidden">
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={placeholderIndex}
+                            initial={{ y: '100%', opacity: 0 }}
+                            animate={{ y: '0%', opacity: 1 }}
+                            exit={{ y: '-100%', opacity: 0 }}
+                            transition={{ duration: 0.5, ease: 'easeInOut' }}
+                            className="block whitespace-nowrap text-sm"
+                          >
+                            {t('search.search')}: {exampleSearches[placeholderIndex]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Product Results Header */}
+              {/* Results Header with icons */}
               <div className="flex items-center justify-between mb-6 pb-4 border-b">
-                <div className="flex items-center gap-4">
-                  <h2 className="text-xl font-semibold">
-                    {categoryData ? categoryData.name : "All Products"}
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl md:text-2xl font-semibold">
+                    {categoryData ? categoryData.name : t('products.allProducts')}
                   </h2>
-                  <div className="text-sm text-muted-foreground">
-                    {productsLoading ? (
-                      <span>Loading...</span>
+                  {/* Sort dropdown icon */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/60 hover:bg-accent text-foreground">
+                        <ArrowUpDown className="h-4 w-4" />
+                        <span className="sr-only">Sort</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => updateFilter('sortBy', 'created_at')}>{t('sort.newest')}</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateFilter('sortBy', 'price-low')}>{t('sort.priceLow')}</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateFilter('sortBy', 'price-high')}>{t('sort.priceHigh')}</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateFilter('sortBy', 'title')}>{t('sort.nameAZ')}</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateFilter('sortBy', '-title')}>{t('sort.nameZA')}</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+              </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-muted-foreground hidden sm:block">
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        {t('products.loading')}
+                      </>
                     ) : (
-                      <span>
-                        Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, productsData?.count || 0)} of {productsData?.count || 0} products
-                        {searchQuery && ` matching "${searchQuery}"`}
-                      </span>
+                      t('products.page', { current: page, total: totalPages, count: products.length })
                     )}
                   </div>
-                </div>
-                <div className="hidden sm:block text-sm text-muted-foreground">
-                  Page {page} of {totalPages}
+                  {/* Filter panel icon */}
+                  <button
+                    onClick={() => setIsFilterOpen((v) => !v)}
+                    className="inline-flex h-9 px-3 items-center gap-2 rounded-full border border-border/60 hover:bg-accent text-foreground"
+                  >
+                    <ListFilter className="h-4 w-4" />
+                    <span className="text-sm hidden sm:inline">{t('filters.filters')}</span>
+                    {activeFiltersCount > 0 && (
+                      <span className="ml-1 text-xs text-muted-foreground">({activeFiltersCount})</span>
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Products Section */}
-              {productsLoading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-                  {[...Array(12)].map((_, i) => (
-                    <div key={i} className="aspect-[4/5] bg-muted/30 rounded-2xl animate-pulse" />
-                  ))}
+              {/* Inline filter bar expanded in-place under header */}
+              {isFilterOpen && (
+                <div className="mb-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {collectionsData && collectionsData.length > 0 && (
+                      <FilterSection
+                        title={t('filters.collections')}
+                        items={collectionsData}
+                        selected={filters.collections}
+                        onToggle={(id) => toggleFilter('collections', id)}
+                      />
+                    )}
+                    {categoriesData && categoriesData.length > 0 && (
+                      <FilterSection
+                        title={t('filters.categories')}
+                        items={categoriesData}
+                        selected={filters.categories}
+                        onToggle={(id) => toggleFilter('categories', id)}
+                      />
+                    )}
+                    {facetsData?.brands && facetsData.brands.length > 0 && (
+                      <FilterSection
+                        title={t('filters.brands')}
+                        items={facetsData.brands}
+                        selected={filters.brands}
+                        onToggle={(id) => toggleFilter('brands', id)}
+                      />
+                    )}
+                    {facetsData?.tags && facetsData.tags.length > 0 && (
+                      <FilterSection
+                        title={t('filters.tags')}
+                        items={facetsData.tags}
+                        selected={filters.tags}
+                        onToggle={(id) => toggleFilter('tags', id)}
+                      />
+                    )}
+                  </div>
+                  {activeFiltersCount > 0 && (
+                    <div className="mt-4 flex justify-end">
+                      <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                        {t('buttons.clearAll')} ({activeFiltersCount})
+                      </Button>
                 </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-muted-foreground mb-4 text-lg">
-                    {searchQuery ? `No products found for "${searchQuery}"` : "No products found"}
-                  </p>
+                  )}
+                </div>
+              )}
+
+              {/* Applied Filters Chips */}
+              {activeFiltersCount > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {searchQuery && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      {t('search.search')}: "{searchQuery}"
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {filters.collections.map(id => {
+                    const collection = collectionsData?.find(c => c.id === id);
+                    return collection ? (
+                      <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                        {collection.title}
+                        <button
+                          onClick={() => toggleFilter('collections', id)}
+                          className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : null;
+                  })}
+                  {filters.categories.map(id => {
+                    const category = categoriesData?.find(c => c.id === id);
+                    return category ? (
+                      <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                        {category.name}
+                        <button
+                          onClick={() => toggleFilter('categories', id)}
+                          className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : null;
+                  })}
+                  {filters.brands.map(id => {
+                    const brand = facetsData?.brands?.find(b => b.id === id);
+                    return brand ? (
+                      <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                        {brand.title || brand.name}
+                        <button
+                          onClick={() => toggleFilter('brands', id)}
+                          className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : null;
+                  })}
+                  {filters.tags.map(id => {
+                    const tag = facetsData?.tags?.find(t => t.id === id);
+                    return tag ? (
+                      <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                        {tag.title || tag.name}
+                        <button
+                          onClick={() => toggleFilter('tags', id)}
+                          className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : null;
+                  })}
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedCategories([]);
-                      setSelectedCollections([]);
-                      setSelectedBrands([]);
-                      setSelectedTags([]);
-                    }}
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="text-xs"
                   >
-                    Clear Filters
+                    {t('buttons.clearAll')}
+                  </Button>
+              </div>
+              )}
+
+              {/* Products Grid (progressive rows of 3) */}
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center py-8">
+                    <LoadingSpinner size="lg" text="Loading products..." />
+              </div>
+                  <ProductSkeleton count={12} />
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-muted-foreground mb-4 text-lg">
+                    {searchQuery ? t('search.noResults', { query: searchQuery }) : t('products.noProducts')}
+                  </p>
+                  <Button variant="outline" onClick={clearAllFilters}>
+                    {t('filters.clearFilters')}
                   </Button>
                 </div>
               ) : (
                 <>
-                  <div ref={productGridRef} className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-                    {filteredProducts.map((product, index) => (
+                  <div data-products-grid className="space-y-4 lg:space-y-6">
+                    {rows.slice(0, visibleRows).map((row, rowIndex) => (
                       <div 
-                        key={product.id} 
-                        className="product-card opacity-0"
-                        style={{ '--stagger-delay': `${index * 0.1}s` } as React.CSSProperties}
+                        key={rowIndex}
+                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-8"
                       >
-                        <ProductCard product={product} />
+                        {row.map((product: any) => (
+                          <div key={product.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <ProductCardOptimized product={product} />
                       </div>
                     ))}
+                      </div>
+                    ))}
+
+                    {/* Sentinel to load next row when visible */}
+                    {visibleRows < rows.length && (
+                      <div ref={sentinelRef} className="h-8" />
+                    )}
                   </div>
                   
                   {/* Pagination */}
@@ -570,6 +686,7 @@ export default function Products() {
                                   ...Object.fromEntries(searchParams),
                                   page: (page - 1).toString()
                                 })}`}
+                                onClick={() => setTimeout(() => scrollToProductsGrid(), 100)}
                               />
                             </PaginationItem>
                           )}
@@ -594,6 +711,7 @@ export default function Products() {
                                     page: pageNumber.toString()
                                   })}`}
                                   isActive={pageNumber === page}
+                                  onClick={() => setTimeout(() => scrollToProductsGrid(), 100)}
                                 >
                                   {pageNumber}
                                 </PaginationLink>
@@ -608,6 +726,7 @@ export default function Products() {
                                   ...Object.fromEntries(searchParams),
                                   page: (page + 1).toString()
                                 })}`}
+                                onClick={() => setTimeout(() => scrollToProductsGrid(), 100)}
                               />
                             </PaginationItem>
                           )}
@@ -625,175 +744,4 @@ export default function Products() {
   );
 }
 
-// Filter content component for reuse
-function FilterContent({ 
-  collectionsData, 
-  selectedCollections, 
-  handleCollectionToggle, 
-  sortBy, 
-  setSortBy, 
-  categoriesData, 
-  selectedCategories, 
-  handleCategoryToggle, 
-  brandsData, 
-  selectedBrands, 
-  handleBrandToggle, 
-  tagsData, 
-  selectedTags, 
-  handleTagToggle 
-}: any) {
-  const [openSections, setOpenSections] = useState({
-    collections: true,
-    sort: true,
-    categories: false,
-    brands: false,
-    tags: false
-  });
-
-  const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  return (
-    <div className="space-y-4">
-      {/* Collections Quick Filter */}
-      <Collapsible open={openSections.collections} onOpenChange={() => toggleSection('collections')}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
-          <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Collections</h3>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.collections ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 pt-2">
-          <div className="flex flex-wrap gap-2">
-            {collectionsData?.slice(0, 4).map((collection: any) => (
-              <button
-                key={collection.id}
-                onClick={() => handleCollectionToggle(collection.id)}
-                className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
-                  selectedCollections.includes(collection.id)
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-background hover:bg-muted border-border'
-                }`}
-              >
-                {collection.title}
-              </button>
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Sort Options */}
-      <Collapsible open={openSections.sort} onOpenChange={() => toggleSection('sort')}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
-          <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Sort By</h3>
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.sort ? 'rotate-180' : ''}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 pt-2">
-          <div className="space-y-2">
-            {[
-              { value: "newest", label: "Newest" },
-              { value: "price-low", label: "Price: Low to High" },
-              { value: "price-high", label: "Price: High to Low" },
-              { value: "a-z", label: "A–Z" },
-            ].map((option) => (
-              <label key={option.value} className="flex items-center space-x-3 cursor-pointer group">
-                <input
-                  type="radio"
-                  name="sort"
-                  value={option.value}
-                  checked={sortBy === option.value}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-3.5 h-3.5 text-primary border-border"
-                />
-                <span className="text-sm group-hover:text-foreground transition-colors">{option.label}</span>
-              </label>
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Categories */}
-      {categoriesData && categoriesData.length > 0 && (
-        <Collapsible open={openSections.categories} onOpenChange={() => toggleSection('categories')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
-            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Categories</h3>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.categories ? 'rotate-180' : ''}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-3 pt-2">
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {categoriesData.map((category: any) => (
-                <div key={category.id} className="flex items-center space-x-3 group">
-                  <Checkbox
-                    id={category.id}
-                    checked={selectedCategories.includes(category.id)}
-                    onCheckedChange={() => handleCategoryToggle(category.id)}
-                    className="w-4 h-4"
-                  />
-                  <Label htmlFor={category.id} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                    {category.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* Brands */}
-      {brandsData && brandsData.length > 0 && (
-        <Collapsible open={openSections.brands} onOpenChange={() => toggleSection('brands')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
-            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Brands</h3>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.brands ? 'rotate-180' : ''}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-3 pt-2">
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {brandsData.map((brand: any) => (
-                <div key={brand.id} className="flex items-center space-x-3 group">
-                  <Checkbox
-                    id={`brand-${brand.id}`}
-                    checked={selectedBrands.includes(brand.id)}
-                    onCheckedChange={() => handleBrandToggle(brand.id)}
-                    className="w-4 h-4"
-                  />
-                  <Label htmlFor={`brand-${brand.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                    {brand.value}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* Tags */}
-      {tagsData && tagsData.length > 0 && (
-        <Collapsible open={openSections.tags} onOpenChange={() => toggleSection('tags')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 group">
-            <h3 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">Tags</h3>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${openSections.tags ? 'rotate-180' : ''}`} />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-3 pt-2">
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {tagsData.map((tag: any) => (
-                <div key={tag.id} className="flex items-center space-x-3 group">
-                  <Checkbox
-                    id={`tag-${tag.id}`}
-                    checked={selectedTags.includes(tag.id)}
-                    onCheckedChange={() => handleTagToggle(tag.id)}
-                    className="w-4 h-4"
-                  />
-                  <Label htmlFor={`tag-${tag.id}`} className="text-sm cursor-pointer group-hover:text-foreground transition-colors">
-                    {tag.value}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-    </div>
-  );
-}
+export default ProductsOptimized;

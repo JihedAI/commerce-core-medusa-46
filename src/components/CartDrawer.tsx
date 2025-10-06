@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Plus, Minus, ShoppingBag } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -14,6 +15,7 @@ interface CartDrawerProps {
 export default function CartDrawer({ children }: CartDrawerProps) {
   const [open, setOpen] = useState(false);
   const { cart, updateItem, removeItem } = useCart();
+  const { t } = useTranslation();
 
   const subtotal = cart?.subtotal || 0;
   const discount = cart?.discount_total || 0;
@@ -28,7 +30,7 @@ export default function CartDrawer({ children }: CartDrawerProps) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" />
-            Shopping Cart
+            {t('cart.cart')}
           </SheetTitle>
         </SheetHeader>
 
@@ -106,30 +108,30 @@ export default function CartDrawer({ children }: CartDrawerProps) {
             {/* Cart Summary */}
             <div className="py-4 border-t space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
+                <span>{t('cart.subtotal')}</span>
                 <span>{formatPrice(subtotal, cart.region?.currency_code)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm text-success">
-                  <span>Discount</span>
+                  <span>{t('cart.discount')}</span>
                   <span>-{formatPrice(discount, cart.region?.currency_code)}</span>
                 </div>
               )}
               {shipping > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span>Shipping</span>
+                  <span>{t('cart.shipping')}</span>
                   <span>{formatPrice(shipping, cart.region?.currency_code)}</span>
                 </div>
               )}
               {tax > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span>Tax</span>
+                  <span>{t('cart.tax')}</span>
                   <span>{formatPrice(tax, cart.region?.currency_code)}</span>
                 </div>
               )}
               <Separator />
               <div className="flex justify-between font-semibold">
-                <span>Total</span>
+                <span>{t('cart.total')}</span>
                 <span>{formatPrice(total, cart.region?.currency_code)}</span>
               </div>
             </div>
@@ -138,23 +140,21 @@ export default function CartDrawer({ children }: CartDrawerProps) {
             <div className="space-y-2 pb-4">
               <Link to="/checkout">
                 <Button className="w-full" size="lg" onClick={() => setOpen(false)}>
-                  Proceed to Checkout
+                  {t('cart.proceedToCheckout')}
                 </Button>
               </Link>
               <Button variant="outline" className="w-full" onClick={() => setOpen(false)}>
-                Continue Shopping
+                {t('cart.continueShopping')}
               </Button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-[400px] text-center">
             <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>
-            <p className="text-muted-foreground mb-6">
-              Add items to your cart to see them here
-            </p>
+            <h3 className="text-lg font-semibold mb-2">{t('cart.emptyCart')}</h3>
+            <p className="text-muted-foreground mb-6">{t('cart.continueShopping')}</p>
             <Link to="/products">
-              <Button onClick={() => setOpen(false)}>Start Shopping</Button>
+              <Button onClick={() => setOpen(false)}>{t('buttons.viewAll', { defaultValue: 'View all' })}</Button>
             </Link>
           </div>
         )}

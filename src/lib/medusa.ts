@@ -19,7 +19,7 @@ export type PricedVariant = any;
 // Test connection and log available products
 medusa.products.list()
   .then(({ products }) => {
-    console.log("Medusa connected successfully. Available products:", products.length);
+    // Medusa connected successfully
   })
   .catch((error) => {
     console.error("Failed to connect to Medusa backend:", error);

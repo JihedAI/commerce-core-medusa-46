@@ -29,7 +29,7 @@ export interface Customer {
 // Test SDK connection
 sdk.store.product.list()
   .then(() => {
-    console.log("Medusa SDK initialized successfully");
+    // Medusa SDK initialized successfully
   })
   .catch((error) => {
     console.error("Failed to initialize Medusa SDK:", error);

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +8,14 @@ import { DesktopNav } from "./navigation/DesktopNav";
 import { MobileNav } from "./navigation/MobileNav";
 import { SearchOverlay } from "./search/SearchOverlay";
 import { UserMenu } from "./user/UserMenu";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import CartDrawer from "./CartDrawer";
 import { useCart } from "@/contexts/CartContext";
 
 export function Header() {
   const [hasScrolled, setHasScrolled] = React.useState(false);
   const { cart } = useCart();
+  const location = useLocation();
 
   const itemCount =
     cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
@@ -63,8 +65,13 @@ export function Header() {
 
         {/* Right Section - Actions (compact on small screens) */}
         <div className="flex items-center gap-3">
+          {location.pathname !== "/products" && (
+            <div className="p-0">
+              <SearchOverlay />
+            </div>
+          )}
           <div className="p-0">
-            <SearchOverlay />
+            <LanguageSwitcher />
           </div>
           <div className="p-0">
             <ThemeToggle />

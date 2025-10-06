@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import useCollections from "@/hooks/useCollections";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -95,60 +96,69 @@ export default function CollectionsShowcase() {
           Collections
         </h2>
         
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {collections.slice(0, 6).map((collection) => (
-            <Link 
-              key={collection.id} 
-              to={`/collections/${collection.id}`}
-              className="group block collection-card opacity-0"
-            >
-              <div className="relative overflow-hidden bg-card rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 ease-out">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  {(() => {
-                    const imgUrl = collection.metadata?.imgUrl;
-                    console.log(`Rendering collection ${collection.title}:`, {
-                      metadata: collection.metadata,
-                      imgUrl: imgUrl
-                    });
+        <div ref={gridRef} className="relative max-w-7xl mx-auto">
+          <Carousel
+            opts={{ loop: true, align: "start", dragFree: true, skipSnaps: true }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {collections.slice(0, 12).map((collection) => (
+                <CarouselItem key={collection.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <Link 
+                    to={`/collections/${collection.id}`}
+                    className="group block collection-card opacity-0"
+                  >
+                    <div className="relative overflow-hidden bg-card rounded-none shadow-sm hover:shadow-xl transition-all duration-500 ease-out">
+                      <div className="relative aspect-square overflow-hidden">
+                        {(() => {
+                          const imgUrl = collection.metadata?.imgUrl;
+                          return imgUrl ? (
+                            <img
+                              src={imgUrl}
+                              alt={collection.title}
+                              className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110"
+                              loading="lazy"
+                              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                              width="1400"
+                              height="1400"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/placeholder.svg';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                              <span className="text-gray-400">No image available</span>
+                              <small className="mt-2 text-xs text-gray-400">Collection ID: {collection.id}</small>
+                            </div>
+                          );
+                        })()}
+                        
+                        {/* Overlay gradient for readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-                    return imgUrl ? (
-                      <img
-                        src={imgUrl}
-                        alt={collection.title}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                        loading="lazy"
-                        onError={(e) => {
-                          console.error(`Failed to load image for collection ${collection.title}`);
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder.svg';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-gray-400">No image available</span>
-                        <small className="mt-2 text-xs text-gray-400">Collection ID: {collection.id}</small>
+                        {/* Text overlay inside image */}
+                        <div className="absolute left-4 right-4 bottom-4 md:left-6 md:right-6 md:bottom-6">
+                          <h3 className="font-display text-xl lg:text-2xl font-bold text-white drop-shadow">
+                            {collection.title}
+                          </h3>
+                          <div className="mt-2 flex items-center text-white font-medium text-sm">
+                            <span>Explore Collection</span>
+                            <svg className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
-                    );
-                  })()}
-                  
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent" />
-                </div>
-                
-                <div className="p-6 space-y-3">
-                  <h3 className="font-display text-xl lg:text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
-                    {collection.title}
-                  </h3>
-                  
-                  <div className="flex items-center text-primary font-medium text-sm group-hover:translate-x-1 transition-transform duration-300">
-                    <span>Explore Collection</span>
-                    <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+                    
+                    </div>
+                  </Link>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="-left-6 sm:-left-10" />
+            <CarouselNext className="-right-6 sm:-right-10" />
+          </Carousel>
         </div>
       </div>
     </section>

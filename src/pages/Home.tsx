@@ -11,7 +11,8 @@ export default function Home() {
   // Memoize video URLs
   const heroVideos = React.useMemo(() => [
     "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/9872557-uhd_3840_2160_24fps%20(1).webm",
-    "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/253877_large.webm", 
+    // "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/253877_large.webm",
+    "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/main_0_pc_1920_990.webm", 
     "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/6118572-uhd_4096_2160_25fps.webm"
   ], []);
 
@@ -21,13 +22,12 @@ export default function Home() {
       <div className="-mt-20">
         <VideoHero videos={heroVideos} />
       </div>
-      
-      {/* Product Carousel Section */}
-      <ProductCarousel />
-      
       {/* Collections Showcase Section */}
       <CollectionsShowcase />
       
+      {/* Product Carousel Section */}
+      <ProductCarousel />
+
       {/* Story Section */}
       <StorySection />
       

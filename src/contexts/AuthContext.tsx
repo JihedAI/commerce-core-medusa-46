@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       // Not logged in or token expired
-      console.log('No active session');
       setCustomer(null);
     } finally {
       setIsLoading(false);

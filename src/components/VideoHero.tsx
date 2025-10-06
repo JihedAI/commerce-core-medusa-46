@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { gsap } from "gsap";
@@ -9,6 +10,7 @@ interface VideoHeroProps {
 }
 
 export default function VideoHero({ videos }: VideoHeroProps) {
+  const { t } = useTranslation();
   const [currentVideo, setCurrentVideo] = useState(0);
   const [progress, setProgress] = useState(0);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
@@ -127,7 +129,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
               size="lg"
               className="group bg-primary/10 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary hover:text-background transition-all duration-500 px-8 py-6 text-sm tracking-[0.2em] uppercase"
             >
-              Shop Now
+              {t('hero.shopNow', { defaultValue: 'Shop Now' })}
               <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
@@ -138,7 +140,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
               variant="outline"
               className="group bg-transparent backdrop-blur-md border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all duration-500 px-8 py-6 text-sm tracking-[0.2em] uppercase"
             >
-              Collections
+              {t('nav.collections')}
               <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>

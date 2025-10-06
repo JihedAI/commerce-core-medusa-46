@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, CreditCard, Truck, User, ShoppingBag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 
 export default function Checkout() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { 
     cart, 
@@ -148,9 +150,9 @@ export default function Checkout() {
   }, [shippingOptions, cart]);
 
   const steps = [
-    { number: 1, title: "Information", icon: User },
-    { number: 2, title: "Shipping", icon: Truck },
-    { number: 3, title: "Payment", icon: CreditCard },
+    { number: 1, title: t('checkout.information', { defaultValue: 'Information' }), icon: User },
+    { number: 2, title: t('checkout.shippingStep', { defaultValue: 'Shipping' }), icon: Truck },
+    { number: 3, title: t('checkout.paymentStep', { defaultValue: 'Payment' }), icon: CreditCard },
   ];
 
   // Get applied promotions/discounts - handle both v1 and v2 formats
@@ -294,8 +296,8 @@ export default function Checkout() {
       <Layout>
         <div className="container mx-auto px-4 py-16 text-center">
           <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
-          <Button onClick={() => navigate("/products")}>Continue Shopping</Button>
+          <h1 className="text-2xl font-bold mb-4">{t('cart.emptyCart')}</h1>
+          <Button onClick={() => navigate("/products")}>{t('cart.continueShopping')}</Button>
         </div>
       </Layout>
     );
@@ -340,10 +342,10 @@ export default function Checkout() {
               <div className="space-y-8">
                 {/* Contact Information Section */}
                 <div className="space-y-6">
-                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Contact Information</h2>
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">{t('checkout.contactInfo', { defaultValue: 'Contact Information' })}</h2>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email Address</Label>
+                      <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">{t('forms.email')}</Label>
                       <Input
                         id="email"
                         type="email"
@@ -361,11 +363,11 @@ export default function Checkout() {
 
                 {/* Shipping Address Section */}
                 <div className="space-y-6">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Shipping Address</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">{t('checkout.shippingAddress')}</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">First Name</Label>
+                        <Label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">{t('forms.firstName')}</Label>
                         <Input
                           id="first_name"
                           value={shippingData.first_name}
@@ -377,7 +379,7 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="last_name" className="text-xs font-medium text-muted-foreground">Last Name</Label>
+                        <Label htmlFor="last_name" className="text-xs font-medium text-muted-foreground">{t('forms.lastName')}</Label>
                         <Input
                           id="last_name"
                           value={shippingData.last_name}
@@ -391,7 +393,7 @@ export default function Checkout() {
                     </div>
 
                     <div>
-                      <Label htmlFor="address_1" className="text-xs font-medium text-muted-foreground">Street Address</Label>
+                      <Label htmlFor="address_1" className="text-xs font-medium text-muted-foreground">{t('forms.address')}</Label>
                       <Input
                         id="address_1"
                         value={shippingData.address_1}
@@ -405,7 +407,7 @@ export default function Checkout() {
                     </div>
 
                     <div>
-                      <Label htmlFor="address_2" className="text-xs font-medium text-muted-foreground">Apartment, suite, etc. (optional)</Label>
+                      <Label htmlFor="address_2" className="text-xs font-medium text-muted-foreground">{t('checkout.address2', { defaultValue: 'Apartment, suite, etc. (optional)' })}</Label>
                       <Input
                         id="address_2"
                         value={shippingData.address_2}
@@ -418,7 +420,7 @@ export default function Checkout() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="city" className="text-xs font-medium text-muted-foreground">City</Label>
+                        <Label htmlFor="city" className="text-xs font-medium text-muted-foreground">{t('forms.city')}</Label>
                         <Input
                           id="city"
                           value={shippingData.city}
@@ -428,7 +430,7 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="province" className="text-xs font-medium text-muted-foreground">State/Province</Label>
+                        <Label htmlFor="province" className="text-xs font-medium text-muted-foreground">{t('checkout.stateProvince', { defaultValue: 'State/Province' })}</Label>
                         <Input
                           id="province"
                           value={shippingData.province}
@@ -443,7 +445,7 @@ export default function Checkout() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="postal_code" className="text-xs font-medium text-muted-foreground">ZIP/Postal Code</Label>
+                        <Label htmlFor="postal_code" className="text-xs font-medium text-muted-foreground">{t('forms.postalCode')}</Label>
                         <Input
                           id="postal_code"
                           value={shippingData.postal_code}
@@ -455,7 +457,7 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground">Phone</Label>
+                        <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground">{t('forms.phone')}</Label>
                         <Input
                           id="phone"
                           type="tel"
@@ -476,7 +478,7 @@ export default function Checkout() {
                         onChange={(e) => setSameAsBilling(e.target.checked)}
                         className="h-4 w-4 rounded border-border"
                       />
-                      <Label htmlFor="same-billing" className="text-xs text-muted-foreground">Billing address same as shipping</Label>
+                      <Label htmlFor="same-billing" className="text-xs text-muted-foreground">{t('checkout.sameAsBilling', { defaultValue: 'Billing address same as shipping' })}</Label>
                     </div>
                   </div>
                 </div>
@@ -489,7 +491,7 @@ export default function Checkout() {
                     onClick={handleEmailSubmit} 
                     className="w-full h-12 bg-foreground text-background font-bold text-sm rounded-lg hover:bg-foreground/90 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
                   >
-                    Continue to Payment
+                    {t('checkout.continueToPayment', { defaultValue: 'Continue to Payment' })}
                   </Button>
                 </div>
               </div>
@@ -498,22 +500,22 @@ export default function Checkout() {
             {currentStep === 2 && (
               <div className="space-y-8">
                 <div className="space-y-6">
-                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Shipping Method</h2>
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">{t('checkout.shippingMethod')}</h2>
                   
                   {!cart?.shipping_address ? (
                     <div className="text-center py-12">
-                      <p className="text-xs text-muted-foreground mb-4">Please set your shipping address first.</p>
+                      <p className="text-xs text-muted-foreground mb-4">{t('checkout.setAddressFirst', { defaultValue: 'Please set your shipping address first.' })}</p>
                       <Button 
                         variant="outline" 
                         onClick={() => setCurrentStep(1)} 
                         className="text-xs h-9 px-6"
                       >
-                        Back to Address
+                        {t('checkout.backToAddress', { defaultValue: 'Back to Address' })}
                       </Button>
                     </div>
                   ) : shippingOptions.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-xs text-muted-foreground">Loading shipping options...</p>
+                      <p className="text-xs text-muted-foreground">{t('checkout.loadingShipping', { defaultValue: 'Loading shipping options...' })}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -536,13 +538,13 @@ export default function Checkout() {
                                     <div className="space-y-1">
                                       <p className="text-sm font-medium text-foreground">{option.name}</p>
                                       <p className="text-xs text-muted-foreground">
-                                        {option.data?.delivery_estimate || "Standard delivery"}
+                                        {option.data?.delivery_estimate || t('checkout.standardDelivery', { defaultValue: 'Standard delivery' })}
                                       </p>
                                     </div>
                                   </Label>
                                 </div>
                                 <span className="text-sm font-bold text-foreground">
-                                  {price > 0 ? formatPrice(price, cart?.region?.currency_code) : "Free"}
+                                  {price > 0 ? formatPrice(price, cart?.region?.currency_code) : t('checkout.free', { defaultValue: 'Free' })}
                                 </span>
                               </div>
                             );
@@ -562,13 +564,13 @@ export default function Checkout() {
                     onClick={() => setCurrentStep(1)} 
                     className="flex-1 h-12 text-xs font-medium rounded-lg border-border/50 hover:border-border"
                   >
-                    Back
+                    {t('common.goBack')}
                   </Button>
                   <Button 
                     onClick={handleShippingSubmit} 
                     className="flex-1 h-12 bg-foreground text-background font-bold text-sm rounded-lg hover:bg-foreground/90 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
                   >
-                    Continue to Payment
+                    {t('checkout.continueToPayment', { defaultValue: 'Continue to Payment' })}
                   </Button>
                 </div>
               </div>
@@ -577,19 +579,19 @@ export default function Checkout() {
             {currentStep === 3 && (
               <div className="space-y-8">
                 <div className="space-y-6">
-                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Payment Method</h2>
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">{t('checkout.paymentMethod')}</h2>
                   
                   {/* Test Mode Notice */}
                   <div className="py-4 px-1 border-b border-border/30">
-                    <p className="text-xs font-bold text-foreground mb-2">Test Mode</p>
+                    <p className="text-xs font-bold text-foreground mb-2">{t('checkout.testMode', { defaultValue: 'Test Mode' })}</p>
                     <p className="text-xs text-muted-foreground">
-                      This is a demo checkout. No real payment will be processed.
+                      {t('checkout.demoNote', { defaultValue: 'This is a demo checkout. No real payment will be processed.' })}
                     </p>
                   </div>
 
                   {paymentProviders.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-xs text-muted-foreground">Loading payment options...</p>
+                      <p className="text-xs text-muted-foreground">{t('checkout.loadingPayment', { defaultValue: 'Loading payment options...' })}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -603,14 +605,14 @@ export default function Checkout() {
                                   <div className="flex items-center gap-3">
                                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm font-medium text-foreground">
-                                      {provider.id.includes('stripe') ? 'Stripe Payment' :
-                                       provider.id.includes('system_default') ? 'Manual Payment' :
+                                      {provider.id.includes('stripe') ? t('checkout.stripePayment', { defaultValue: 'Stripe Payment' }) :
+                                       provider.id.includes('system_default') ? t('checkout.manualPayment', { defaultValue: 'Manual Payment' }) :
                                        provider.id}
                                     </span>
                                   </div>
                                   {provider.id.includes('system_default') && (
                                     <p className="text-xs text-muted-foreground ml-7">
-                                      No additional actions required
+                                      {t('checkout.noAdditionalActions', { defaultValue: 'No additional actions required' })}
                                     </p>
                                   )}
                                 </div>
@@ -632,14 +634,14 @@ export default function Checkout() {
                     onClick={() => setCurrentStep(2)} 
                     className="flex-1 h-12 text-xs font-medium rounded-lg border-border/50 hover:border-border"
                   >
-                    Back
+                    {t('common.goBack')}
                   </Button>
                   <Button
                     onClick={handlePaymentSubmit}
                     disabled={isLoading || !selectedPaymentProvider}
                     className="flex-1 h-12 bg-foreground text-background font-bold text-sm rounded-lg hover:bg-foreground/90 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-none"
                   >
-                    {isLoading ? "Processing..." : "Complete Order"}
+                    {isLoading ? t('checkout.processing', { defaultValue: 'Processing...' }) : t('checkout.completeOrder', { defaultValue: 'Complete Order' })}
                   </Button>
                 </div>
               </div>
