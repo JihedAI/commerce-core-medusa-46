@@ -24,7 +24,7 @@ export function SearchOverlay(): JSX.Element {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   const debounceRef = useRef<number | null>(null);
-  const inputId = "site-search-input"; // used to focus the input (safe even if Input doesn't forwardRef)
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const exampleSearches = [
     "Ray-Ban",
@@ -39,7 +39,7 @@ export function SearchOverlay(): JSX.Element {
     "Dior Blacktie 2.0",
   ];
 
-  // rotate placeholders
+  // Rotate placeholders
   useEffect(() => {
     const t = window.setInterval(() => {
       setPlaceholderIndex((p) => (p + 1) % exampleSearches.length);
@@ -47,19 +47,19 @@ export function SearchOverlay(): JSX.Element {
     return () => window.clearInterval(t);
   }, []);
 
-  // focus the input after opening (works even if your Input doesn't forwardRef)
+  // Focus the input after opening
   useEffect(() => {
-    if (!open) return;
-    const t = window.setTimeout(() => {
-      const el = document.getElementById(inputId) as HTMLInputElement | null;
-      el?.focus();
-    }, 60);
-    return () => window.clearTimeout(t);
+    if (open && inputRef.current) {
+      const t = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(t);
+    }
   }, [open]);
 
-  // keyboard shortcuts: Esc to close, Ctrl/Cmd+K to toggle
+  // Keyboard shortcuts
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && open) {
         setOpen(false);
         setQuery("");
@@ -67,19 +67,17 @@ export function SearchOverlay(): JSX.Element {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((v) => !v);
-        setTimeout(() => document.getElementById(inputId)?.focus(), 60);
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
-  // debounced search (only when open && query)
+  // Debounced search
   useEffect(() => {
-    // clear previous debounce
     if (debounceRef.current) {
-      window.clearTimeout(debounceRef.current);
-      debounceRef.current = null;
+      clearTimeout(debounceRef.current);
     }
 
     if (!open || !query.trim()) {
@@ -89,18 +87,16 @@ export function SearchOverlay(): JSX.Element {
       return;
     }
 
-    debounceRef.current = window.setTimeout(async () => {
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
+    debounceRef.current = window.setTimeout(async () => {
       try {
-        // defensive: medusa might not be defined in some environments
         if (!medusa || typeof medusa.products?.list !== "function") {
           throw new Error("Search client not available");
         }
 
         const res: any = await medusa.products.list({ q: query, limit: 8 });
-
         const rawProducts = Array.isArray(res?.products) ? res.products : [];
 
         const mapped: SearchResult[] = rawProducts.map((p: any) => {
@@ -117,7 +113,7 @@ export function SearchOverlay(): JSX.Element {
           return {
             id: p?.id ?? String(Math.random()),
             title: p?.title ?? "Untitled product",
-            thumbnail: p?.thumbnail ?? "",
+            thumbnail: p?.thumbnail || "/placeholder.svg",
             handle: p?.handle ?? "",
             price: { formatted },
           };
@@ -135,149 +131,153 @@ export function SearchOverlay(): JSX.Element {
 
     return () => {
       if (debounceRef.current) {
-        window.clearTimeout(debounceRef.current);
-        debounceRef.current = null;
+        clearTimeout(debounceRef.current);
       }
     };
   }, [query, open]);
 
   return (
-    <div className="relative w-full max-w-md">
-      <div className="flex items-center justify-end">
-        {/* Idle: rotating keyword + search button */}
+    <>
+      {/* Search Trigger */}
+      <div className="relative">
         <AnimatePresence>
           {!open && (
-            <motion.div
-              key="idle"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.24 }}
-              className="flex items-center gap-3 cursor-pointer select-none"
+            <motion.button
+              key="search-trigger"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="flex items-center gap-2 p-2 rounded-full bg-accent/60 hover:bg-accent transition-all shadow-sm"
               onClick={() => setOpen(true)}
-              role="button"
               aria-label="Open search"
             >
+              <Search className="w-4 h-4 text-foreground" />
               <motion.span
                 key={placeholderIndex}
-                initial={{ y: "100%", opacity: 0 }}
-                animate={{ y: "0%", opacity: 1 }}
-                exit={{ y: "-100%", opacity: 0 }}
-                transition={{ duration: 0.45, ease: "easeInOut" }}
-                className="text-sm md:text-base text-muted-foreground max-w-[12rem] truncate"
-                aria-hidden
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-sm text-muted-foreground max-w-[10rem] truncate hidden sm:block"
               >
                 {exampleSearches[placeholderIndex]}
               </motion.span>
-
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <button
-                  aria-label="Open search"
-                  className="p-2 rounded-full bg-accent/60 hover:bg-accent transition-shadow shadow-sm"
-                >
-                  <Search className="w-4 h-4 text-foreground" />
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Open: input + close */}
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              key="open"
-              initial={{ opacity: 0, x: 6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 6 }}
-              transition={{ duration: 0.22 }}
-              className="w-full flex items-center gap-2"
-            >
-              <div className="flex-1 relative">
-                <div className="flex items-center gap-2 rounded-full px-3 py-2 bg-background/70 border border-border/60 shadow-sm">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-
-                  {/* Use your Input component but rely on id for focusing */}
-                  <Input
-                    id={inputId}
-                    value={query}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-                    placeholder="Search products, brands..."
-                    className="border-0 bg-transparent focus-visible:ring-0 text-sm md:text-base"
-                    aria-label="Search"
-                  />
-
-                  {query && (
-                    <button onClick={() => setQuery("")} aria-label="Clear query" className="rounded-full p-1">
-                      <X className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Dropdown */}
-                {query.trim() !== "" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.18 }}
-                    className="absolute left-0 right-0 mt-2 z-50"
-                  >
-                    <div className="rounded-lg border border-border/60 bg-card/95 backdrop-blur shadow-md overflow-hidden">
-                      <ScrollArea className="max-h-[50vh]">
-                        {isLoading ? (
-                          <div className="p-3 text-center text-xs text-muted-foreground">Chargement...</div>
-                        ) : error ? (
-                          <div className="p-3 text-center text-xs text-red-400">Erreur : {error}</div>
-                        ) : results.length > 0 ? (
-                          <div className="grid gap-1.5 p-2">
-                            {results.map((r) => (
-                              <Link
-                                key={r.id}
-                                to={"/products/" + r.handle}
-                                className="flex items-center gap-2 p-2 rounded-md hover:bg-accent/60 transition-colors"
-                                onClick={() => {
-                                  setOpen(false);
-                                  setQuery("");
-                                }}
-                              >
-                                <img
-                                  src={r.thumbnail || "/placeholder.svg"}
-                                  alt={r.title}
-                                  className="w-10 h-10 object-cover rounded-md"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-medium truncate">{r.title}</h4>
-                                  <p className="text-xs text-muted-foreground">{r.price?.formatted}</p>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="p-3 text-center text-xs text-muted-foreground">Aucun produit trouvé</div>
-                        )}
-                      </ScrollArea>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Close search"
-                onClick={() => {
-                  setOpen(false);
-                  setQuery("");
-                }}
-                className="rounded-full"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </motion.div>
+            </motion.button>
           )}
         </AnimatePresence>
       </div>
-    </div>
+
+      {/* Search Overlay */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="search-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            onClick={() => {
+              setOpen(false);
+              setQuery("");
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              className="absolute top-20 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-card rounded-xl border shadow-lg overflow-hidden">
+                {/* Search Header */}
+                <div className="flex items-center gap-2 p-4 border-b">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                  <Input
+                    ref={inputRef}
+                    value={query}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+                    placeholder="Search products, brands..."
+                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base"
+                    aria-label="Search products"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setOpen(false);
+                      setQuery("");
+                    }}
+                    className="rounded-full"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Search Results */}
+                {query.trim() && (
+                  <div className="max-h-96 overflow-hidden">
+                    <ScrollArea className="h-full">
+                      {isLoading ? (
+                        <div className="p-6 text-center text-muted-foreground">
+                          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] mr-2" />
+                          Searching...
+                        </div>
+                      ) : error ? (
+                        <div className="p-6 text-center text-destructive">
+                          <p>Error: {error}</p>
+                          <Button variant="outline" className="mt-2" onClick={() => setQuery("")}>
+                            Try Again
+                          </Button>
+                        </div>
+                      ) : results.length > 0 ? (
+                        <div className="p-2">
+                          {results.map((result) => (
+                            <Link
+                              key={result.id}
+                              to={`/products/${result.handle}`}
+                              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                              onClick={() => {
+                                setOpen(false);
+                                setQuery("");
+                              }}
+                            >
+                              <div className="flex-shrink-0 w-12 h-12 bg-muted rounded-md overflow-hidden">
+                                <img src={result.thumbnail} alt={result.title} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium truncate">{result.title}</h4>
+                                <p className="text-sm text-muted-foreground">{result.price?.formatted}</p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-muted-foreground">No products found for "{query}"</div>
+                      )}
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {/* Search Tips */}
+                {!query.trim() && (
+                  <div className="p-6 text-center">
+                    <p className="text-muted-foreground mb-4">Try searching for:</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {exampleSearches.slice(0, 5).map((search, index) => (
+                        <button
+                          key={index}
+                          className="px-3 py-1.5 text-sm bg-accent rounded-full hover:bg-accent/80 transition-colors"
+                          onClick={() => setQuery(search)}
+                        >
+                          {search}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
