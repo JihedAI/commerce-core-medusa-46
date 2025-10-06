@@ -6,7 +6,6 @@ import StorySection from "@/components/StorySection";
 import ExploreBanner from "@/components/ExploreBanner";
 import StoreLocator from "@/components/StoreLocator";
 import Layout from "@/components/Layout";
-import PolarizedSlider from "@/components/PolarizedSlider";
 
 export default function Home() {
   // Memoized video URLs for the hero section
@@ -34,9 +33,6 @@ export default function Home() {
 
       {/* 📖 Story Section */}
       <StorySection />
-
-      {/* ✨ Polarized Filter Comparison Section */}
-      <PolarizedSlider imageUrl="https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=1600&q=80" />
 
       {/* 🌍 Explore Banner */}
       <ExploreBanner />
