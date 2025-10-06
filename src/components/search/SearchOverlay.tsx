@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { Input } from "../ui/input";
-import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
+import { ScrollArea } from "../ui/scroll-area";
 import { medusa } from "@/lib/medusa";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,13 +15,16 @@ interface SearchResult {
   price?: { formatted: string };
 }
 
-export function SearchOverlay() {
+export function SearchOverlay(): JSX.Element {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const debounceRef = useRef<number | null>(null);
+  const inputId = "site-search-input"; // used to focus the input (safe even if Input doesn't forwardRef)
 
   const exampleSearches = [
     "Ray-Ban",
@@ -36,86 +39,124 @@ export function SearchOverlay() {
     "Dior Blacktie 2.0",
   ];
 
-  // rotate keywords
+  // rotate placeholders
   useEffect(() => {
-    const t = setInterval(() => {
+    const t = window.setInterval(() => {
       setPlaceholderIndex((p) => (p + 1) % exampleSearches.length);
     }, 2500);
-    return () => clearInterval(t);
+    return () => window.clearInterval(t);
   }, []);
 
-  // focus the input when opened
+  // focus the input after opening (works even if your Input doesn't forwardRef)
   useEffect(() => {
-    if (isOpen) {
-      // small delay to let animation mount
-      setTimeout(() => inputRef.current?.focus(), 80);
-    }
-  }, [isOpen]);
+    if (!open) return;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(inputId) as HTMLInputElement | null;
+      el?.focus();
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [open]);
 
-  // debounced search
+  // keyboard shortcuts: Esc to close, Ctrl/Cmd+K to toggle
   useEffect(() => {
-    if (!query.trim()) {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+        setQuery("");
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setOpen((v) => !v);
+        setTimeout(() => document.getElementById(inputId)?.focus(), 60);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  // debounced search (only when open && query)
+  useEffect(() => {
+    // clear previous debounce
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    if (!open || !query.trim()) {
       setResults([]);
       setIsLoading(false);
+      setError(null);
       return;
     }
 
-    let mounted = true;
-    const run = async () => {
+    debounceRef.current = window.setTimeout(async () => {
       setIsLoading(true);
-      try {
-        const { products } = await medusa.products.list({ q: query, limit: 8 });
-        if (!mounted) return;
+      setError(null);
 
-        const mapped: SearchResult[] = (products || []).map((p: any) => {
+      try {
+        // defensive: medusa might not be defined in some environments
+        if (!medusa || typeof medusa.products?.list !== "function") {
+          throw new Error("Search client not available");
+        }
+
+        const res: any = await medusa.products.list({ q: query, limit: 8 });
+
+        const rawProducts = Array.isArray(res?.products) ? res.products : [];
+
+        const mapped: SearchResult[] = rawProducts.map((p: any) => {
           const priceAmount = p?.variants?.[0]?.prices?.[0]?.amount;
           const currency = p?.variants?.[0]?.prices?.[0]?.currency_code ?? "USD";
-          const formatted = priceAmount
-            ? (priceAmount / 100).toLocaleString("en-US", {
-                style: "currency",
-                currency,
-              })
-            : "N/A";
+          const formatted =
+            typeof priceAmount === "number"
+              ? (priceAmount / 100).toLocaleString("en-US", {
+                  style: "currency",
+                  currency,
+                })
+              : "N/A";
 
           return {
-            id: p.id,
-            title: p.title ?? "Untitled",
-            thumbnail: p.thumbnail ?? "",
-            handle: p.handle ?? "",
+            id: p?.id ?? String(Math.random()),
+            title: p?.title ?? "Untitled product",
+            thumbnail: p?.thumbnail ?? "",
+            handle: p?.handle ?? "",
             price: { formatted },
           };
         });
 
         setResults(mapped);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Search error:", err);
         setResults([]);
+        setError(err?.message ?? "Search failed");
       } finally {
-        if (mounted) setIsLoading(false);
+        setIsLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      if (debounceRef.current) {
+        window.clearTimeout(debounceRef.current);
+        debounceRef.current = null;
       }
     };
-
-    const debounce = setTimeout(run, 350);
-    return () => {
-      mounted = false;
-      clearTimeout(debounce);
-    };
-  }, [query]);
+  }, [query, open]);
 
   return (
     <div className="relative w-full max-w-md">
-      {/* container stable — keep relative so dropdown can position */}
       <div className="flex items-center justify-end">
         {/* Idle: rotating keyword + search button */}
-        <AnimatePresence mode="wait">
-          {!isOpen && (
+        <AnimatePresence>
+          {!open && (
             <motion.div
               key="idle"
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.28 }}
-              className="flex items-center gap-3 cursor-default select-none"
+              transition={{ duration: 0.24 }}
+              className="flex items-center gap-3 cursor-pointer select-none"
+              onClick={() => setOpen(true)}
+              role="button"
+              aria-label="Open search"
             >
               <motion.span
                 key={placeholderIndex}
@@ -132,7 +173,6 @@ export function SearchOverlay() {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <button
                   aria-label="Open search"
-                  onClick={() => setIsOpen(true)}
                   className="p-2 rounded-full bg-accent/60 hover:bg-accent transition-shadow shadow-sm"
                 >
                   <Search className="w-4 h-4 text-foreground" />
@@ -142,31 +182,39 @@ export function SearchOverlay() {
           )}
         </AnimatePresence>
 
-        {/* Active: input with icon + close */}
+        {/* Open: input + close */}
         <AnimatePresence>
-          {isOpen && (
+          {open && (
             <motion.div
               key="open"
               initial={{ opacity: 0, x: 6 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 6 }}
-              transition={{ duration: 0.28 }}
+              transition={{ duration: 0.22 }}
               className="w-full flex items-center gap-2"
             >
               <div className="flex-1 relative">
                 <div className="flex items-center gap-2 rounded-full px-3 py-2 bg-background/70 border border-border/60 shadow-sm">
                   <Search className="w-4 h-4 text-muted-foreground" />
+
+                  {/* Use your Input component but rely on id for focusing */}
                   <Input
-                    ref={inputRef}
+                    id={inputId}
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                     placeholder="Search products, brands..."
                     className="border-0 bg-transparent focus-visible:ring-0 text-sm md:text-base"
-                    aria-label="Search query"
+                    aria-label="Search"
                   />
+
+                  {query && (
+                    <button onClick={() => setQuery("")} aria-label="Clear query" className="rounded-full p-1">
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  )}
                 </div>
 
-                {/* results dropdown */}
+                {/* Dropdown */}
                 {query.trim() !== "" && (
                   <motion.div
                     initial={{ opacity: 0, y: -6 }}
@@ -179,6 +227,8 @@ export function SearchOverlay() {
                       <ScrollArea className="max-h-[50vh]">
                         {isLoading ? (
                           <div className="p-3 text-center text-xs text-muted-foreground">Chargement...</div>
+                        ) : error ? (
+                          <div className="p-3 text-center text-xs text-red-400">Erreur : {error}</div>
                         ) : results.length > 0 ? (
                           <div className="grid gap-1.5 p-2">
                             {results.map((r) => (
@@ -187,7 +237,7 @@ export function SearchOverlay() {
                                 to={"/products/" + r.handle}
                                 className="flex items-center gap-2 p-2 rounded-md hover:bg-accent/60 transition-colors"
                                 onClick={() => {
-                                  setIsOpen(false);
+                                  setOpen(false);
                                   setQuery("");
                                 }}
                               >
@@ -217,7 +267,7 @@ export function SearchOverlay() {
                 size="icon"
                 aria-label="Close search"
                 onClick={() => {
-                  setIsOpen(false);
+                  setOpen(false);
                   setQuery("");
                 }}
                 className="rounded-full"
