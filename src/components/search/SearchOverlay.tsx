@@ -21,10 +21,11 @@ export function SearchOverlay(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
 
   const debounceRef = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const keywordsContainerRef = useRef<HTMLDivElement>(null);
 
   const exampleSearches = [
     "Ray-Ban",
@@ -39,12 +40,13 @@ export function SearchOverlay(): JSX.Element {
     "Dior Blacktie 2.0",
   ];
 
-  // Rotate placeholders
+  // Smooth scrolling animation for keywords
   useEffect(() => {
-    const t = window.setInterval(() => {
-      setPlaceholderIndex((p) => (p + 1) % exampleSearches.length);
-    }, 2500);
-    return () => window.clearInterval(t);
+    const interval = setInterval(() => {
+      setCurrentKeywordIndex((prev) => (prev + 1) % exampleSearches.length);
+    }, 3000); // Changed to 3 seconds for better readability
+
+    return () => clearInterval(interval);
   }, []);
 
   // Focus the input after opening
@@ -140,32 +142,47 @@ export function SearchOverlay(): JSX.Element {
     <>
       {/* Search Trigger */}
       <div className="relative">
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {!open && (
             <motion.button
               key="search-trigger"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="flex items-center gap-2 p-2 rounded-full bg-accent/60 hover:bg-accent transition-all shadow-sm"
+              className="flex items-center gap-3 p-2 rounded-full bg-accent/60 hover:bg-accent transition-all shadow-sm min-w-[200px] justify-start"
               onClick={() => setOpen(true)}
               aria-label="Open search"
             >
-              <Search className="w-4 h-4 text-foreground" />
-              <motion.span
-                key={placeholderIndex}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-muted-foreground max-w-[10rem] truncate hidden sm:block"
-              >
-                {exampleSearches[placeholderIndex]}
-              </motion.span>
+              <Search className="w-4 h-4 text-foreground flex-shrink-0" />
+
+              {/* Smooth scrolling keywords */}
+              <div className="relative h-6 overflow-hidden flex-1 text-left">
+                <motion.div
+                  key={currentKeywordIndex}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                  className="absolute inset-0 text-sm text-muted-foreground truncate"
+                >
+                  {exampleSearches[currentKeywordIndex]}
+                </motion.div>
+              </div>
+
+              {/* Keyboard shortcut hint */}
+              <kbd className="hidden sm:inline-flex items-center gap-1 rounded border bg-muted px-1.5 py-1 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex-shrink-0">
+                <span className="text-xs">⌘</span>K
+              </kbd>
             </motion.button>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Search Overlay */}
+      {/* Search Overlay - Centered on screen */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -183,19 +200,24 @@ export function SearchOverlay(): JSX.Element {
               initial={{ opacity: 0, scale: 0.9, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -20 }}
-              className="absolute top-20 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4"
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-card rounded-xl border shadow-lg overflow-hidden">
+              <div className="bg-card rounded-xl border shadow-2xl overflow-hidden">
                 {/* Search Header */}
-                <div className="flex items-center gap-2 p-4 border-b">
-                  <Search className="w-5 h-5 text-muted-foreground" />
+                <div className="flex items-center gap-3 p-4 border-b">
+                  <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                   <Input
                     ref={inputRef}
                     value={query}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                     placeholder="Search products, brands..."
-                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base"
+                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base py-2"
                     aria-label="Search products"
                   />
                   <Button
@@ -205,7 +227,7 @@ export function SearchOverlay(): JSX.Element {
                       setOpen(false);
                       setQuery("");
                     }}
-                    className="rounded-full"
+                    className="rounded-full flex-shrink-0"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -216,13 +238,15 @@ export function SearchOverlay(): JSX.Element {
                   <div className="max-h-96 overflow-hidden">
                     <ScrollArea className="h-full">
                       {isLoading ? (
-                        <div className="p-6 text-center text-muted-foreground">
-                          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] mr-2" />
-                          Searching...
+                        <div className="p-8 text-center text-muted-foreground">
+                          <div className="inline-flex items-center gap-3">
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent" />
+                            <span>Searching...</span>
+                          </div>
                         </div>
                       ) : error ? (
                         <div className="p-6 text-center text-destructive">
-                          <p>Error: {error}</p>
+                          <p className="mb-3">Error: {error}</p>
                           <Button variant="outline" className="mt-2" onClick={() => setQuery("")}>
                             Try Again
                           </Button>
@@ -233,24 +257,33 @@ export function SearchOverlay(): JSX.Element {
                             <Link
                               key={result.id}
                               to={`/products/${result.handle}`}
-                              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
                               onClick={() => {
                                 setOpen(false);
                                 setQuery("");
                               }}
                             >
                               <div className="flex-shrink-0 w-12 h-12 bg-muted rounded-md overflow-hidden">
-                                <img src={result.thumbnail} alt={result.title} className="w-full h-full object-cover" />
+                                <img
+                                  src={result.thumbnail}
+                                  alt={result.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-medium truncate">{result.title}</h4>
+                                <h4 className="font-medium truncate text-foreground group-hover:text-primary transition-colors">
+                                  {result.title}
+                                </h4>
                                 <p className="text-sm text-muted-foreground">{result.price?.formatted}</p>
                               </div>
                             </Link>
                           ))}
                         </div>
                       ) : (
-                        <div className="p-6 text-center text-muted-foreground">No products found for "{query}"</div>
+                        <div className="p-8 text-center text-muted-foreground">
+                          <p>No products found for "{query}"</p>
+                          <p className="text-sm mt-2">Try different keywords or check spelling</p>
+                        </div>
                       )}
                     </ScrollArea>
                   </div>
@@ -258,17 +291,20 @@ export function SearchOverlay(): JSX.Element {
 
                 {/* Search Tips */}
                 {!query.trim() && (
-                  <div className="p-6 text-center">
-                    <p className="text-muted-foreground mb-4">Try searching for:</p>
+                  <div className="p-6">
+                    <p className="text-muted-foreground mb-4 text-center">Try searching for:</p>
                     <div className="flex flex-wrap justify-center gap-2">
-                      {exampleSearches.slice(0, 5).map((search, index) => (
-                        <button
-                          key={index}
-                          className="px-3 py-1.5 text-sm bg-accent rounded-full hover:bg-accent/80 transition-colors"
+                      {exampleSearches.slice(0, 6).map((search, index) => (
+                        <motion.button
+                          key={search}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="px-3 py-2 text-sm bg-accent rounded-lg hover:bg-accent/80 transition-all hover:scale-105 active:scale-95"
                           onClick={() => setQuery(search)}
                         >
                           {search}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
