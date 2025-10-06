@@ -17,7 +17,7 @@ export default function Home() {
       <StorySection />
 
       {/* ✨ New Polarized Section */}
-      <PolarizedSlider imageUrl="https://your-image-url-here.jpg" />
+      <PolarizedSlider imageUrl="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
 
       <ExploreBanner />
       <StoreLocator />
