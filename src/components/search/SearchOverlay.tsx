@@ -1,11 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Input } from '../ui/input';
 
+const PLACEHOLDER_TEXTS = [
+  'Search for sneakers...',
+  'Search for jackets...',
+  'Search for accessories...',
+  'Search for hoodies...',
+  'Search for jeans...'
+];
+
 export function SearchOverlay() {
   const [query, setQuery] = useState('');
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_TEXTS.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +37,8 @@ export function SearchOverlay() {
         <Search className="w-4 h-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search products..."
-          className="border-0 focus-visible:ring-0 text-sm bg-transparent h-7 placeholder:text-muted-foreground/60"
+          placeholder={PLACEHOLDER_TEXTS[placeholderIndex]}
+          className="border-0 focus-visible:ring-0 text-sm bg-transparent h-7 placeholder:text-muted-foreground/60 transition-all duration-500"
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
