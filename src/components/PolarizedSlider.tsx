@@ -9,46 +9,41 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
+
   const clipPath = useTransform(
     x,
-    (value) => `inset(0 ${Math.max(0, 100 - (value / (containerRef.current?.offsetWidth || 1)) * 100)}% 0 0)`
+    (value) => `inset(0 ${Math.max(0, 100 - (value / (containerRef.current?.offsetWidth || 1)) * 100)}% 0 0)`,
   );
 
   return (
-    <section className="relative w-screen h-[80vh] -mx-[50vw] left-1/2 right-1/2 flex items-center justify-center bg-background overflow-hidden">
-      <div
-        ref={containerRef}
-        className="relative w-full h-full overflow-hidden"
-      >
-        {/* Polarized Filtered Image (Right Side) */}
-        <div className="absolute inset-0 w-full h-full">
+    <section className="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black/5">
+      <div ref={containerRef} className="relative w-full h-full overflow-hidden rounded-2xl">
+        {/* 🔹 Right Side (Polarized) */}
+        <div className="absolute inset-0">
           <img
             src={imageUrl}
-            alt="Polarized view"
+            alt="Polarized"
             className="w-full h-full object-cover select-none"
             style={{
-              filter: "contrast(1.3) saturate(1.4) brightness(0.95) hue-rotate(5deg)",
+              filter: "contrast(1.5) saturate(1.5) brightness(0.9) hue-rotate(15deg)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-blue-500/10 mix-blend-overlay" />
         </div>
 
-        {/* Normal Image (Left Side - Clipped) */}
-        <motion.div
-          style={{ clipPath }}
-          className="absolute inset-0 overflow-hidden"
-        >
+        {/* 🔸 Left Side (Normal) */}
+        <motion.div style={{ clipPath }} className="absolute inset-0 overflow-hidden">
           <img
             src={imageUrl}
-            alt="Normal view"
+            alt="Normal"
             className="w-full h-full object-cover select-none"
             style={{
-              filter: "sepia(0.15) brightness(1.05)",
+              filter: "brightness(1.05) saturate(0.9)",
             }}
           />
         </motion.div>
 
-        {/* Draggable Divider */}
+        {/* ⚪ Divider */}
         <motion.div
           drag="x"
           dragConstraints={containerRef}
@@ -57,56 +52,43 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           dragMomentum={false}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
-          className="absolute top-0 bottom-0 left-1/2 w-[2px] bg-gradient-to-b from-white/60 via-white/90 to-white/60 cursor-ew-resize z-20 shadow-[0_0_20px_rgba(255,255,255,0.5)]"
+          className="absolute top-0 bottom-0 left-1/2 w-[1.5px] bg-white/70 cursor-ew-resize z-20"
         >
-          {/* Slider Handle */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+          {/* Handle */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div
-              className={`w-12 h-12 rounded-full bg-white/95 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/20 flex items-center justify-center transition-all duration-200 ${
-                isDragging ? "scale-110 shadow-[0_12px_40px_rgba(0,0,0,0.2)]" : "scale-100"
+              className={`w-8 h-8 rounded-full bg-white/90 border border-white/20 backdrop-blur-sm shadow-md flex items-center justify-center transition-transform ${
+                isDragging ? "scale-110" : "scale-100"
               }`}
             >
-              <div className="flex gap-1">
-                <div className="w-0.5 h-4 bg-foreground/40 rounded-full" />
-                <div className="w-0.5 h-4 bg-foreground/40 rounded-full" />
+              <div className="flex gap-[2px]">
+                <div className="w-0.5 h-3 bg-black/40 rounded-full" />
+                <div className="w-0.5 h-3 bg-black/40 rounded-full" />
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Floating Labels */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="absolute left-8 top-8 md:left-12 md:top-12"
-        >
-          <div className="backdrop-blur-md bg-background/40 border border-white/10 text-foreground text-xs md:text-sm px-4 py-2 rounded-full shadow-lg font-light tracking-wide">
+        {/* Labels */}
+        <div className="absolute left-4 top-4 md:left-8 md:top-8">
+          <div className="bg-white/70 text-black text-[10px] md:text-xs px-3 py-1 rounded-full font-medium shadow-sm backdrop-blur-sm">
             Sans polarisation
           </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="absolute right-8 top-8 md:right-12 md:top-12"
-        >
-          <div className="backdrop-blur-md bg-background/40 border border-white/10 text-foreground text-xs md:text-sm px-4 py-2 rounded-full shadow-lg font-light tracking-wide">
+        </div>
+        <div className="absolute right-4 top-4 md:right-8 md:top-8">
+          <div className="bg-white/70 text-black text-[10px] md:text-xs px-3 py-1 rounded-full font-medium shadow-sm backdrop-blur-sm">
             Avec polarisation
           </div>
-        </motion.div>
+        </div>
 
-        {/* Center Text */}
+        {/* Hint Text */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.8 }}
+          transition={{ delay: 0.8, duration: 1 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center"
         >
-          <p className="text-white text-sm md:text-base font-light tracking-[0.2em] uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
-            Glissez pour découvrir
-          </p>
+          <p className="text-white/80 text-xs md:text-sm font-light uppercase tracking-widest">Glissez pour comparer</p>
         </motion.div>
       </div>
     </section>
