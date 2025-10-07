@@ -208,7 +208,7 @@ export function SearchOverlay(): JSX.Element {
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-card rounded-xl border shadow-2xl overflow-hidden">
+              <div className="bg-white rounded-xl border shadow-2xl overflow-hidden">
                 {/* Search Header */}
                 <div className="flex items-center gap-3 p-4 border-b-0 bg-transparent shadow-none">
                   <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
