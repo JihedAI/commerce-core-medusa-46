@@ -282,20 +282,38 @@ export default function ProductDetail() {
           <div className="mb-6">
             {price?.calculated_amount_with_tax ? (
               <div className="flex items-baseline gap-4">
-                <span className="text-2xl font-semibold text-foreground">
+                <span className="text-3xl font-bold text-foreground">
                   {formatPrice(price.calculated_amount_with_tax, currency)}
                 </span>
                 {price.original_amount_with_tax && 
                  price.calculated_amount_with_tax !== price.original_amount_with_tax && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    {formatPrice(price.original_amount_with_tax, currency)}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-lg text-muted-foreground line-through">
+                      {formatPrice(price.original_amount_with_tax, currency)}
+                    </span>
+                    <span className="text-sm font-medium text-green-600">
+                      Save {Math.round(((price.original_amount_with_tax - price.calculated_amount_with_tax) / price.original_amount_with_tax) * 100)}%
+                    </span>
+                  </div>
                 )}
               </div>
             ) : price?.calculated_amount ? (
-              <span className="text-2xl font-semibold text-foreground">
-                {formatPrice(price.calculated_amount, currency)}
-              </span>
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl font-bold text-foreground">
+                  {formatPrice(price.calculated_amount, currency)}
+                </span>
+                {price.original_amount && 
+                 price.calculated_amount !== price.original_amount && (
+                  <div className="flex flex-col">
+                    <span className="text-lg text-muted-foreground line-through">
+                      {formatPrice(price.original_amount, currency)}
+                    </span>
+                    <span className="text-sm font-medium text-green-600">
+                      Save {Math.round(((price.original_amount - price.calculated_amount) / price.original_amount) * 100)}%
+                    </span>
+                  </div>
+                )}
+              </div>
             ) : (
                 <span className="text-lg text-muted-foreground">
                 {t('productDetail.priceInCart', { defaultValue: 'Price available in cart' })}
