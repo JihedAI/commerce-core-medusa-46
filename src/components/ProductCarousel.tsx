@@ -21,18 +21,31 @@ interface ProductCarouselProps {
 // === Product Card ===
 const CarouselProductCard = memo(
   ({ product, onClick }: { product: any; onClick: () => void }) => {
-    const price = useMemo(() => {
+    const priceInfo = useMemo(() => {
       const variant = product.variants?.[0];
-      if (!variant) return "Price N/A";
-      const amount =
-        variant.calculated_price?.calculated_amount ||
+      if (!variant) return { current: "Price N/A", original: null, currency: "USD" };
+      
+      const calculatedPrice = variant.calculated_price;
+      const currentAmount =
+        calculatedPrice?.calculated_amount_with_tax ||
+        calculatedPrice?.calculated_amount ||
         variant.prices?.[0]?.amount ||
         0;
+      const originalAmount = 
+        calculatedPrice?.original_amount_with_tax ||
+        calculatedPrice?.original_amount;
       const currency =
-        variant.calculated_price?.currency_code ||
+        calculatedPrice?.currency_code ||
         variant.prices?.[0]?.currency_code ||
         "USD";
-      return formatPrice(amount, currency);
+      
+      return {
+        current: formatPrice(currentAmount, currency),
+        original: originalAmount && originalAmount !== currentAmount 
+          ? formatPrice(originalAmount, currency)
+          : null,
+        currency
+      };
     }, [product]);
 
     return (
@@ -63,7 +76,12 @@ const CarouselProductCard = memo(
           <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-1 leading-tight">
             {product.title}
           </h3>
-          <p className="text-xs md:text-sm text-muted-foreground mt-1">{price}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs md:text-sm font-medium text-foreground">{priceInfo.current}</p>
+            {priceInfo.original && (
+              <p className="text-xs text-muted-foreground line-through">{priceInfo.original}</p>
+            )}
+          </div>
         </div>
       </a>
     );

@@ -52,12 +52,20 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
     }
   }, [defaultVariant, addItem, toast]);
 
-  // Memoize price calculation
-  const displayPrice = React.useMemo(() => {
-    if (!price) return "Price N/A";
-    const amount = price.calculated_amount || price.calculated_amount_with_tax || 0;
+  // Memoize price calculation with original price
+  const priceInfo = React.useMemo(() => {
+    if (!price) return { current: "Price N/A", original: null };
+    
+    const currentAmount = price.calculated_amount_with_tax || price.calculated_amount || 0;
+    const originalAmount = price.original_amount_with_tax || price.original_amount;
     const currency = price.currency_code || "USD";
-    return formatPrice(amount, currency);
+    
+    return {
+      current: formatPrice(currentAmount, currency),
+      original: originalAmount && originalAmount !== currentAmount
+        ? formatPrice(originalAmount, currency)
+        : null
+    };
   }, [price]);
 
   return (
@@ -91,9 +99,16 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
             {truncateText(product.title, 50)}
           </h3>
           <div className="flex items-center justify-between">
-            <span className="text-xs md:text-sm text-muted-foreground">
-              {displayPrice}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs md:text-sm font-medium text-foreground">
+                {priceInfo.current}
+              </span>
+              {priceInfo.original && (
+                <span className="text-xs text-muted-foreground line-through">
+                  {priceInfo.original}
+                </span>
+              )}
+            </div>
             
             {defaultVariant && hasStock && (
               <Button
