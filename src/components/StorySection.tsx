@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useTextAnimation } from "@/hooks/useTextAnimation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,6 +11,24 @@ export default function StorySection() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // Animated story titles
+  const storyTitles = [
+    t('story.title', { defaultValue: 'Our Story' }),
+    t('story.titleAlt1', { defaultValue: 'Our Journey' }),
+    t('story.titleAlt2', { defaultValue: 'Our Heritage' }),
+    t('story.titleAlt3', { defaultValue: 'Our Vision' })
+  ];
+
+  const { currentText: currentStoryTitle, MotionText: MotionStoryTitle } = useTextAnimation({
+    texts: storyTitles,
+    interval: 6000,
+    animationDuration: 0.5,
+    animationType: 'slide',
+    direction: 'up',
+    delay: 2000
+  });
 
   useEffect(() => {
     if (sectionRef.current && contentRef.current && statsRef.current) {
@@ -78,9 +97,9 @@ export default function StorySection() {
           {/* Story Content */}
           <div ref={contentRef} className="space-y-8">
             <div className="space-y-4 opacity-0">
-              <h2 className="text-4xl lg:text-5xl font-display font-bold text-foreground">
-                {t('story.title', { defaultValue: 'Our Story' })}
-              </h2>
+              <MotionStoryTitle className="text-4xl lg:text-5xl font-display font-bold text-foreground min-h-[1.2em]">
+                {currentStoryTitle}
+              </MotionStoryTitle>
               <div className="w-16 h-1 bg-primary"></div>
             </div>
             
@@ -99,9 +118,12 @@ export default function StorySection() {
             </div>
             
             <div className="opacity-0 pt-4">
-              <button className="bg-primary text-primary-foreground px-8 py-4 font-semibold tracking-wide hover:bg-primary/90 transition-all duration-300 transform hover:scale-105">
+              <a 
+                href="/about"
+                className="inline-block bg-primary text-primary-foreground px-8 py-4 font-semibold tracking-wide hover:bg-primary/90 transition-all duration-300 transform hover:scale-105"
+              >
                 {t('story.learnMore', { defaultValue: 'Learn More About Us' })}
-              </button>
+              </a>
             </div>
           </div>
           

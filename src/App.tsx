@@ -24,6 +24,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import CustomerProfile from "./pages/CustomerProfile";
 import GoogleCallback from "./pages/GoogleCallback";
+import About from "./pages/About";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,7 @@ const App = () => (
                   <Route path="/register" element={<Register />} />
                   <Route path="/auth/google/callback" element={<GoogleCallback />} />
                   <Route path="/profile" element={<CustomerProfile />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/:handle" element={<ProductDetail />} />
                   <Route path="/categories" element={<Categories />} />

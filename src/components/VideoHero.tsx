@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { gsap } from "gsap";
+import { scrollToCollections } from "@/utils/smoothScroll";
+import { useTextAnimation } from "@/hooks/useTextAnimation";
 
 interface VideoHeroProps {
   videos: string[];
@@ -16,6 +18,43 @@ export default function VideoHero({ videos }: VideoHeroProps) {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+
+  // Rotating phrases for hero title
+  const heroTitles = [
+    t('hero.title1', { defaultValue: 'TIMELESS' }),
+    t('hero.title2', { defaultValue: 'ELEGANT' }),
+    t('hero.title3', { defaultValue: 'REFINED' }),
+    t('hero.title4', { defaultValue: 'PREMIUM' })
+  ];
+
+  // Rotating phrases for subtitle
+  const heroSubtitles = [
+    t('hero.subtitle1', { defaultValue: 'Redefine Your Perspective' }),
+    t('hero.subtitle2', { defaultValue: 'Elegant by Design' }),
+    t('hero.subtitle3', { defaultValue: 'Crafted for You' }),
+    t('hero.subtitle4', { defaultValue: 'Style Meets Vision' })
+  ];
+
+  // Text animations
+  const { currentText: currentTitle, MotionText: MotionTitle } = useTextAnimation({
+    texts: heroTitles,
+    interval: 4000,
+    animationDuration: 0.5,
+    animationType: 'slide',
+    direction: 'up',
+    delay: 1000
+  });
+
+  const { currentText: currentSubtitle, MotionText: MotionSubtitle } = useTextAnimation({
+    texts: heroSubtitles,
+    interval: 4000,
+    animationDuration: 0.5,
+    animationType: 'slide',
+    direction: 'up',
+    delay: 1500
+  });
 
   useEffect(() => {
     // Auto-play functionality with optimized progress tracking
@@ -81,6 +120,12 @@ export default function VideoHero({ videos }: VideoHeroProps) {
     }
   };
 
+  // Handle smooth scroll to collections section
+  const handleCollectionsClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    scrollToCollections();
+  };
+
   return (
     <section className="relative h-screen w-full overflow-hidden">
       {/* Fullscreen Video Background */}
@@ -114,12 +159,12 @@ export default function VideoHero({ videos }: VideoHeroProps) {
       <div ref={contentRef} className="relative h-full flex flex-col items-center justify-end px-6 pb-32">
         {/* Tagline */}
         <div className="mb-8 text-center">
-          <h1 className="hero-animate font-display text-5xl md:text-7xl lg:text-8xl text-primary mb-4 tracking-wider">
-            TIMELESS
-          </h1>
-          <p className="hero-animate font-elegant text-xl md:text-2xl text-primary/90 tracking-[0.3em] uppercase">
-            Redefine Your Perspective
-          </p>
+          <MotionTitle className="hero-animate font-display text-5xl md:text-7xl lg:text-8xl text-primary mb-4 tracking-wider min-h-[1.2em]">
+            {currentTitle}
+          </MotionTitle>
+          <MotionSubtitle className="hero-animate font-elegant text-xl md:text-2xl text-primary/90 tracking-[0.3em] uppercase min-h-[1.5em]">
+            {currentSubtitle}
+          </MotionSubtitle>
         </div>
 
         {/* CTA Buttons */}
@@ -134,16 +179,16 @@ export default function VideoHero({ videos }: VideoHeroProps) {
             </Button>
           </Link>
           
-          <Link to="/collections">
-            <Button 
-              size="lg"
-              variant="outline"
-              className="group bg-transparent backdrop-blur-md border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all duration-500 px-8 py-6 text-sm tracking-[0.2em] uppercase"
-            >
-              {t('nav.collections')}
-              <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          <Button 
+            size="lg"
+            variant="outline"
+            onClick={handleCollectionsClick}
+            className="group bg-transparent backdrop-blur-md border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all duration-500 px-8 py-6 text-sm tracking-[0.2em] uppercase cursor-pointer"
+            aria-label="Scroll to collections section"
+          >
+            {t('nav.collections')}
+            <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </div>
 
         {/* Progress Tracker - Positioned at bottom */}

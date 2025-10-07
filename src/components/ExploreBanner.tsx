@@ -1,24 +1,130 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { scrollToCollections } from "@/utils/smoothScroll";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ExploreBanner() {
   const { t } = useTranslation();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Image collection for the slider
+  const images = [
+    {
+      src: "https://images.pexels.com/photos/7335264/pexels-photo-7335264.jpeg",
+      alt: "Premium eyewear collection"
+    },
+    {
+      src: "https://images.pexels.com/photos/34091940/pexels-photo-34091940.jpeg",
+      alt: "Elegant glasses showcase"
+    },
+    {
+      src: "https://images.pexels.com/photos/7507071/pexels-photo-7507071.jpeg",
+      alt: "Modern eyewear design"
+    }
+  ];
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isHovered) {
+      intervalRef.current = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+      }, 5000); // Change image every 5 seconds
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isHovered, images.length]);
+
+  // Navigation functions
+  const goToPrevious = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const goToNext = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
+  // Handle smooth scroll to collections section
+  const handleCollectionsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    scrollToCollections();
+  };
+
   return (
-    <section className="relative w-full h-[70vh] overflow-hidden">
-      {/* Background Image */}
+    <section 
+      className="relative w-full h-[70vh] overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Slider */}
       <div className="absolute inset-0">
-        <img
-          src="https://images.pexels.com/photos/7335264/pexels-photo-7335264.jpeg"
-          alt="Explore our eyewear collection"
-          className="w-full h-full object-cover"
-        />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentImageIndex}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            <img
+              src={images[currentImageIndex].src}
+              alt={images[currentImageIndex].alt}
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+        </AnimatePresence>
+        
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-transparent"></div>
+        
+        {/* Navigation Arrows */}
+        <button
+          onClick={goToPrevious}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/40 transition-all duration-300 opacity-0 group-hover:opacity-100"
+          aria-label="Previous image"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        
+        <button
+          onClick={goToNext}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/40 transition-all duration-300 opacity-0 group-hover:opacity-100"
+          aria-label="Next image"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+        
+        {/* Dots Indicator */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex space-x-2">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentImageIndex
+                  ? 'bg-white scale-125'
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
       
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
+      <div className="relative z-10 h-full flex items-center group">
         <div className="container mx-auto px-8 lg:px-16">
           <div className="max-w-2xl space-y-8">
             {/* Main heading */}
@@ -55,9 +161,11 @@ export default function ExploreBanner() {
                 </span>
               </Link>
               
-              <Link 
-                to="/collections"
-                className="group border-2 border-foreground text-foreground px-8 py-4 font-semibold tracking-wide hover:bg-foreground hover:text-background transition-all duration-300 text-center"
+              <a 
+                href="#collections-section"
+                onClick={handleCollectionsClick}
+                className="group border-2 border-foreground text-foreground px-8 py-4 font-semibold tracking-wide hover:bg-foreground hover:text-background transition-all duration-300 text-center cursor-pointer"
+                aria-label="Scroll to collections section"
               >
                 <span className="flex items-center justify-center space-x-2">
                   <span>{t('explore.viewCollections', { defaultValue: 'View Collections' })}</span>
@@ -65,7 +173,7 @@ export default function ExploreBanner() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                 </span>
-              </Link>
+              </a>
             </div>
             
             {/* Features */}

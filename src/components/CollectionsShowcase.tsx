@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useTranslation } from "react-i18next";
 import useCollections from "@/hooks/useCollections";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -19,6 +20,7 @@ interface CollectionType {
 }
 
 export default function CollectionsShowcase() {
+  const { t } = useTranslation();
   const { data: collectionsData = [], isLoading: loading } = useCollections({ fields: "id,title,handle,metadata", limit: 100 });
   const collections = collectionsData as CollectionType[];
   const sectionRef = useRef<HTMLElement>(null);
@@ -90,11 +92,16 @@ export default function CollectionsShowcase() {
   }
 
   return (
-    <section ref={sectionRef} className="w-full py-20 px-8 lg:px-16">
+    <section id="collections-section" ref={sectionRef} className="w-full py-20 px-8 lg:px-16">
       <div className="container mx-auto">
-        <h2 ref={titleRef} className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-16 text-center opacity-0">
-          Collections
-        </h2>
+        <div ref={titleRef} className="text-center mb-16 opacity-0">
+          <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-4">
+            Collections
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            {t('collections.subtitle', { defaultValue: 'Explore our curated eyewear collections, each designed to reflect your unique style and personality' })}
+          </p>
+        </div>
         
         <div ref={gridRef} className="relative max-w-7xl mx-auto">
           <Carousel

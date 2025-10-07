@@ -10,6 +10,7 @@ import { useProductCarousel } from "@/hooks/useProducts";
 import { formatPrice } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useRegion } from "@/contexts/RegionContext";
+import { useTranslation } from "react-i18next";
 import Autoplay from "embla-carousel-autoplay";
 import OptimizedImage from "@/components/OptimizedImage";
 
@@ -73,6 +74,7 @@ CarouselProductCard.displayName = "CarouselProductCard";
 
 // === Carousel Component ===
 export default function ProductCarousel({ initialCount = 8 }: ProductCarouselProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { currentRegion } = useRegion();
 
@@ -112,9 +114,14 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
   return (
     <section className="w-full py-20 px-0">
       <div className="px-8 lg:px-16">
-        <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-12 text-center">
-          {tagName}
-        </h2>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-4">
+            {tagName}
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            {t('products.featuredSubtitle', { defaultValue: 'Discover our handpicked selection of premium eyewear, crafted with precision and designed for the modern lifestyle' })}
+          </p>
+        </div>
       </div>
       <div className="carousel-container relative group w-full">
           <Carousel

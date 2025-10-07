@@ -5,7 +5,7 @@ export function smoothScrollTo(element: HTMLElement | null, offset = 0) {
   const elementPosition = element.offsetTop - offset;
   const startPosition = window.pageYOffset;
   const distance = elementPosition - startPosition;
-  const duration = Math.min(Math.abs(distance) / 2, 800); // Max 800ms
+  const duration = Math.min(Math.abs(distance) / 2, 1000); // Max 1000ms for smoother feel
   let start: number | null = null;
 
   function animation(currentTime: number) {
@@ -13,10 +13,12 @@ export function smoothScrollTo(element: HTMLElement | null, offset = 0) {
     const timeElapsed = currentTime - start;
     const progress = Math.min(timeElapsed / duration, 1);
     
-    // Easing function (ease-out)
-    const easeOut = 1 - Math.pow(1 - progress, 3);
+    // Enhanced easing function (ease-in-out) for more natural feel
+    const easeInOut = progress < 0.5 
+      ? 2 * progress * progress 
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
     
-    window.scrollTo(0, startPosition + distance * easeOut);
+    window.scrollTo(0, startPosition + distance * easeInOut);
     
     if (timeElapsed < duration) {
       requestAnimationFrame(animation);
@@ -34,10 +36,39 @@ export function scrollToTop(smooth = true) {
   }
 }
 
+export function scrollToElementById(elementId: string, offset = 80) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    smoothScrollTo(element, offset);
+  }
+}
+
+export function scrollToCollections() {
+  scrollToElementById('collections-section', 100);
+}
+
 export function scrollToProductsGrid() {
   const productsGrid = document.querySelector('[data-products-grid]');
   if (productsGrid) {
     smoothScrollTo(productsGrid as HTMLElement, 100);
+  }
+}
+
+// Enhanced scroll to top with better mobile support
+export function scrollToTopEnhanced() {
+  // Check if user prefers reduced motion
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  if (prefersReducedMotion) {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    return;
+  }
+
+  // Use native smooth scrolling if available, fallback to custom
+  if ('scrollBehavior' in document.documentElement.style) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    scrollToTop(true);
   }
 }
 
