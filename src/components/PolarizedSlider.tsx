@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useLayoutEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 
 interface PolarizedSliderProps {
@@ -9,42 +9,62 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
-  const clip = useTransform(x, (value) => `inset(0 ${Math.max(0, value)}px 0 0)`);
+  const [width, setWidth] = useState(0);
+
+  // Measure container width and center divider on load
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      const w = containerRef.current.offsetWidth;
+      setWidth(w);
+      x.set(0);
+    }
+  }, []);
+
+  // Compute clip so polarized part stays on right
+  const clip = useTransform(x, (value) => {
+    const inset = Math.max(width / 2 + value, 0);
+    return `inset(0 ${inset}px 0 0)`;
+  });
 
   return (
     <section className="relative w-full h-[80vh] flex items-center justify-center bg-black overflow-hidden">
-      <div ref={containerRef} className="relative w-full h-full max-w-7xl overflow-hidden rounded-2xl">
-        {/* Normal Image */}
-        <img src={imageUrl} alt="Normal view" className="absolute inset-0 w-full h-full object-cover select-none" />
+      <div ref={containerRef} className="relative w-full h-full overflow-hidden rounded-2xl">
+        {/* Base (unfiltered) image */}
+        <img src={imageUrl} alt="Sans lunettes" className="absolute inset-0 w-full h-full object-cover select-none" />
 
-        {/* Polarized Filtered Image */}
-        <motion.div style={{ clipPath: clip }} className="absolute inset-0 overflow-hidden">
+        {/* Polarized side */}
+        <motion.div style={{ clipPath: clip }} className="absolute inset-0 overflow-hidden pointer-events-none">
           <img
             src={imageUrl}
-            alt="Polarized view"
+            alt="Avec filtre polarisé"
             className="w-full h-full object-cover select-none"
             style={{
-              filter: "contrast(1.1) saturate(1.2) brightness(0.9) hue-rotate(200deg)",
+              filter: "contrast(1.08) saturate(1.06) brightness(0.96)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#003049]/30 to-[#0a9396]/20 mix-blend-overlay" />
+
+          {/* Subtle polarization effect: reduces glare */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-white/5 mix-blend-multiply" />
+
+          {/* Slight blue enhancement (very subtle) */}
+          <div className="absolute inset-0 bg-[rgba(0,30,60,0.1)] mix-blend-overlay" />
         </motion.div>
 
         {/* Draggable Divider */}
         <motion.div
           drag="x"
-          dragConstraints={containerRef}
+          dragConstraints={{ left: -width / 2, right: 0 }}
           style={{ x }}
-          dragElastic={0.1}
+          dragElastic={0}
           dragMomentum={false}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
-          className="absolute top-0 bottom-0 w-1 bg-white/80 cursor-ew-resize z-10 flex items-center justify-center"
+          className="absolute top-0 bottom-0 w-[2px] bg-white z-20 cursor-ew-resize flex items-center justify-center"
         >
-          <div
-            className={`w-6 h-6 rounded-full bg-white shadow-md border border-gray-300 ${
-              isDragging ? "scale-110" : "scale-100"
-            } transition-transform`}
+          <motion.div
+            animate={{ scale: isDragging ? 1.15 : 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="w-6 h-6 rounded-full bg-white shadow-lg border border-gray-300"
           />
         </motion.div>
 
