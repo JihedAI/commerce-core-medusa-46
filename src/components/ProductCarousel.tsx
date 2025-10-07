@@ -139,7 +139,7 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
             {products.map((product) => (
               <CarouselItem
                 key={product.id}
-                className="px-4 sm:px-6 basis-auto w-[390px] mobile:w-[140px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6"
+  className="px-4 sm:px-6 mx-3 basis-auto w-[390px] mobile:w-[140px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6"
               >
                 <CarouselProductCard
                   product={product}

@@ -191,39 +191,40 @@ const StoreLocator = () => {
         </div>
 
         {/* Additional Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-          viewport={{ once: true }}
-          className="mt-16 text-center"
-        >
-          <div className="bg-muted/30 rounded-2xl p-8 max-w-4xl mx-auto">
-            <h4 className="text-xl font-semibold text-foreground mb-4">
-              {t('store.visitTitle', { defaultValue: 'Why Visit Our Bizerte Store?' })}
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
-              <div>
-                <h5 className="font-semibold text-foreground mb-2">
-                  {t('store.expertise', { defaultValue: 'Expert Fitting' })}
-                </h5>
-                <p>{t('store.expertiseDesc', { defaultValue: 'Professional eye exams and personalized frame fitting' })}</p>
-              </div>
-              <div>
-                <h5 className="font-semibold text-foreground mb-2">
-                  {t('store.premium', { defaultValue: 'Premium Collection' })}
-                </h5>
-                <p>{t('store.premiumDesc', { defaultValue: 'Exclusive eyewear brands and latest fashion trends' })}</p>
-              </div>
-              <div>
-                <h5 className="font-semibold text-foreground mb-2">
-                  {t('store.service', { defaultValue: 'Personalized Service' })}
-                </h5>
-                <p>{t('store.serviceDesc', { defaultValue: 'Dedicated customer care and after-sales support' })}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+  viewport={{ once: true }}
+  className="mt-16 text-center"
+>
+  <div className="rounded-2xl p-8 max-w-4xl mx-auto">
+    <h4 className="text-xl font-semibold text-foreground mb-4">
+      {t('store.visitTitle', { defaultValue: 'Why Visit Our Bizerte Store?' })}
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
+      <div>
+        <h5 className="font-semibold text-foreground mb-2">
+          {t('store.expertise', { defaultValue: 'Expert Fitting' })}
+        </h5>
+        <p>{t('store.expertiseDesc', { defaultValue: 'Professional eye exams and personalized frame fitting' })}</p>
+      </div>
+      <div>
+        <h5 className="font-semibold text-foreground mb-2">
+          {t('store.premium', { defaultValue: 'Premium Collection' })}
+        </h5>
+        <p>{t('store.premiumDesc', { defaultValue: 'Exclusive eyewear brands and latest fashion trends' })}</p>
+      </div>
+      <div>
+        <h5 className="font-semibold text-foreground mb-2">
+          {t('store.service', { defaultValue: 'Personalized Service' })}
+        </h5>
+        <p>{t('store.serviceDesc', { defaultValue: 'Dedicated customer care and after-sales support' })}</p>
+      </div>
+    </div>
+  </div>
+</motion.div>
+
       </div>
     </section>
   );

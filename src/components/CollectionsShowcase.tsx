@@ -112,7 +112,7 @@ export default function CollectionsShowcase() {
               {collections.slice(0, 12).map((collection) => (
                 <CarouselItem key={collection.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
                   <Link 
-                    to={`/collections/${collection.id}`}
+                    to={`/collections/${collection.handle}`}
                     className="group block collection-card opacity-0"
                   >
                     <div className="relative overflow-hidden bg-card rounded-none shadow-sm hover:shadow-xl transition-all duration-500 ease-out">

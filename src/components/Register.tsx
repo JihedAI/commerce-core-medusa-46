@@ -160,7 +160,8 @@ export default function Register() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4 -mt-20">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4 mt-10">
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -174,11 +175,11 @@ export default function Register() {
             transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
             className="text-center mb-8"
           >
-            <Link to="/" className="inline-block mb-6">
+            {/* <Link to="/" className="inline-block mb-6">
               <span className="font-display font-extrabold tracking-[0.35em] uppercase text-3xl text-primary">
                 Amine
               </span>
-            </Link>
+            </Link> */}
             <h1 className="text-3xl font-bold text-foreground mb-2">
               {t('auth.createAccount', { defaultValue: 'Create Account' })}
             </h1>
@@ -492,37 +493,7 @@ export default function Register() {
           </motion.div>
 
           {/* Features */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.1 }}
-            className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"
-          >
-            <div className="flex flex-col items-center space-y-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-xs text-muted-foreground font-medium">
-                {t('auth.secure', { defaultValue: 'Secure' })}
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Zap className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-xs text-muted-foreground font-medium">
-                {t('auth.fast', { defaultValue: 'Fast' })}
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-xs text-muted-foreground font-medium">
-                {t('auth.elegant', { defaultValue: 'Elegant' })}
-              </p>
-            </div>
-          </motion.div>
+          
         </motion.div>
       </div>
     </Layout>

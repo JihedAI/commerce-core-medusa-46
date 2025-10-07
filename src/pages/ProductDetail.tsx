@@ -452,7 +452,8 @@ export default function ProductDetail() {
 
       {/* Similar Products Section */}
       {relatedProducts && relatedProducts.length > 0 && (
-        <div className="bg-muted/30 py-16">
+        <div className="py-16 border-t border-border/40">
+
           <div className="container mx-auto px-0">
             {/* Section Header */}
             <div className="px-8 lg:px-16 mb-12">
@@ -472,7 +473,7 @@ export default function ProductDetail() {
               >
                 <CarouselContent className="-mx-4 sm:-mx-6">
                   {relatedProducts.slice(0, 12).map((p) => (
-                    <CarouselItem key={p.id} className="px-4 sm:px-6 basis-auto w-[390px] mobile:w-[140px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6">
+                    <CarouselItem key={p.id} className="px-4 sm:px-6 mx-3 basis-auto w-[390px] mobile:w-[140px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6">
                       <Link to={`/products/${p.handle}`} className="group/item block">
                         {/* Match homepage carousel image presentation */}
                         <div className="relative overflow-hidden w-[390px] h-[300px] mobile:w-[140px] mobile:h-[238px] rounded-xl">

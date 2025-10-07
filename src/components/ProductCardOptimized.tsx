@@ -65,7 +65,7 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
       <Link to={`/products/${product.handle}`} className="block">
         {/* Image Container: square, clean, object-cover like carousel */}
         <div className="relative overflow-hidden aspect-square rounded-xl">
-          <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] mobile:w-[238px] mobile:h-[238px] md:w-[720px] md:h-[720px] transition-transform duration-700 group-hover:scale-110">
+          <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] mobile:w-[238px] mobile:h-[238px] md:w-[720px] md:h-[720px] transition-transform duration-700 group-hover:scale-150">
             <OptimizedImage
               src={imageUrl || "/placeholder.svg"}
               alt={product.title}

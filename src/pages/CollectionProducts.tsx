@@ -11,23 +11,25 @@ import OptimizedImage from "@/components/OptimizedImage";
 import { formatPrice } from "@/lib/utils";
 
 export default function CollectionProducts() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>(); // here `id` will actually be the handle now
   const { currentRegion } = useRegion();
 
+  // First resolve collection by handle
   const { data: collection, isLoading: collectionLoading } = useQuery({
-    queryKey: ["collection", id],
+    queryKey: ["collection_by_handle", id],
     queryFn: async () => {
       if (!id) return null;
-      const { collection } = await sdk.store.collection.retrieve(id, {
-        fields: "id,title,handle,metadata"
-      });
-      return collection;
+      // list by handle filter then take first
+      const { collections } = await sdk.store.collection.list({ handle: id, fields: "id,title,handle,metadata" } as any);
+      return collections?.[0] ?? null;
     },
     enabled: !!id,
   });
 
+  const collectionId = collection?.id || "";
+
   const { data: productsData, isLoading: productsLoading } = useRelatedProducts(
-    id || "", 
+    collectionId, 
     currentRegion?.id, 
     100
   );
