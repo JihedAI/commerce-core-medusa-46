@@ -9,33 +9,40 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
-  const clip = useTransform(x, (value) => `inset(0 ${Math.max(0, value)}px 0 0)`);
+
+  // Transform x value to clip path - only allow dragging to the left (negative values)
+  const clip = useTransform(x, (value) => {
+    const clampedValue = Math.min(0, value); // Only allow negative values (dragging left)
+    return `inset(0 0 0 ${Math.max(0, -clampedValue)}px)`;
+  });
 
   return (
     <section className="relative w-full h-[80vh] flex items-center justify-center bg-black overflow-hidden">
       <div ref={containerRef} className="relative w-full h-full max-w-7xl overflow-hidden rounded-2xl">
-        {/* Normal Image */}
-        <img src={imageUrl} alt="Normal view" className="absolute inset-0 w-full h-full object-cover select-none" />
+        {/* Polarized Filtered Image (Background) */}
+        <img
+          src={imageUrl}
+          alt="Polarized view"
+          className="absolute inset-0 w-full h-full object-cover select-none"
+          style={{
+            filter: "contrast(1.1) saturate(1.1) brightness(0.95) hue-rotate(180deg)",
+          }}
+        />
 
-        {/* Polarized Filtered Image */}
+        {/* Normal Image (Revealed by dragging) */}
         <motion.div style={{ clipPath: clip }} className="absolute inset-0 overflow-hidden">
-          <img
-            src={imageUrl}
-            alt="Polarized view"
-            className="w-full h-full object-cover select-none"
-            style={{
-              filter: "contrast(1.4) saturate(1.2) brightness(0.9) hue-rotate(200deg)",
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#003049]/30 to-[#0a9396]/20 mix-blend-overlay" />
+          <img src={imageUrl} alt="Normal view" className="w-full h-full object-cover select-none" />
         </motion.div>
 
-        {/* Draggable Divider */}
+        {/* Draggable Divider - Starts in center and can only be dragged left */}
         <motion.div
           drag="x"
-          dragConstraints={containerRef}
+          dragConstraints={{
+            left: containerRef.current ? -containerRef.current.offsetWidth / 2 : -500,
+            right: 0,
+          }}
           style={{ x }}
-          dragElastic={0.1}
+          dragElastic={0}
           dragMomentum={false}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
@@ -48,12 +55,12 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           />
         </motion.div>
 
-        {/* Labels */}
+        {/* Labels - Swapped positions */}
         <div className="absolute left-6 top-6 bg-white/80 text-black text-xs md:text-sm px-3 py-1 rounded-full shadow">
-          Sans lunettes
+          Avec filtre polarisé
         </div>
         <div className="absolute right-6 top-6 bg-white/80 text-black text-xs md:text-sm px-3 py-1 rounded-full shadow">
-          Avec filtre polarisé
+          Sans lunettes
         </div>
       </div>
     </section>
