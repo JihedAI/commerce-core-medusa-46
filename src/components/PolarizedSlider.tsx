@@ -95,9 +95,7 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           animate={{ opacity: 0.8 }}
           transition={{ delay: 0.8, duration: 1 }}
           className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center"
-        >
-          <p className="text-white/80 text-xs md:text-sm font-light uppercase tracking-widest">Glissez pour comparer</p>
-        </motion.div>
+        ></motion.div>
       </div>
     </section>
   );
