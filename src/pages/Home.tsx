@@ -16,7 +16,7 @@ export default function Home() {
       "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/main_0_pc_1920_990.webm",
       "https://pub-9ea7b728635940dfbe7671f108d0a3aa.r2.dev/6118572-uhd_4096_2160_25fps.webm",
     ],
-    []
+    [],
   );
 
   return (
@@ -29,11 +29,11 @@ export default function Home() {
       {/* 🌿 Collections Showcase */}
       <CollectionsShowcase />
 
-      {/* 🔍 Polarized Vision Slider */}
-      <PolarizedSlider imageUrl="https://images.pexels.com/photos/18232214/pexels-photo-18232214.jpeg" />
-
       {/* 🕶 Product Carousel */}
       <ProductCarousel />
+
+      {/* 🔍 Polarized Vision Slider */}
+      <PolarizedSlider imageUrl="https://images.pexels.com/photos/18232214/pexels-photo-18232214.jpeg" />
 
       {/* 📖 Story Section */}
       <StorySection />
