@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 
 interface PolarizedSliderProps {
@@ -9,6 +9,14 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
+
+  // 🧮 Initial position setup (e.g., 70% of width)
+  useEffect(() => {
+    const containerWidth = containerRef.current?.offsetWidth || 0;
+    if (containerWidth) {
+      x.set(containerWidth * 0.7); // <-- change 0.7 to 0.6 / 0.8 as you like
+    }
+  }, []);
 
   const clipPath = useTransform(
     x,
@@ -52,7 +60,7 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           dragMomentum={false}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
-          className="absolute top-0 bottom-0 left-1/2 w-[1.5px] bg-white/70 cursor-ew-resize z-20"
+          className="absolute top-0 bottom-0 w-[1.5px] bg-white/70 cursor-ew-resize z-20"
         >
           {/* Handle */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
