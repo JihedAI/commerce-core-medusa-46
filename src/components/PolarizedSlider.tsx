@@ -14,7 +14,7 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   useEffect(() => {
     const containerWidth = containerRef.current?.offsetWidth || 0;
     if (containerWidth) {
-      x.set(containerWidth * 0.7); // <-- change 0.7 to 0.6 / 0.8 as you like
+      x.set(containerWidth * 0.5); // <-- change 0.7 to 0.6 / 0.8 as you like
     }
   }, []);
 
