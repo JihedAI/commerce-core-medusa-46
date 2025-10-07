@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 
 interface PolarizedSliderProps {
@@ -8,70 +8,34 @@ interface PolarizedSliderProps {
 export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
   const x = useMotionValue(0);
-
-  // Get container width on mount and resize
-  useEffect(() => {
-    if (containerRef.current) {
-      setContainerWidth(containerRef.current.offsetWidth);
-
-      const handleResize = () => {
-        if (containerRef.current) {
-          setContainerWidth(containerRef.current.offsetWidth);
-        }
-      };
-
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
-  }, []);
-
-  // Clip path reveals the normal image from left to right
-  const clip = useTransform(x, (value) => {
-    const clampedValue = Math.max(0, Math.min(value, containerWidth / 2));
-    return `inset(0 ${containerWidth / 2 - clampedValue}px 0 ${clampedValue}px)`;
-  });
+  const clip = useTransform(x, (value) => `inset(0 ${Math.max(0, value)}px 0 0)`);
 
   return (
     <section className="relative w-full h-[80vh] flex items-center justify-center bg-black overflow-hidden">
       <div ref={containerRef} className="relative w-full h-full max-w-7xl overflow-hidden rounded-2xl">
-        {/* Polarized Filtered Image (Left side) */}
-        <div className="absolute inset-0 w-1/2 overflow-hidden">
+        {/* Normal Image */}
+        <img src={imageUrl} alt="Normal view" className="absolute inset-0 w-full h-full object-cover select-none" />
+
+        {/* Polarized Filtered Image */}
+        <motion.div style={{ clipPath: clip }} className="absolute inset-0 overflow-hidden">
           <img
             src={imageUrl}
             alt="Polarized view"
             className="w-full h-full object-cover select-none"
             style={{
-              filter: "contrast(1.1) saturate(1.1) brightness(0.95) hue-rotate(180deg)",
+              filter: "contrast(1.4) saturate(1.2) brightness(0.9) hue-rotate(200deg)",
             }}
           />
-        </div>
-
-        {/* Normal Image (Right side) */}
-        <div className="absolute inset-0 w-full">
-          <img src={imageUrl} alt="Normal view" className="w-full h-full object-cover select-none" />
-        </div>
-
-        {/* Revealing overlay for normal image */}
-        <motion.div
-          style={{
-            clipPath: clip,
-          }}
-          className="absolute inset-0 overflow-hidden"
-        >
-          <img src={imageUrl} alt="Normal view" className="w-full h-full object-cover select-none" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#003049]/30 to-[#0a9396]/20 mix-blend-overlay" />
         </motion.div>
 
-        {/* Draggable Divider - Starts in center and can be dragged left/right within bounds */}
+        {/* Draggable Divider */}
         <motion.div
           drag="x"
-          dragConstraints={{
-            left: -containerWidth / 2,
-            right: containerWidth / 2,
-          }}
+          dragConstraints={containerRef}
           style={{ x }}
-          dragElastic={0}
+          dragElastic={0.1}
           dragMomentum={false}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
@@ -86,10 +50,10 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
 
         {/* Labels */}
         <div className="absolute left-6 top-6 bg-white/80 text-black text-xs md:text-sm px-3 py-1 rounded-full shadow">
-          Avec filtre polarisé
+          Sans lunettes
         </div>
         <div className="absolute right-6 top-6 bg-white/80 text-black text-xs md:text-sm px-3 py-1 rounded-full shadow">
-          Sans lunettes
+          Avec filtre polarisé
         </div>
       </div>
     </section>
