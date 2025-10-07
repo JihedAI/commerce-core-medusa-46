@@ -213,13 +213,18 @@ export function SearchOverlay(): JSX.Element {
                 <div className="flex items-center gap-3 p-4 border-b">
                   <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                   <Input
-                    ref={inputRef}
+                    type="search"
                     value={query}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-                    placeholder="Search products, brands..."
-                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base py-2"
-                    aria-label="Search products"
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="
+    flex-1 text-sm md:text-base 
+    bg-transparent border-none outline-none 
+    focus:border-none focus:outline-none focus:ring-0 
+    focus-visible:ring-0 focus-visible:border-none 
+    shadow-none placeholder-transparent
+  "
                   />
+
                   <Button
                     variant="ghost"
                     size="icon"
