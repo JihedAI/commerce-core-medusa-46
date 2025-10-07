@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 
 interface PolarizedSliderProps {
@@ -8,22 +8,36 @@ interface PolarizedSliderProps {
 export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
   const x = useMotionValue(0);
 
-  // Transform x value to clip path - only allow dragging to the right (positive values)
+  // Get container width on mount and resize
+  useEffect(() => {
+    if (containerRef.current) {
+      setContainerWidth(containerRef.current.offsetWidth);
+
+      const handleResize = () => {
+        if (containerRef.current) {
+          setContainerWidth(containerRef.current.offsetWidth);
+        }
+      };
+
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
+
+  // Clip path reveals the normal image from left to right
   const clip = useTransform(x, (value) => {
-    const clampedValue = Math.max(0, value); // Only allow positive values (dragging right)
-    return `inset(0 ${clampedValue}px 0 0)`;
+    const clampedValue = Math.max(0, Math.min(value, containerWidth / 2));
+    return `inset(0 ${containerWidth / 2 - clampedValue}px 0 ${clampedValue}px)`;
   });
 
   return (
     <section className="relative w-full h-[80vh] flex items-center justify-center bg-black overflow-hidden">
       <div ref={containerRef} className="relative w-full h-full max-w-7xl overflow-hidden rounded-2xl">
-        {/* Normal Image (Background) */}
-        <img src={imageUrl} alt="Normal view" className="absolute inset-0 w-full h-full object-cover select-none" />
-
-        {/* Polarized Filtered Image (Revealed by dragging right) */}
-        <motion.div style={{ clipPath: clip }} className="absolute inset-0 overflow-hidden">
+        {/* Polarized Filtered Image (Left side) */}
+        <div className="absolute inset-0 w-1/2 overflow-hidden">
           <img
             src={imageUrl}
             alt="Polarized view"
@@ -32,14 +46,29 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
               filter: "contrast(1.1) saturate(1.1) brightness(0.95) hue-rotate(180deg)",
             }}
           />
+        </div>
+
+        {/* Normal Image (Right side) */}
+        <div className="absolute inset-0 w-full">
+          <img src={imageUrl} alt="Normal view" className="w-full h-full object-cover select-none" />
+        </div>
+
+        {/* Revealing overlay for normal image */}
+        <motion.div
+          style={{
+            clipPath: clip,
+          }}
+          className="absolute inset-0 overflow-hidden"
+        >
+          <img src={imageUrl} alt="Normal view" className="w-full h-full object-cover select-none" />
         </motion.div>
 
-        {/* Draggable Divider - Starts in center and can only be dragged right */}
+        {/* Draggable Divider - Starts in center and can be dragged left/right within bounds */}
         <motion.div
           drag="x"
           dragConstraints={{
-            left: 0,
-            right: containerRef.current ? containerRef.current.offsetWidth / 2 : 500,
+            left: -containerWidth / 2,
+            right: containerWidth / 2,
           }}
           style={{ x }}
           dragElastic={0}
@@ -55,12 +84,12 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           />
         </motion.div>
 
-        {/* Labels - Correct positions for new layout */}
+        {/* Labels */}
         <div className="absolute left-6 top-6 bg-white/80 text-black text-xs md:text-sm px-3 py-1 rounded-full shadow">
-          Sans lunettes
+          Avec filtre polarisé
         </div>
         <div className="absolute right-6 top-6 bg-white/80 text-black text-xs md:text-sm px-3 py-1 rounded-full shadow">
-          Avec filtre polarisé
+          Sans lunettes
         </div>
       </div>
     </section>
