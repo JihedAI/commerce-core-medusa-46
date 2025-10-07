@@ -2,6 +2,7 @@ import * as React from "react";
 import VideoHero from "@/components/VideoHero";
 import ProductCarousel from "@/components/ProductCarousel";
 import CollectionsShowcase from "@/components/CollectionsShowcase";
+import PolarizedSlider from "@/components/PolarizedSlider";
 import StorySection from "@/components/StorySection";
 import ExploreBanner from "@/components/ExploreBanner";
 import StoreLocator from "@/components/StoreLocator";
@@ -27,6 +28,9 @@ export default function Home() {
 
       {/* 🌿 Collections Showcase */}
       <CollectionsShowcase />
+
+      {/* 🔍 Polarized Vision Slider */}
+      <PolarizedSlider imageUrl="https://images.pexels.com/photos/18232214/pexels-photo-18232214.jpeg" />
 
       {/* 🕶 Product Carousel */}
       <ProductCarousel />

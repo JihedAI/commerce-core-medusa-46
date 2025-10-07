@@ -69,7 +69,7 @@ export function useTextAnimation({
             initial: { opacity: 0 },
             animate: { opacity: 1 },
             exit: { opacity: 0 },
-            transition: { duration: animationDuration, ease: 'easeInOut' }
+            transition: { duration: animationDuration, ease: 'easeInOut' as const }
           };
         case 'slide':
           return {
@@ -88,28 +88,28 @@ export function useTextAnimation({
               x: direction === 'left' ? '-100%' : direction === 'right' ? '100%' : 0,
               opacity: 0 
             },
-            transition: { duration: animationDuration, ease: 'easeInOut' }
+            transition: { duration: animationDuration, ease: 'easeInOut' as const }
           };
         case 'scale':
           return {
             initial: { scale: 0.8, opacity: 0 },
             animate: { scale: 1, opacity: 1 },
             exit: { scale: 1.2, opacity: 0 },
-            transition: { duration: animationDuration, ease: 'easeInOut' }
+            transition: { duration: animationDuration, ease: 'easeInOut' as const }
           };
         case 'flip':
           return {
             initial: { rotateX: 90, opacity: 0 },
             animate: { rotateX: 0, opacity: 1 },
             exit: { rotateX: -90, opacity: 0 },
-            transition: { duration: animationDuration, ease: 'easeInOut' }
+            transition: { duration: animationDuration, ease: 'easeInOut' as const }
           };
         default:
           return {
             initial: { y: '100%', opacity: 0 },
             animate: { y: '0%', opacity: 1 },
             exit: { y: '-100%', opacity: 0 },
-            transition: { duration: animationDuration, ease: 'easeInOut' }
+            transition: { duration: animationDuration, ease: 'easeInOut' as const }
           };
       }
     };

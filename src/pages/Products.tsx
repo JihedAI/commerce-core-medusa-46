@@ -600,7 +600,7 @@ function ProductsOptimized() {
                     const brand = facetsData?.brands?.find(b => b.id === id);
                     return brand ? (
                       <Badge key={id} variant="secondary" className="flex items-center gap-1">
-                        {brand.title || brand.name}
+                        {brand.value}
                         <button
                           onClick={() => toggleFilter('brands', id)}
                           className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
@@ -614,7 +614,7 @@ function ProductsOptimized() {
                     const tag = facetsData?.tags?.find(t => t.id === id);
                     return tag ? (
                       <Badge key={id} variant="secondary" className="flex items-center gap-1">
-                        {tag.title || tag.name}
+                        {tag.value}
                         <button
                           onClick={() => toggleFilter('tags', id)}
                           className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
