@@ -137,7 +137,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-6">
-            <h4 className="font-semibold text-foreground tracking-wide">Quick Links</h4>
+            <h4 className="font-semibold text-foreground tracking-wide">{t('footer.quickLinks', { defaultValue: 'Quick Links' })}</h4>
             <ul className="space-y-3">
               <li>
                 <a 
@@ -193,7 +193,7 @@ export function Footer() {
 
           {/* Customer Service */}
           <div className="space-y-6">
-            <h4 className="font-semibold text-foreground tracking-wide">Customer Care</h4>
+            <h4 className="font-semibold text-foreground tracking-wide">{t('footer.customerCare', { defaultValue: 'Customer Care' })}</h4>
             <ul className="space-y-3">
               <li>
                 <Link 
@@ -206,7 +206,7 @@ export function Footer() {
               </li>
               <li>
                 <Link 
-                  to="/shipping" 
+                  to="/help#shipping" 
                   className="group flex items-center text-muted-foreground hover:text-foreground transition-all duration-200"
                 >
                   <ChevronRight className="h-3 w-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -215,16 +215,7 @@ export function Footer() {
               </li>
               <li>
                 <Link 
-                  to="/returns" 
-                  className="group flex items-center text-muted-foreground hover:text-foreground transition-all duration-200"
-                >
-                  <ChevronRight className="h-3 w-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                  {t('footer.returns', { defaultValue: 'Returns' })}
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/faq" 
+                  to="/help#faq" 
                   className="group flex items-center text-muted-foreground hover:text-foreground transition-all duration-200"
                 >
                   <ChevronRight className="h-3 w-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -236,7 +227,7 @@ export function Footer() {
 
           {/* Newsletter */}
           <div className="space-y-6">
-            <h4 className="font-semibold text-foreground tracking-wide">Stay Updated</h4>
+            <h4 className="font-semibold text-foreground tracking-wide">{t('footer.stayUpdated', { defaultValue: 'Stay Updated' })}</h4>
             <p className="text-muted-foreground text-sm leading-relaxed">
               {t('footer.newsletter', { defaultValue: 'Subscribe to our newsletter for exclusive offers, new arrivals, and style tips.' })}
             </p>

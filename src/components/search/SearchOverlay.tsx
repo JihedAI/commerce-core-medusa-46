@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
 import { medusa } from "@/lib/medusa";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,7 +13,6 @@ interface SearchResult {
   title: string;
   thumbnail: string;
   handle: string;
-  price?: { formatted: string };
 }
 
 export function SearchOverlay(): JSX.Element {
@@ -101,25 +101,12 @@ export function SearchOverlay(): JSX.Element {
         const res: any = await medusa.products.list({ q: query, limit: 8 });
         const rawProducts = Array.isArray(res?.products) ? res.products : [];
 
-        const mapped: SearchResult[] = rawProducts.map((p: any) => {
-          const priceAmount = p?.variants?.[0]?.prices?.[0]?.amount;
-          const currency = p?.variants?.[0]?.prices?.[0]?.currency_code ?? "USD";
-          const formatted =
-            typeof priceAmount === "number"
-              ? (priceAmount / 100).toLocaleString("en-US", {
-                  style: "currency",
-                  currency,
-                })
-              : "N/A";
-
-          return {
+        const mapped: SearchResult[] = rawProducts.map((p: any) => ({
             id: p?.id ?? String(Math.random()),
             title: p?.title ?? "Untitled product",
             thumbnail: p?.thumbnail || "/placeholder.svg",
             handle: p?.handle ?? "",
-            price: { formatted },
-          };
-        });
+        }));
 
         setResults(mapped);
       } catch (err: any) {
@@ -139,94 +126,53 @@ export function SearchOverlay(): JSX.Element {
   }, [query, open]);
 
   return (
-    <>
-      {/* Search Trigger */}
       <div className="relative">
-        <AnimatePresence mode="wait">
-          {!open && (
+      <Popover open={open} onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) {
+          setQuery("");
+        }
+      }}>
+        <PopoverTrigger asChild>
             <motion.button
               key="search-trigger"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="flex items-center gap-3 p-2 rounded-full bg-accent/60 hover:bg-accent transition-all shadow-sm min-w-[200px] justify-start"
-              onClick={() => setOpen(true)}
+              className="flex items-center gap-3 p-2 bg-transparent shadow-sm min-w-[200px] justify-start border-none hover:bg-accent/10 transition-all"
               aria-label="Open search"
             >
               <Search className="w-4 h-4 text-foreground flex-shrink-0" />
-
-              {/* Smooth scrolling keywords */}
               <div className="relative h-6 overflow-hidden flex-1 text-left">
                 <motion.div
                   key={currentKeywordIndex}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -20, opacity: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                  }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   className="absolute inset-0 text-sm text-muted-foreground truncate"
                 >
                   {exampleSearches[currentKeywordIndex]}
                 </motion.div>
               </div>
-
-              {/* Keyboard shortcut hint */}
               <kbd className="hidden sm:inline-flex items-center gap-1 rounded border bg-muted px-1.5 py-1 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex-shrink-0">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Search Overlay - Centered on screen */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key="search-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
-            onClick={() => {
-              setOpen(false);
-              setQuery("");
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: -20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -20 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="bg-white rounded-xl border shadow-2xl overflow-hidden">
-                {/* Search Header */}
-                <div className="flex items-center gap-3 p-4 border-b-0 bg-transparent shadow-none">
+        </PopoverTrigger>
+        <PopoverContent align="start" sideOffset={8} className="p-0 w-[min(90vw,40rem)] md:w-[36rem] max-h-[70vh] overflow-hidden shadow-xl rounded-none"
+        >
+        <div className="bg-accent/10 border overflow-hidden">
+        <div className="flex items-center gap-3 p-3 border-b-0 bg-transparent shadow-none">
                   <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                   <Input
                     ref={inputRef}
                     type="search"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="
-    flex-1 text-sm md:text-base bg-transparent
-    border-none outline-none ring-0 focus:ring-0 focus:outline-none
-    focus:border-none focus-visible:ring-0 focus-visible:border-none
-    shadow-none placeholder:text-muted-foreground/70 placeholder:italic
-    appearance-none
-  "
+                className="flex-1 text-sm md:text-base bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none focus:border-none focus-visible:ring-0 focus-visible:border-none shadow-none placeholder:text-muted-foreground/70 placeholder:italic appearance-none"
                     placeholder="Search products..."
                   />
-
                   <Button
                     variant="ghost"
                     size="icon"
@@ -239,10 +185,8 @@ export function SearchOverlay(): JSX.Element {
                     <X className="w-5 h-5" />
                   </Button>
                 </div>
-
-                {/* Search Results */}
                 {query.trim() && (
-                  <div className="max-h-96 overflow-hidden">
+              <div className="max-h-[55vh] overflow-hidden">
                     <ScrollArea className="h-full">
                       {isLoading ? (
                         <div className="p-8 text-center text-muted-foreground">
@@ -264,7 +208,7 @@ export function SearchOverlay(): JSX.Element {
                             <Link
                               key={result.id}
                               to={`/products/${result.handle}`}
-                              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
+                              className="flex items-center gap-3 p-3 rounded-none hover:bg-accent/10 transition-colors group"
                               onClick={() => {
                                 setOpen(false);
                                 setQuery("");
@@ -281,7 +225,7 @@ export function SearchOverlay(): JSX.Element {
                                 <h4 className="font-medium truncate text-foreground group-hover:text-primary transition-colors">
                                   {result.title}
                                 </h4>
-                                <p className="text-sm text-muted-foreground">{result.price?.formatted}</p>
+                            {/* price removed from display as requested */}
                               </div>
                             </Link>
                           ))}
@@ -295,11 +239,9 @@ export function SearchOverlay(): JSX.Element {
                     </ScrollArea>
                   </div>
                 )}
-
-                {/* Search Tips */}
                 {!query.trim() && (
-                  <div className="p-6">
-                    <p className="text-muted-foreground mb-4 text-center">Try searching for:</p>
+              <div className="p-4">
+                <p className="text-muted-foreground mb-3 text-center">Try searching for:</p>
                     <div className="flex flex-wrap justify-center gap-2">
                       {exampleSearches.slice(0, 6).map((search, index) => (
                         <motion.button
@@ -307,7 +249,7 @@ export function SearchOverlay(): JSX.Element {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="px-3 py-2 text-sm bg-accent rounded-lg hover:bg-accent/80 transition-all hover:scale-105 active:scale-95"
+                          className="px-3 py-2 text-sm bg-transparent border-none hover:bg-accent/10 transition-all hover:scale-105 active:scale-95"
                           onClick={() => setQuery(search)}
                         >
                           {search}
@@ -317,10 +259,8 @@ export function SearchOverlay(): JSX.Element {
                   </div>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

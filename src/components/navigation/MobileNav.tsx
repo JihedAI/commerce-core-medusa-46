@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
 import { ChevronRight, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchOverlay } from '@/components/search/SearchOverlay';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface MobileNavProps {
   hasScrolled: boolean;
@@ -40,14 +42,21 @@ export function MobileNav({ hasScrolled }: MobileNavProps) {
             <Menu size={24} />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-full sm:max-w-lg">
+        <SheetContent side="left" className="p-0 w-full sm:max-w-lg flex flex-col">
           <SheetHeader className="border-b border-border/5 p-6">
             <Link to="/" onClick={() => setOpen(false)}>
               <h2 className="text-xl font-semibold">Navigation</h2>
             </Link>
           </SheetHeader>
 
-          <div className="h-[calc(100vh-5rem)] overflow-y-auto">
+          <div className="h-[calc(100vh-5rem)] overflow-y-auto flex-1">
+            {/* Quick actions area */}
+            <div className="p-4 border-b border-border/10 space-y-3 bg-background/50">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Quick actions</div>
+              <div>
+                <SearchOverlay />
+              </div>
+            </div>
             <div className="sticky top-0 z-10 bg-background border-b border-border/5">
               {(activeCategory || activeSubCategory) && (
                 <button
@@ -171,6 +180,11 @@ export function MobileNav({ hasScrolled }: MobileNavProps) {
                 </div>
               )}
             </div>
+          </div>
+          {/* Bottom language switcher */}
+          <div className="border-t border-border/10 p-4 bg-background/80">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Language</div>
+            <LanguageSwitcher />
           </div>
         </SheetContent>
       </Sheet>

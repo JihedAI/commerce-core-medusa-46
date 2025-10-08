@@ -65,12 +65,14 @@ export function Header() {
 
         {/* Right Section - Actions (compact on small screens) */}
         <div className="flex items-center gap-3">
+          {/* Hide search on mobile; moved into MobileNav */}
           {location.pathname !== "/products" && (
-            <div className="p-0">
+            <div className="p-0 hidden sm:block">
               <SearchOverlay />
             </div>
           )}
-          <div className="p-0">
+          {/* Hide language switcher on mobile; moved into MobileNav */}
+          <div className="p-0 hidden sm:block">
             <LanguageSwitcher />
           </div>
           <div className="p-0">

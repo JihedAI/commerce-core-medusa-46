@@ -12,7 +12,7 @@ export default function Layout({
   isHomePage = false
 }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       
       {/* Main Content */}

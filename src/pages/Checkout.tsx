@@ -564,7 +564,7 @@ export default function Checkout() {
                     onClick={() => setCurrentStep(1)} 
                     className="flex-1 h-12 text-xs font-medium rounded-lg border-border/50 hover:border-border"
                   >
-                    {t('common.goBack')}
+                    {t('buttons.goBack')}
                   </Button>
                   <Button 
                     onClick={handleShippingSubmit} 
@@ -634,7 +634,7 @@ export default function Checkout() {
                     onClick={() => setCurrentStep(2)} 
                     className="flex-1 h-12 text-xs font-medium rounded-lg border-border/50 hover:border-border"
                   >
-                    {t('common.goBack')}
+                    {t('buttons.goBack')}
                   </Button>
                   <Button
                     onClick={handlePaymentSubmit}
@@ -651,34 +651,39 @@ export default function Checkout() {
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
             <div className="space-y-6 sticky top-4">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Order Summary</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">{t('checkout.orderSummary')}</h2>
               
               <div className="space-y-4">
-                {cart.items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-start py-2">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-foreground">{item.product_title || item.title}</h3>
-                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                {cart.items.map((item) => {
+                  const unit = (item as any).unit_price ?? (((item as any).subtotal || 0) / Math.max(1, item.quantity));
+                  const thumb = (item as any).thumbnail || (item as any).product?.thumbnail || "/placeholder.svg";
+                  return (
+                    <div key={item.id} className="flex items-start gap-3 py-2">
+                      <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                        <img src={thumb} alt={item.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-foreground truncate">{item.product_title || item.title}</h3>
                       {item.variant && (
-                        <p className="text-xs text-muted-foreground">
-                          {item.variant.title}
+                          <p className="text-xs text-muted-foreground truncate">{item.variant.title}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t('checkout.qty')}: {item.quantity} · {formatPrice(unit || 0, cart.currency_code)} {t('orders.each', { defaultValue: 'each' })}
                         </p>
-                      )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium">
-                        {formatPrice(item.subtotal || 0, cart.currency_code)}
-                      </p>
+                        <p className="text-sm font-medium">{formatPrice((item as any).subtotal || (unit * item.quantity) || 0, cart.currency_code)}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               <Separator className="bg-border/50" />
 
               {/* Promotion Code Section */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-foreground">Promotion Code</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-foreground">{t('checkout.promotionCode')}</h3>
                 
                 {/* Promotion Message */}
                 {promoMessage && (
@@ -710,7 +715,7 @@ export default function Checkout() {
 
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Enter code"
+                    placeholder={t('checkout.enterCode') as string}
                     value={promoCode}
                     onChange={(e) => {
                       setPromoCode(e.target.value);
@@ -727,7 +732,7 @@ export default function Checkout() {
                     size="sm"
                     className="text-xs h-9 px-3"
                   >
-                    Apply
+                    {t('checkout.apply')}
                   </Button>
                 </div>
               </div>
@@ -737,27 +742,27 @@ export default function Checkout() {
               {/* Order Totals */}
               <div className="space-y-3">
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t('cart.subtotal', { defaultValue: 'Subtotal' })}</span>
                   <span className="font-medium">{formatPrice(cart.subtotal || 0, cart.currency_code)}</span>
                 </div>
                 
                 {(cart as any).discount_total > 0 && (
                   <div className="flex justify-between text-xs text-green-600 dark:text-green-400">
-                    <span>Discount</span>
+                    <span>{t('cart.discount', { defaultValue: 'Discount' })}</span>
                     <span className="font-medium">-{formatPrice((cart as any).discount_total || 0, cart.currency_code)}</span>
                   </div>
                 )}
                 
                 {cart.shipping_total !== undefined && cart.shipping_total > 0 && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="text-muted-foreground">{t('cart.shipping', { defaultValue: 'Shipping' })}</span>
                     <span className="font-medium">{formatPrice(cart.shipping_total || 0, cart.currency_code)}</span>
                   </div>
                 )}
                 
                 {cart.tax_total !== undefined && cart.tax_total > 0 && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Tax</span>
+                    <span className="text-muted-foreground">{t('cart.tax', { defaultValue: 'Tax' })}</span>
                     <span className="font-medium">{formatPrice(cart.tax_total || 0, cart.currency_code)}</span>
                   </div>
                 )}
@@ -765,7 +770,7 @@ export default function Checkout() {
                 <Separator className="bg-border/50" />
                 
                 <div className="flex justify-between font-bold text-sm pt-2">
-                  <span>Total</span>
+                  <span>{t('cart.total', { defaultValue: 'Total' })}</span>
                   <span>{formatPrice(cart.total || 0, cart.currency_code)}</span>
                 </div>
               </div>

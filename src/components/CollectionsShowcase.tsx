@@ -108,15 +108,19 @@ export default function CollectionsShowcase() {
             opts={{ loop: true, align: "start", dragFree: true, skipSnaps: true }}
             className="w-full"
           >
-            <CarouselContent>
+            <CarouselContent className="-ml-1 md:-ml-4">
               {collections.slice(0, 12).map((collection) => (
-                <CarouselItem key={collection.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                <CarouselItem 
+                key={collection.id} 
+                className="pl-1 md:pl-4 basis-1/2 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
+              >
+              
                   <Link 
                     to={`/collections/${collection.handle}`}
                     className="group block collection-card opacity-0"
                   >
                     <div className="relative overflow-hidden bg-card rounded-none shadow-sm hover:shadow-xl transition-all duration-500 ease-out">
-                      <div className="relative aspect-square overflow-hidden">
+                      <div className="relative aspect-[4/5] sm:aspect-square overflow-hidden">
                         {(() => {
                           const imgUrl = collection.metadata?.imgUrl;
                           return imgUrl ? (

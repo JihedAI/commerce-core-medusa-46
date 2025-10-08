@@ -51,7 +51,10 @@ export function useMedusaProducts({ page, limit = 12, filters = {} }: MedusaProd
           region_id: filters.regionId,
           q: filters.search || undefined,
           collection_id: filters.collections?.length ? filters.collections : undefined,
-          category_id: filters.categories?.length ? filters.categories : undefined,
+          // Prefer explicit categoryId (from route /categories/:handle). Fallback to categories array filter.
+          category_id: (filters.categoryId
+            ? [filters.categoryId]
+            : (filters.categories?.length ? filters.categories : undefined)) as any,
           type_id: filters.brands?.length ? filters.brands : undefined,
           tag_id: filters.tags?.length ? filters.tags : undefined,
           ...(order ? { order } : {}),

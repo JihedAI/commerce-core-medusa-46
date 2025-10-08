@@ -4,6 +4,8 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Layout from '@/components/Layout';
 import OptimizedImage from '@/components/OptimizedImage';
+import VideoHero from '@/components/VideoHero';
+import Typewriter from '@/components/Typewriter';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -77,7 +79,12 @@ export default function About() {
 
   return (
     <Layout>
-      {/* Hero Section */}
+      {/* Full-bleed video section first */}
+      <VideoHero videos={[
+        'https://web-video-resource.gentlemonster.com/assets/video/ps/PS_main_landing_PC_1920x1080.mp4'
+      ]} showContent={false} loop />
+
+      {/* Logo Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
         <div className="text-center space-y-8 px-6">
           {/* Logo */}
@@ -93,6 +100,8 @@ export default function About() {
               {t('about.heroSubtitle', { defaultValue: 'Redefining Vision Since 1999' })}
             </p>
           </div>
+
+          {/* keep original spacing only */}
         </div>
 
         {/* Scroll Indicator */}
@@ -121,15 +130,13 @@ export default function About() {
             <div ref={textRef} className="space-y-8 story-element">
               <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
                 <p>
-                  {t('story.paragraph1', { defaultValue: 'Founded with a vision to revolutionize eyewear, we\'ve been crafting exceptional glasses that blend style, comfort, and innovation for over two decades.' })}
+                  <Typewriter text={t('story.paragraph1', { defaultValue: 'Founded with a vision to revolutionize eyewear, we\'ve been crafting exceptional glasses that blend style, comfort, and innovation for over two decades.' })} />
                 </p>
-                
                 <p>
-                  {t('story.paragraph2', { defaultValue: 'From our humble beginnings as a small optical shop to becoming a trusted name in premium eyewear, our journey has been driven by one simple belief: everyone deserves to see the world clearly and look great doing it.' })}
+                  <Typewriter startDelayMs={400} text={t('story.paragraph2', { defaultValue: 'From our humble beginnings as a small optical shop to becoming a trusted name in premium eyewear, our journey has been driven by one simple belief: everyone deserves to see the world clearly and look great doing it.' })} />
                 </p>
-                
                 <p>
-                  {t('story.paragraph3', { defaultValue: 'Today, we continue to push boundaries with cutting-edge lens technology, sustainable materials, and timeless designs that enhance your natural beauty while protecting your vision.' })}
+                  <Typewriter startDelayMs={800} text={t('story.paragraph3', { defaultValue: 'Today, we continue to push boundaries with cutting-edge lens technology, sustainable materials, and timeless designs that enhance your natural beauty while protecting your vision.' })} />
                 </p>
               </div>
 
@@ -253,7 +260,7 @@ export default function About() {
             <div className="w-24 h-1 bg-primary mx-auto"></div>
             
             <p className="text-xl text-muted-foreground leading-relaxed">
-              {t('about.missionText', { defaultValue: 'To empower every individual to see the world with clarity, confidence, and style. We believe that exceptional eyewear is not just a necessity—it\'s a statement of who you are and who you aspire to be.' })}
+              <Typewriter text={t('about.missionText', { defaultValue: 'To empower every individual to see the world with clarity, confidence, and style. We believe that exceptional eyewear is not just a necessity—it\'s a statement of who you are and who you aspire to be.' })} />
             </p>
           </div>
         </div>
@@ -268,7 +275,7 @@ export default function About() {
             </h2>
             
             <p className="text-lg text-muted-foreground">
-              {t('about.ctaText', { defaultValue: 'Discover our carefully curated collection of premium eyewear and find the perfect frames that reflect your unique style.' })}
+              <Typewriter text={t('about.ctaText', { defaultValue: 'Discover our carefully curated collection of premium eyewear and find the perfect frames that reflect your unique style.' })} startDelayMs={300} />
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">

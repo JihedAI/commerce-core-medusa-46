@@ -207,11 +207,12 @@ export default function ProductDetail() {
   return (
     <>
     <Layout>
-      <div className="flex gap-8 p-8 min-h-screen">
+      <div className="p-4 md:p-8 min-h-screen">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8">
         {/* Left Column - Images (60%) */}
-        <div className="w-[60%]">
+        <div className="w-full md:w-[60%]">
           {/* Main Product Image - larger, centered, clean */}
-          <div className="group relative w-full md:h-[720px] h-[520px] bg-muted/20 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+          <div className="group relative w-full h-[360px] sm:h-[420px] md:h-[720px] bg-muted/20 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
             {product.images && product.images.length > 0 ? (
               <>
                 <img
@@ -272,14 +273,14 @@ export default function ProductDetail() {
         </div>
         
         {/* Right Column - Product Details & Purchase (40%) */}
-        <div className="w-[40%] space-y-8">
+        <div className="w-full md:w-[40%] space-y-6 md:space-y-8">
           {/* Product Name */}
-          <h1 className="text-3xl font-bold text-foreground mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3 md:mb-4">
             {product.title}
           </h1>
 
           {/* Price */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             {price?.calculated_amount_with_tax ? (
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl font-bold text-foreground">
@@ -323,8 +324,8 @@ export default function ProductDetail() {
 
           {/* Description */}
           {product.description && (
-            <div className="mb-6">
-              <p className="text-muted-foreground leading-relaxed">
+            <div className="mb-4 md:mb-6">
+              <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
                 {product.description}
               </p>
             </div>
@@ -332,7 +333,7 @@ export default function ProductDetail() {
 
           {/* Color Variants */}
           {product.variants && product.variants.length > 1 && (
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <h4 className="text-lg font-medium text-foreground mb-3">{t('productDetail.availableOptions', { defaultValue: 'Available Options' })}</h4>
               <div className="flex gap-3">
                 {product.variants.map((variant, index) => (
@@ -355,7 +356,7 @@ export default function ProductDetail() {
           )}
 
           {/* Quantity Selector */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <h4 className="text-lg font-medium text-foreground mb-3">{t('productDetail.quantity', { defaultValue: 'Quantity' })}</h4>
             <div className="flex items-center gap-3">
               <button
@@ -378,13 +379,13 @@ export default function ProductDetail() {
           <Button
             onClick={handleAddToCart}
             disabled={isAddingToCart || !selectedVariant}
-            className="w-full py-3 mb-6 bg-foreground text-background hover:bg-foreground/90 font-semibold rounded-xl transition-all hover:shadow-xl"
+            className="w-full py-3 mb-4 md:mb-6 bg-foreground text-background hover:bg-foreground/90 font-semibold rounded-xl transition-all hover:shadow-xl"
           >
             {isAddingToCart ? t('productDetail.adding', { defaultValue: 'Adding...' }) : t('productDetail.addToBag', { defaultValue: 'Add to Bag' })}
           </Button>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 mb-6">
+          <div className="flex gap-3 mb-4 md:mb-6">
             <Button variant="outline" size="sm" className="flex-1">
               <Heart className="w-4 h-4 mr-2" />
               {t('productDetail.save', { defaultValue: 'Save' })}
@@ -396,7 +397,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Product Details Accordion */}
-          <Accordion type="single" collapsible className="mb-6">
+          <Accordion type="single" collapsible className="mb-4 md:mb-6">
             <AccordionItem value="details">
               <AccordionTrigger className="text-lg font-medium">{t('productDetail.details', { defaultValue: 'Product Details' })}</AccordionTrigger>
               <AccordionContent>
@@ -465,6 +466,7 @@ export default function ProductDetail() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+        </div>
         </div>
       </div>
 

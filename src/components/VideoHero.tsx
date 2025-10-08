@@ -9,9 +9,11 @@ import { useTextAnimation } from "@/hooks/useTextAnimation";
 
 interface VideoHeroProps {
   videos: string[];
+  showContent?: boolean; // when false, hide overlays/cta
+  loop?: boolean; // force loop single video
 }
 
-export default function VideoHero({ videos }: VideoHeroProps) {
+export default function VideoHero({ videos, showContent = true, loop = false }: VideoHeroProps) {
   const { t } = useTranslation();
   const [currentVideo, setCurrentVideo] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -40,7 +42,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
   // Text animations
   const { currentText: currentTitle, MotionText: MotionTitle } = useTextAnimation({
     texts: heroTitles,
-    interval: 4000,
+    interval: 3000,
     animationDuration: 0.5,
     animationType: 'slide',
     direction: 'up',
@@ -49,7 +51,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
 
   const { currentText: currentSubtitle, MotionText: MotionSubtitle } = useTextAnimation({
     texts: heroSubtitles,
-    interval: 4000,
+    interval: 3000,
     animationDuration: 0.5,
     animationType: 'slide',
     direction: 'up',
@@ -140,7 +142,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
                 index === currentVideo ? 'opacity-100' : 'opacity-0'
               }`}
               muted
-              loop={false}
+              loop={loop}
               playsInline
               preload={shouldLoad ? "auto" : "none"}
               style={{ display: shouldLoad ? 'block' : 'none' }}
@@ -152,10 +154,13 @@ export default function VideoHero({ videos }: VideoHeroProps) {
         })}
         
         {/* Dark overlay for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        {showContent && (
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        )}
       </div>
 
       {/* Content Overlay */}
+      {showContent && (
       <div ref={contentRef} className="relative h-full flex flex-col items-center justify-end px-6 pb-32">
         {/* Tagline */}
         <div className="mb-8 text-center">
@@ -220,6 +225,7 @@ export default function VideoHero({ videos }: VideoHeroProps) {
           ))}
         </div>
       </div>
+      )}
     </section>
   );
 }

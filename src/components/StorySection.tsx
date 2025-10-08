@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTextAnimation } from "@/hooks/useTextAnimation";
+import Typewriter from "./Typewriter";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -105,15 +106,13 @@ export default function StorySection() {
             
             <div className="opacity-0 space-y-6 text-lg text-foreground/80 leading-relaxed">
               <p>
-                {t('story.paragraph1', { defaultValue: 'Founded with a vision to revolutionize eyewear, we\'ve been crafting exceptional glasses that blend style, comfort, and innovation for over two decades.' })}
+                <Typewriter text={t('story.paragraph1', { defaultValue: 'Founded with a vision to revolutionize eyewear, we\'ve been crafting exceptional glasses that blend style, comfort, and innovation for over two decades.' })} />
               </p>
-              
               <p>
-                {t('story.paragraph2', { defaultValue: 'From our humble beginnings as a small optical shop to becoming a trusted name in premium eyewear, our journey has been driven by one simple belief: everyone deserves to see the world clearly and look great doing it.' })}
+                <Typewriter startDelayMs={400} text={t('story.paragraph2', { defaultValue: 'From our humble beginnings as a small optical shop to becoming a trusted name in premium eyewear, our journey has been driven by one simple belief: everyone deserves to see the world clearly and look great doing it.' })} />
               </p>
-              
               <p>
-                {t('story.paragraph3', { defaultValue: 'Today, we continue to push boundaries with cutting-edge lens technology, sustainable materials, and timeless designs that enhance your natural beauty while protecting your vision.' })}
+                <Typewriter startDelayMs={800} text={t('story.paragraph3', { defaultValue: 'Today, we continue to push boundaries with cutting-edge lens technology, sustainable materials, and timeless designs that enhance your natural beauty while protecting your vision.' })} />
               </p>
             </div>
             

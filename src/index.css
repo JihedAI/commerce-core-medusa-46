@@ -194,7 +194,24 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
+  }
+}
+
+/* Print styles: only print the order confirmation content */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #order-print, #order-print * {
+    visibility: visible;
+  }
+  #order-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 16px;
   }
 }
 

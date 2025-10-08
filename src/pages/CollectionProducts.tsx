@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRegion } from "@/contexts/RegionContext";
 import { HttpTypes } from "@medusajs/types";
 import OptimizedImage from "@/components/OptimizedImage";
+import Typewriter from "@/components/Typewriter";
 import { formatPrice } from "@/lib/utils";
 
 export default function CollectionProducts() {
@@ -71,7 +72,7 @@ export default function CollectionProducts() {
                 </h1>
                 {collection?.metadata?.description && (
                   <p className="mt-2 max-w-3xl text-white/90 text-sm md:text-base">
-                    {String(collection.metadata.description)}
+                    <Typewriter text={String(collection.metadata.description)} startDelayMs={200} />
                   </p>
                 )}
               </div>

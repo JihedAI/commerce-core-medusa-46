@@ -284,26 +284,25 @@ function ProductsOptimized() {
   const totalPages = Math.ceil((productsData?.count || 0) / limit);
   const hasMorePages = productsData?.hasMorePages || false;
 
-  // Progressive row rendering (rows of 3)
-  const rows = useMemo(() => chunkIntoRows(products, 3), [products]);
-  const [visibleRows, setVisibleRows] = useState(2);
+  // Progressive item rendering on a single responsive grid
+  const [visibleCount, setVisibleCount] = useState(12);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
-  // Reset visible rows when product set changes (new page/filters)
+  // Reset visible items when product set changes (new page/filters)
   useEffect(() => {
-    setVisibleRows(Math.min(2, rows.length));
-  }, [rows.length]);
+    setVisibleCount(Math.min(12, products.length));
+  }, [products.length]);
 
-  // Intersection observer to reveal next row when scrolling
+  // Intersection observer to reveal more items when scrolling
   useEffect(() => {
     if (!sentinelRef.current) return;
-    if (visibleRows >= rows.length) return;
+    if (visibleCount >= products.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setVisibleRows((prev) => Math.min(prev + 1, rows.length));
+            setVisibleCount((prev) => Math.min(prev + 12, products.length));
           }
         });
       },
@@ -316,7 +315,7 @@ function ProductsOptimized() {
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [rows.length, visibleRows]);
+  }, [products.length, visibleCount]);
 
   // Optimized filter handlers
   const updateFilter = useCallback((key: keyof FilterState, value: any) => {
@@ -654,25 +653,18 @@ function ProductsOptimized() {
                 </div>
               ) : (
                 <>
-                  <div data-products-grid className="space-y-4 lg:space-y-6">
-                    {rows.slice(0, visibleRows).map((row, rowIndex) => (
-                      <div 
-                        key={rowIndex}
-                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-8"
-                      >
-                        {row.map((product: any) => (
+                  <div data-products-grid className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 lg:gap-8">
+                    {products.slice(0, visibleCount).map((product: any) => (
                           <div key={product.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <ProductCardOptimized product={product} />
                       </div>
                     ))}
                       </div>
-                    ))}
 
-                    {/* Sentinel to load next row when visible */}
-                    {visibleRows < rows.length && (
-                      <div ref={sentinelRef} className="h-8" />
-                    )}
-                  </div>
+                  {/* Sentinel to load more when visible */}
+                  {visibleCount < products.length && (
+                    <div ref={sentinelRef} className="h-10" />
+                  )}
                   
                   {/* Pagination */}
                   {totalPages > 1 && (

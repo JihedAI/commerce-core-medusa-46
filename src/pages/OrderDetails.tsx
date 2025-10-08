@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Package, Truck, MapPin, CreditCard } from "lucide-react";
 import { formatDate } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface OrderItem {
   id: string;
@@ -58,6 +59,7 @@ interface OrderDetails {
 }
 
 export default function OrderDetails() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { customer } = useAuth();
@@ -85,7 +87,7 @@ export default function OrderDetails() {
       setOrder(order as any); // Using any to avoid complex type conversion
     } catch (err) {
       console.error("Failed to fetch order details:", err);
-      setError("Failed to load order details");
+      setError(t('orders.loadFailed', { defaultValue: 'Failed to load order details' }));
     } finally {
       setLoading(false);
     }
@@ -163,13 +165,13 @@ export default function OrderDetails() {
             <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold">Order Details</h1>
+            <h1 className="text-2xl font-bold">{t('orders.orderDetails', { defaultValue: 'Order Details' })}</h1>
           </div>
           <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-destructive">{error || "Order not found"}</p>
+              <p className="text-destructive">{error || t('orders.notFound', { defaultValue: 'Order not found' })}</p>
               <Button variant="outline" className="mt-4" onClick={() => navigate('/profile')}>
-                Back to Profile
+                {t('profile.myProfile', { defaultValue: 'Back to Profile' })}
               </Button>
             </CardContent>
           </Card>
@@ -188,9 +190,9 @@ export default function OrderDetails() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Order #{order.display_id}</h1>
+              <h1 className="text-2xl font-bold">{t('orders.orderNumber', { number: order.display_id, defaultValue: `Order #${order.display_id}` })}</h1>
               <p className="text-muted-foreground">
-                Placed on {formatDate(new Date(order.created_at), "MMMM dd, yyyy 'at' HH:mm")}
+                {t('orders.placedOn', { defaultValue: 'Placed on' })} {formatDate(new Date(order.created_at), "MMMM dd, yyyy 'at' HH:mm")}
               </p>
             </div>
           </div>
@@ -216,7 +218,7 @@ export default function OrderDetails() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Order Items
+                  {t('orders.items', { defaultValue: 'Order Items' })}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -235,9 +237,9 @@ export default function OrderDetails() {
                         <p className="text-sm text-muted-foreground">{item.variant.title}</p>
                       )}
                       <div className="flex items-center gap-4 mt-2">
-                        <span className="text-sm">Qty: {item.quantity}</span>
+                        <span className="text-sm">{t('checkout.qty', { defaultValue: 'Qty' })}: {item.quantity}</span>
                         <span className="text-sm">
-                          {formatPrice(item.unit_price, order.currency_code)} each
+                          {formatPrice(item.unit_price, order.currency_code)} {t('orders.each', { defaultValue: 'each' })}
                         </span>
                       </div>
                     </div>
@@ -257,7 +259,7 @@ export default function OrderDetails() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Truck className="h-5 w-5" />
-                    Shipping Address
+                    {t('orders.shippingAddress', { defaultValue: 'Shipping Address' })}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -266,7 +268,7 @@ export default function OrderDetails() {
                   </div>
                   {order.shipping_address.phone && (
                     <p className="text-sm text-muted-foreground mt-2">
-                      Phone: {order.shipping_address.phone}
+                      {t('forms.phone', { defaultValue: 'Phone' })}: {order.shipping_address.phone}
                     </p>
                   )}
                 </CardContent>
@@ -280,25 +282,25 @@ export default function OrderDetails() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Order Summary
+                  {t('checkout.orderSummary', { defaultValue: 'Order Summary' })}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
+                  <span>{t('cart.subtotal', { defaultValue: 'Subtotal' })}</span>
                   <span>{formatPrice(order.subtotal, order.currency_code)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Shipping</span>
+                  <span>{t('cart.shipping', { defaultValue: 'Shipping' })}</span>
                   <span>{formatPrice(order.shipping_total, order.currency_code)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tax</span>
+                  <span>{t('cart.tax', { defaultValue: 'Tax' })}</span>
                   <span>{formatPrice(order.tax_total, order.currency_code)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>Total</span>
+                  <span>{t('cart.total', { defaultValue: 'Total' })}</span>
                   <span>{formatPrice(order.total, order.currency_code)}</span>
                 </div>
               </CardContent>
@@ -310,7 +312,7 @@ export default function OrderDetails() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Billing Address
+                    {t('orders.billingAddress', { defaultValue: 'Billing Address' })}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -323,14 +325,14 @@ export default function OrderDetails() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Need Help?</CardTitle>
+                <CardTitle>{t('orders.needHelp', { defaultValue: 'Need Help?' })}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Questions about your order?
+                  {t('orders.questions', { defaultValue: 'Questions about your order?' })}
                 </p>
                 <Button variant="outline" className="w-full">
-                  Contact Support
+                  {t('orders.contactSupport', { defaultValue: 'Contact Support' })}
                 </Button>
               </CardContent>
             </Card>

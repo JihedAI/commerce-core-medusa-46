@@ -1,7 +1,7 @@
 import React, { memo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ShoppingBag, Heart, Eye } from "lucide-react";
+import { Plus } from "lucide-react";
 import { HttpTypes } from "@medusajs/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -115,15 +115,13 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
                 size="sm"
                 onClick={handleAddToCart}
                 disabled={isLoading}
-                className="h-8 px-3 text-xs"
+                className="h-8 w-8 p-0 rounded-full bg-foreground text-background hover:bg-foreground/90"
+                aria-label={t('buttons.add') as string}
               >
                 {isLoading ? (
                   <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 ) : (
-                  <>
-                    <ShoppingBag className="h-3 w-3 mr-1" />
-                    {t('buttons.add')}
-                  </>
+                  <Plus className="h-4 w-4" />
                 )}
               </Button>
             )}
