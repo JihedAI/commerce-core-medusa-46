@@ -31,7 +31,7 @@ export default function ExploreBanner() {
     if (!isHovered) {
       intervalRef.current = setInterval(() => {
         setCurrentImageIndex((prev) => (prev + 1) % images.length);
-      }, 2000); // Change image every 5 seconds
+      }, 3000); // Change image every 5 seconds
     }
     return () => {
       if (intervalRef.current) {
