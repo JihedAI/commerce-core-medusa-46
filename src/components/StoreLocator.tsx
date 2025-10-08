@@ -182,14 +182,7 @@ const StoreLocator = () => {
               
             </div>
 
-            <div className="pt-4">
-              <Button onClick={handleEmailClick} variant="ghost" size="lg" className="group text-primary hover:text-primary/80 transition-all duration-300">
-                <Mail className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                {t('store.sendEmail', {
-                defaultValue: 'Send Email'
-              })}
-              </Button>
-            </div>
+            
           </motion.div>
         </div>
 
