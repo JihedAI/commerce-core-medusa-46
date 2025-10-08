@@ -1,11 +1,5 @@
 import React, { useMemo, memo } from "react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useProductCarousel } from "@/hooks/useProducts";
 import { formatPrice } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -19,77 +13,57 @@ interface ProductCarouselProps {
 }
 
 // === Product Card ===
-const CarouselProductCard = memo(
-  ({ product, onClick }: { product: any; onClick: () => void }) => {
-    const priceInfo = useMemo(() => {
-      const variant = product.variants?.[0];
-      if (!variant) return { current: "Price N/A", original: null, currency: "USD" };
+const CarouselProductCard = memo(({ product, onClick }: { product: any; onClick: () => void }) => {
+  const priceInfo = useMemo(() => {
+    const variant = product.variants?.[0];
+    if (!variant) return { current: "Price N/A", original: null, currency: "USD" };
 
-      const calculatedPrice = variant.calculated_price;
-      const currentAmount =
-        calculatedPrice?.calculated_amount_with_tax ||
-        calculatedPrice?.calculated_amount ||
-        variant.prices?.[0]?.amount ||
-        0;
-      const originalAmount =
-        calculatedPrice?.original_amount_with_tax ||
-        calculatedPrice?.original_amount;
-      const currency =
-        calculatedPrice?.currency_code ||
-        variant.prices?.[0]?.currency_code ||
-        "USD";
+    const calculatedPrice = variant.calculated_price;
+    const currentAmount =
+      calculatedPrice?.calculated_amount_with_tax ||
+      calculatedPrice?.calculated_amount ||
+      variant.prices?.[0]?.amount ||
+      0;
+    const originalAmount = calculatedPrice?.original_amount_with_tax || calculatedPrice?.original_amount;
+    const currency = calculatedPrice?.currency_code || variant.prices?.[0]?.currency_code || "USD";
 
-      return {
-        current: formatPrice(currentAmount, currency),
-        original:
-          originalAmount && originalAmount !== currentAmount
-            ? formatPrice(originalAmount, currency)
-            : null,
-        currency,
-      };
-    }, [product]);
+    return {
+      current: formatPrice(currentAmount, currency),
+      original: originalAmount && originalAmount !== currentAmount ? formatPrice(originalAmount, currency) : null,
+      currency,
+    };
+  }, [product]);
 
-    return (
-      <a onClick={onClick} className="relative block cursor-pointer group/item">
-        {/* ✅ Desktop: 390x300 with centered image, Mobile: 2 per view with scaled image */}
-        <div className="relative overflow-hidden w-full h-[200px] sm:w-[390px] sm:h-[300px] rounded-xl">
-          {/* Mobile: full container image, Desktop: centered large image */}
-          <figure className="absolute inset-0 sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full h-full sm:w-[776px] sm:h-[776px] transition-transform duration-700 group-hover/item:scale-110">
-            <OptimizedImage
-              src={
-                product.thumbnail ||
-                product.images?.[0]?.url ||
-                "/placeholder.svg"
-              }
-              alt={product.title}
-              className="w-full h-full object-cover"
-              quality={80}
-              priority={false}
-              fit="cover"
-            />
-          </figure>
+  return (
+    <a onClick={onClick} className="relative block cursor-pointer group/item">
+      {/* ✅ Desktop: 390x300 with centered image, Mobile: 2 per view with scaled image */}
+      <div className="relative overflow-hidden w-full h-[200px] sm:w-[390px] sm:h-[300px] rounded-xl">
+        {/* Mobile: full container image, Desktop: centered large image */}
+        <figure className="absolute inset-0 sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full h-full sm:w-[776px] sm:h-[776px] transition-transform duration-700 group-hover/item:scale-150">
+          <OptimizedImage
+            src={product.thumbnail || product.images?.[0]?.url || "/placeholder.svg"}
+            alt={product.title}
+            className="w-full h-full object-cover"
+            quality={80}
+            priority={false}
+            fit="cover"
+          />
+        </figure>
+      </div>
+
+      {/* Text Block BELOW the image */}
+      <div className="px-[12px] sm:px-[28px] mt-4">
+        <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-1 leading-tight text-center sm:text-left">
+          {product.title}
+        </h3>
+        <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
+          <p className="text-xs md:text-sm font-medium text-foreground">{priceInfo.current}</p>
+          {priceInfo.original && <p className="text-xs text-muted-foreground line-through">{priceInfo.original}</p>}
         </div>
-
-        {/* Text Block BELOW the image */}
-        <div className="px-[12px] sm:px-[28px] mt-4">
-          <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-1 leading-tight text-center sm:text-left">
-            {product.title}
-          </h3>
-          <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
-            <p className="text-xs md:text-sm font-medium text-foreground">
-              {priceInfo.current}
-            </p>
-            {priceInfo.original && (
-              <p className="text-xs text-muted-foreground line-through">
-                {priceInfo.original}
-              </p>
-            )}
-          </div>
-        </div>
-      </a>
-    );
-  }
-);
+      </div>
+    </a>
+  );
+});
 
 CarouselProductCard.displayName = "CarouselProductCard";
 
@@ -106,17 +80,14 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
         stopOnInteraction: true,
         stopOnMouseEnter: true,
       }),
-    []
+    [],
   );
 
   const TAG_ID = "ptag_01K5RXNQQETCANE08W17PCH6MB";
 
-  const { data: carouselData } = useProductCarousel(
-    TAG_ID,
-    currentRegion?.id,
-    Math.max(8, initialCount),
-    { staleTime: 10 * 60 * 1000 }
-  );
+  const { data: carouselData } = useProductCarousel(TAG_ID, currentRegion?.id, Math.max(8, initialCount), {
+    staleTime: 10 * 60 * 1000,
+  });
 
   const products = useMemo(() => carouselData?.products || [], [carouselData]);
 
@@ -134,9 +105,7 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
     <section className="w-full py-20 px-0">
       <div className="px-8 lg:px-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-4">
-            {tagName}
-          </h2>
+          <h2 className="text-3xl lg:text-4xl font-display tracking-wider text-foreground/90 mb-4">{tagName}</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             {t("products.featuredSubtitle", {
               defaultValue:
@@ -164,10 +133,7 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
                 key={product.id}
                 className="px-2 sm:px-6 mx-1 sm:mx-3 flex-none w-1/2 sm:w-[390px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6"
               >
-                <CarouselProductCard
-                  product={product}
-                  onClick={() => navigate(`/products/${product.handle}`)}
-                />
+                <CarouselProductCard product={product} onClick={() => navigate(`/products/${product.handle}`)} />
               </CarouselItem>
             ))}
           </CarouselContent>
