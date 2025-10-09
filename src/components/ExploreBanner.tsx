@@ -58,7 +58,7 @@ export default function ExploreBanner() {
   };
   return (
     <section
-      className="relative w-full h-[70vh] overflow-hidden"
+      className="relative w-full h-[90vh] overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
