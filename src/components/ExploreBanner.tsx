@@ -132,14 +132,6 @@ export default function ExploreBanner() {
           <div className="max-w-2xl space-y-8">
             {/* Main heading */}
             <div className="space-y-4">
-              <div className="inline-block">
-                <span className="text-sm font-semibold uppercase tracking-wider text-primary bg-primary/10 px-4 py-2 rounded-full">
-                  {t("explore.newCollection", {
-                    defaultValue: "New Collection",
-                  })}
-                </span>
-              </div>
-
               <h1 className="text-5xl lg:text-7xl font-display font-bold text-foreground leading-tight">
                 {t("explore.title1", {
                   defaultValue: "Explore",
