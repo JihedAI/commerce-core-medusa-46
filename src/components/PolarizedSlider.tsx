@@ -24,8 +24,8 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   );
 
   return (
-    <section className="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black/5">
-      <div ref={containerRef} className="relative w-full h-full overflow-hidden rounded-2xl">
+    <section className="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-black/5">
+      <div ref={containerRef} className="relative w-full h-full overflow-hidden">
         {/* 🔹 Right Side (Polarized) */}
         <div className="absolute inset-0">
           <img
