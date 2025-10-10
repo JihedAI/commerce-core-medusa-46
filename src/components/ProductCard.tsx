@@ -87,13 +87,13 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Info below image to match carousel aesthetics */}
         <div className="pt-3">
-          <h3 className="text-sm sm:text-base lg:text-lg font-sans tracking-wide text-foreground line-clamp-2 leading-tight">
+          <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-2 leading-tight">
             {product.title}
           </h3>
           <div className="mt-1 flex items-center gap-2">
             {price && (
               <>
-                <span className="text-xs sm:text-sm lg:text-base font-medium text-foreground">
+                <span className="text-xs md:text-sm font-medium text-foreground">
                   {(() => {
                     const amount = price.calculated_amount_with_tax || price.calculated_amount;
                     const currency = price.currency_code || "TND";
@@ -102,14 +102,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </span>
                 {price.original_amount_with_tax && 
                  price.calculated_amount_with_tax !== price.original_amount_with_tax && (
-                  <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                  <span className="text-xs text-muted-foreground line-through">
                     {formatPrice(price.original_amount_with_tax, price.currency_code || "TND")}
                   </span>
                 )}
                 {price.original_amount && 
                  !price.original_amount_with_tax &&
                  price.calculated_amount !== price.original_amount && (
-                  <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                  <span className="text-xs text-muted-foreground line-through">
                     {formatPrice(price.original_amount, price.currency_code || "TND")}
                   </span>
                 )}
