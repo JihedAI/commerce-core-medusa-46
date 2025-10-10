@@ -85,7 +85,7 @@ export default function CollectionProducts() {
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="space-y-3">
                 <Skeleton className="aspect-square" />
@@ -95,7 +95,7 @@ export default function CollectionProducts() {
             ))}
           </div>
         ) : products && products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {products.map((product) => (
               <CollectionGridProductCard key={product.id} product={product} />
             ))}
@@ -145,9 +145,9 @@ function CollectionGridProductCard({ product }: { product: any }) {
       onClick={() => navigate(`/products/${product.handle}`)}
       className="relative block cursor-pointer group/item"
     >
-      {/* Image Container - larger like carousel */}
-      <div className="relative overflow-hidden w-[390px] h-[300px] md:w-[420px] md:h-[340px] xl:w-[460px] xl:h-[380px] mx-auto rounded-xl">
-        <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[776px] h-[776px] transition-transform duration-700 group-hover/item:scale-150">
+      {/* Image Container - responsive sizing */}
+      <div className="relative overflow-hidden w-full aspect-square sm:w-[340px] sm:h-[280px] md:w-[360px] md:h-[300px] lg:w-[400px] lg:h-[320px] xl:w-[460px] xl:h-[380px] mx-auto rounded-xl">
+        <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full sm:w-[620px] sm:h-[620px] md:w-[700px] md:h-[700px] lg:w-[776px] lg:h-[776px] transition-transform duration-700 group-hover/item:scale-150">
           <OptimizedImage
             src={
               product.thumbnail || product.images?.[0]?.url || "/placeholder.svg"
@@ -163,14 +163,14 @@ function CollectionGridProductCard({ product }: { product: any }) {
 
       {/* Text Block BELOW the image */}
       <div className="mt-3 px-1 flex flex-col items-center">
-        <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-1 leading-tight">
+        <h3 className="text-sm sm:text-base lg:text-lg font-sans tracking-wide text-foreground line-clamp-1 leading-tight">
           {product.title}
         </h3>
         {priceInfo.current && (
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-xs md:text-sm font-medium text-foreground">{priceInfo.current}</p>
+            <p className="text-xs sm:text-sm lg:text-base font-medium text-foreground">{priceInfo.current}</p>
             {priceInfo.original && (
-              <p className="text-xs text-muted-foreground line-through">{priceInfo.original}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground line-through">{priceInfo.original}</p>
             )}
           </div>
         )}

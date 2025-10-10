@@ -36,10 +36,10 @@ const CarouselProductCard = memo(({ product, onClick }: { product: any; onClick:
 
   return (
     <a onClick={onClick} className="relative block cursor-pointer group/item">
-      {/* ✅ Desktop: 390x300 with centered image, Mobile: 2 per view with scaled image */}
-      <div className="relative overflow-hidden w-full h-[200px] sm:w-[390px] sm:h-[300px] rounded-xl">
-        {/* Mobile: full container image, Desktop: centered large image */}
-        <figure className="absolute inset-0 sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full h-full sm:w-[776px] sm:h-[776px] transition-transform duration-700 group-hover/item:scale-150">
+      {/* Responsive: Mobile 2 per view, Tablet 3 per view, Desktop full carousel */}
+      <div className="relative overflow-hidden w-full h-[200px] sm:h-[280px] md:h-[320px] lg:w-[390px] lg:h-[300px] rounded-xl">
+        {/* Responsive image scaling */}
+        <figure className="absolute inset-0 sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full h-full sm:w-[620px] sm:h-[620px] md:w-[700px] md:h-[700px] lg:w-[776px] lg:h-[776px] transition-transform duration-700 group-hover/item:scale-150">
           <OptimizedImage
             src={product.thumbnail || product.images?.[0]?.url || "/placeholder.svg"}
             alt={product.title}
@@ -52,13 +52,13 @@ const CarouselProductCard = memo(({ product, onClick }: { product: any; onClick:
       </div>
 
       {/* Text Block BELOW the image */}
-      <div className="px-[12px] sm:px-[28px] mt-4">
-        <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-1 leading-tight text-center sm:text-left">
+      <div className="px-[12px] sm:px-[20px] lg:px-[28px] mt-3 sm:mt-4">
+        <h3 className="text-sm sm:text-base lg:text-lg font-sans tracking-wide text-foreground line-clamp-1 leading-tight text-center sm:text-left">
           {product.title}
         </h3>
         <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
-          <p className="text-xs md:text-sm font-medium text-foreground">{priceInfo.current}</p>
-          {priceInfo.original && <p className="text-xs text-muted-foreground line-through">{priceInfo.original}</p>}
+          <p className="text-xs sm:text-sm lg:text-base font-medium text-foreground">{priceInfo.current}</p>
+          {priceInfo.original && <p className="text-xs sm:text-sm text-muted-foreground line-through">{priceInfo.original}</p>}
         </div>
       </div>
     </a>
@@ -127,11 +127,11 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
           plugins={[plugin]}
           className="w-full"
         >
-          <CarouselContent className="-mx-2 sm:-mx-6 flex">
+          <CarouselContent className="-mx-2 sm:-mx-4 lg:-mx-6 flex">
             {products.map((product) => (
               <CarouselItem
                 key={product.id}
-                className="px-2 sm:px-6 mx-1 sm:mx-3 flex-none w-1/2 sm:w-[390px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6"
+                className="px-2 sm:px-4 lg:px-6 mx-1 sm:mx-2 lg:mx-3 flex-none w-1/2 sm:w-1/3 md:w-[340px] lg:w-[390px] first:ml-4 sm:first:ml-6 last:mr-4 sm:last:mr-6"
               >
                 <CarouselProductCard product={product} onClick={() => navigate(`/products/${product.handle}`)} />
               </CarouselItem>

@@ -73,7 +73,7 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
       <Link to={`/products/${product.handle}`} className="block">
         {/* Image Container: square, clean, object-cover like carousel */}
         <div className="relative overflow-hidden aspect-square rounded-xl">
-          <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] mobile:w-[238px] mobile:h-[238px] md:w-[720px] md:h-[720px] transition-transform duration-700 group-hover:scale-150">
+          <figure className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full sm:w-[520px] sm:h-[520px] md:w-[620px] md:h-[620px] lg:w-[720px] lg:h-[720px] transition-transform duration-700 group-hover:scale-150">
             <OptimizedImage
               src={imageUrl || "/placeholder.svg"}
               alt={product.title}
@@ -95,16 +95,16 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
 
         {/* Product Info below image to match carousel */}
         <div className="pt-3 space-y-1">
-          <h3 className="text-sm md:text-base font-sans tracking-wide text-foreground line-clamp-2 leading-tight">
+          <h3 className="text-sm sm:text-base lg:text-lg font-sans tracking-wide text-foreground line-clamp-2 leading-tight">
             {truncateText(product.title, 50)}
           </h3>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs md:text-sm font-medium text-foreground">
+              <span className="text-xs sm:text-sm lg:text-base font-medium text-foreground">
                 {priceInfo.current}
               </span>
               {priceInfo.original && (
-                <span className="text-xs text-muted-foreground line-through">
+                <span className="text-xs sm:text-sm text-muted-foreground line-through">
                   {priceInfo.original}
                 </span>
               )}
@@ -115,7 +115,7 @@ const ProductCardOptimized = memo(({ product }: ProductCardOptimizedProps) => {
                 size="sm"
                 onClick={handleAddToCart}
                 disabled={isLoading}
-                className="h-8 w-8 p-0 rounded-full bg-foreground text-background hover:bg-foreground/90"
+                className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 p-0 rounded-full bg-foreground text-background hover:bg-foreground/90"
                 aria-label={t('buttons.add') as string}
               >
                 {isLoading ? (

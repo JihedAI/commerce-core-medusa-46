@@ -203,12 +203,12 @@ export default function ProductDetail() {
   const price = selectedVariant?.calculated_price;
   return <>
     <Layout>
-      <div className="p-4 md:p-8 min-h-screen">
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+      <div className="p-4 sm:p-6 lg:p-8 min-h-screen">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* Left Column - Images (60%) */}
-        <div className="w-full md:w-[60%]">
+        <div className="w-full lg:w-[60%]">
           {/* Main Product Image - larger, centered, clean */}
-          <div className="group relative w-full h-[360px] sm:h-[420px] md:h-[720px] bg-muted/20 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+          <div className="group relative w-full h-[360px] sm:h-[480px] md:h-[560px] lg:h-[720px] bg-muted/20 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
             {product.images && product.images.length > 0 ? <>
                 <img src={selectedImage || product.thumbnail || "/placeholder.svg"} alt={product.title} className="max-w-full max-h-full object-contain transition-transform duration-700 group-hover:scale-[1.04]" onError={e => {
                   const target = e.target as HTMLImageElement;
@@ -224,11 +224,11 @@ export default function ProductDetail() {
           </div>
 
           {/* Additional Images Row - Only show if more than one image */}
-          {product.images && product.images.length > 1 && <div className="flex gap-3 overflow-x-auto">
+          {product.images && product.images.length > 1 && <div className="flex gap-2 sm:gap-3 overflow-x-auto">
               {product.images.map((image, index) => <button key={index} onClick={() => {
                 setCurrentImageIndex(index);
                 setSelectedImage(image.url);
-              }} className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-primary' : 'border-border hover:border-muted-foreground'}`}>
+              }} className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-primary' : 'border-border hover:border-muted-foreground'}`}>
                   <img src={image.url} alt={`${product.title} view ${index + 1}`} className="w-full h-full object-cover" onError={e => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/placeholder.svg";
@@ -238,35 +238,35 @@ export default function ProductDetail() {
         </div>
         
         {/* Right Column - Product Details & Purchase (40%) */}
-        <div className="w-full md:w-[40%] space-y-6 md:space-y-8">
+        <div className="w-full lg:w-[40%] space-y-4 sm:space-y-6 lg:space-y-8">
           {/* Product Name */}
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3 md:mb-4">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 sm:mb-3 lg:mb-4">
             {product.title}
           </h1>
 
           {/* Price */}
-          <div className="mb-4 md:mb-6">
-            {price?.calculated_amount_with_tax ? <div className="flex items-baseline gap-4">
-                <span className="text-3xl font-bold text-foreground">
+          <div className="mb-3 sm:mb-4 lg:mb-6">
+            {price?.calculated_amount_with_tax ? <div className="flex items-baseline gap-3 sm:gap-4">
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
                   {formatPrice(price.calculated_amount_with_tax, currency)}
                 </span>
                 {price.original_amount_with_tax && price.calculated_amount_with_tax !== price.original_amount_with_tax && <div className="flex flex-col">
-                    <span className="text-lg text-muted-foreground line-through">
+                    <span className="text-base sm:text-lg text-muted-foreground line-through">
                       {formatPrice(price.original_amount_with_tax, currency)}
                     </span>
-                    <span className="text-sm font-medium text-green-600">
+                    <span className="text-xs sm:text-sm font-medium text-green-600">
                       Save {Math.round((price.original_amount_with_tax - price.calculated_amount_with_tax) / price.original_amount_with_tax * 100)}%
                     </span>
                   </div>}
-              </div> : price?.calculated_amount ? <div className="flex items-baseline gap-4">
-                <span className="text-3xl font-bold text-foreground">
+              </div> : price?.calculated_amount ? <div className="flex items-baseline gap-3 sm:gap-4">
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
                   {formatPrice(price.calculated_amount, currency)}
                 </span>
                 {price.original_amount && price.calculated_amount !== price.original_amount && <div className="flex flex-col">
-                    <span className="text-lg text-muted-foreground line-through">
+                    <span className="text-base sm:text-lg text-muted-foreground line-through">
                       {formatPrice(price.original_amount, currency)}
                     </span>
-                    <span className="text-sm font-medium text-green-600">
+                    <span className="text-xs sm:text-sm font-medium text-green-600">
                       Save {Math.round((price.original_amount - price.calculated_amount) / price.original_amount * 100)}%
                     </span>
                   </div>}
