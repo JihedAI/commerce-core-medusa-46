@@ -10,21 +10,32 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
 
-  // 🧮 Initial position setup (e.g., 70% of width)
+  // 🧮 Initial position setup (50% of width) and responsive update
   useEffect(() => {
-    const containerWidth = containerRef.current?.offsetWidth || 0;
-    if (containerWidth) {
-      x.set(containerWidth * 0.5); // <-- change 0.7 to 0.6 / 0.8 as you like
-    }
-  }, []);
+    const updateInitial = () => {
+      const containerWidth = containerRef.current?.offsetWidth || 0;
+      if (containerWidth) {
+        x.set(containerWidth * 0.5);
+      }
+    };
 
+    updateInitial();
+    window.addEventListener("resize", updateInitial);
+    return () => window.removeEventListener("resize", updateInitial);
+  }, [x]);
+
+  // 🎨 Clip path based on drag position
   const clipPath = useTransform(
     x,
     (value) => `inset(0 ${Math.max(0, 100 - (value / (containerRef.current?.offsetWidth || 1)) * 100)}% 0 0)`,
   );
 
   return (
-    <section className="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-black/5">
+    <section
+      className={`relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-black/5 ${
+        isDragging ? "select-none" : ""
+      }`}
+    >
       <div ref={containerRef} className="relative w-full h-full overflow-hidden">
         {/* 🔹 Right Side (Polarized) */}
         <div className="absolute inset-0">
@@ -51,13 +62,15 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           />
         </motion.div>
 
-        {/* ⚪ Divider */}
+        {/* ⚪ Divider (Draggable) */}
         <motion.div
           drag="x"
           dragConstraints={containerRef}
-          style={{ x }}
           dragElastic={0}
           dragMomentum={false}
+          dragPropagation={false}
+          onPointerDown={(e) => e.preventDefault()} // 🧠 Prevent scroll conflicts on mobile
+          style={{ x, touchAction: "none" }} // 🧠 Lock horizontal drag
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
           className="absolute top-0 bottom-0 w-[1.5px] bg-white/70 cursor-ew-resize z-20"
@@ -88,14 +101,6 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
             Avec polarisation
           </div>
         </div>
-
-        {/* Hint Text */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.8 }}
-          transition={{ delay: 0.8, duration: 1 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center"
-        ></motion.div>
       </div>
     </section>
   );
