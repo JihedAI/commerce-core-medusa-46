@@ -17,7 +17,7 @@ export function DesktopNav({ hasScrolled }: DesktopNavProps) {
         }`}
       >
         {navigation.map((item) => (
-          <div key={item.name} className="relative group">
+          <div key={item.name} className="relative group z-50">
             {/* Main category link */}
             <Link
               to={item.href}
@@ -34,11 +34,11 @@ export function DesktopNav({ hasScrolled }: DesktopNavProps) {
             {/* Dropdown / Minimalist Menu */}
             {item.items && item.items.length > 0 && (
               <div
-                className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 min-w-[260px] max-w-[640px] opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 group-hover:translate-y-0 transition-all duration-200 z-50"
+                className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 group-hover:translate-y-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto"
                 role="menu"
                 aria-label={`${item.name} menu`}
               >
-                <div className="bg-background/95 border border-border/10 rounded-lg shadow-sm p-4">
+                <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[260px] max-w-[640px]">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {item.items.map((subItem) => (
                       <div key={subItem.name} className="space-y-1">
@@ -49,7 +49,7 @@ export function DesktopNav({ hasScrolled }: DesktopNavProps) {
                           {subItem.name}
                         </Link>
                         {subItem.children && subItem.children.length > 0 && (
-                          <div className="ml-2 pl-2 border-l border-border/10 mt-1">
+                          <div className="ml-2 pl-2 border-l border-border/20 mt-1">
                             {subItem.children.map((child) => (
                               <Link
                                 key={child.name}
