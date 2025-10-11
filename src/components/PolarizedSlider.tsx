@@ -10,34 +10,34 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
 
-  // 🧮 Initial position setup (50% of width) and responsive update
+  // ✅ Initial position (50% of container width)
   useEffect(() => {
     const updateInitial = () => {
       const containerWidth = containerRef.current?.offsetWidth || 0;
-      if (containerWidth) {
-        x.set(containerWidth * 0.5);
-      }
+      if (containerWidth) x.set(containerWidth * 0.5);
     };
-
     updateInitial();
     window.addEventListener("resize", updateInitial);
     return () => window.removeEventListener("resize", updateInitial);
   }, [x]);
 
-  // 🎨 Clip path based on drag position
-  const clipPath = useTransform(
-    x,
-    (value) => `inset(0 ${Math.max(0, 100 - (value / (containerRef.current?.offsetWidth || 1)) * 100)}% 0 0)`,
-  );
+  // 🎨 Dynamic clip path (updates as user drags)
+  const clipPath = useTransform(x, (value) => {
+    const containerWidth = containerRef.current?.offsetWidth || 1;
+    const percentage = Math.max(0, 100 - (value / containerWidth) * 100);
+    return `inset(0 ${percentage}% 0 0)`;
+  });
 
   return (
     <section
-      className={`relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-black/5 ${
-        isDragging ? "select-none" : ""
-      }`}
+      className={`relative w-full flex items-center justify-center bg-black/5 ${isDragging ? "select-none" : ""}`}
     >
-      <div ref={containerRef} className="relative w-full h-full overflow-hidden">
-        {/* 🔹 Right Side (Polarized) */}
+      {/* ✅ Responsive height fixes overflow on mobile */}
+      <div
+        ref={containerRef}
+        className="relative w-full h-[55vh] sm:h-[65vh] md:h-[70vh] lg:h-[80vh] overflow-hidden rounded-none"
+      >
+        {/* Right (Polarized) */}
         <div className="absolute inset-0">
           <img
             src={imageUrl}
@@ -50,8 +50,8 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-blue-500/10 mix-blend-overlay" />
         </div>
 
-        {/* 🔸 Left Side (Normal) */}
-        <motion.div style={{ clipPath }} className="absolute inset-0 overflow-hidden">
+        {/* Left (Normal) */}
+        <motion.div style={{ clipPath }} className="absolute inset-0 pointer-events-none">
           <img
             src={imageUrl}
             alt="Normal"
@@ -62,20 +62,18 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
           />
         </motion.div>
 
-        {/* ⚪ Divider (Draggable) */}
+        {/* Divider */}
         <motion.div
           drag="x"
           dragConstraints={containerRef}
           dragElastic={0}
           dragMomentum={false}
-          dragPropagation={false}
-          onPointerDown={(e) => e.preventDefault()} // 🧠 Prevent scroll conflicts on mobile
-          style={{ x, touchAction: "none" }} // 🧠 Lock horizontal drag
+          onPointerDown={(e) => e.preventDefault()}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
-          className="absolute top-0 bottom-0 w-[1.5px] bg-white/70 cursor-ew-resize z-20"
+          style={{ x, touchAction: "none" }}
+          className="absolute top-0 bottom-0 w-[2px] bg-white/70 cursor-ew-resize z-20"
         >
-          {/* Handle */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div
               className={`w-8 h-8 rounded-full bg-white/90 border border-white/20 backdrop-blur-sm shadow-md flex items-center justify-center transition-transform ${
@@ -91,13 +89,13 @@ export default function PolarizedSlider({ imageUrl }: PolarizedSliderProps) {
         </motion.div>
 
         {/* Labels */}
-        <div className="absolute left-4 top-4 md:left-8 md:top-8">
-          <div className="bg-white/70 text-black text-[10px] md:text-xs px-3 py-1 rounded-full font-medium shadow-sm backdrop-blur-sm">
+        <div className="absolute left-3 top-3 sm:left-6 sm:top-6">
+          <div className="bg-white/70 text-black text-[10px] sm:text-xs px-3 py-1 rounded-full font-medium shadow-sm backdrop-blur-sm">
             Sans polarisation
           </div>
         </div>
-        <div className="absolute right-4 top-4 md:right-8 md:top-8">
-          <div className="bg-white/70 text-black text-[10px] md:text-xs px-3 py-1 rounded-full font-medium shadow-sm backdrop-blur-sm">
+        <div className="absolute right-3 top-3 sm:right-6 sm:top-6">
+          <div className="bg-white/70 text-black text-[10px] sm:text-xs px-3 py-1 rounded-full font-medium shadow-sm backdrop-blur-sm">
             Avec polarisation
           </div>
         </div>
