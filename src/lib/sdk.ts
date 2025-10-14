@@ -5,7 +5,7 @@ import Medusa from "@medusajs/js-sdk";
  * The SDK will automatically handle JWT tokens for authenticated requests
  */
 export const sdk = new Medusa({
-  baseUrl: "http://213.199.58.163:9000/",
+  baseUrl: "https://213.199.58.163:9000/",
   auth: {
     type: "jwt", // Use JWT authentication
     jwtTokenStorageKey: "medusa_jwt_token", // Key for storing JWT in localStorage
