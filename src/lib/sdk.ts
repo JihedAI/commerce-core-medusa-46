@@ -5,13 +5,13 @@ import Medusa from "@medusajs/js-sdk";
  * The SDK will automatically handle JWT tokens for authenticated requests
  */
 export const sdk = new Medusa({
-  baseUrl: "https://856jmnth-9000.euw.devtunnels.ms/",
+  baseUrl: "http://213.199.58.163:9000/",
   auth: {
     type: "jwt", // Use JWT authentication
     jwtTokenStorageKey: "medusa_jwt_token", // Key for storing JWT in localStorage
     jwtTokenStorageMethod: "local", // Store in localStorage
   },
-  publishableKey: "pk_2b9991990a689e3d826f8592c9eb8038ce61fab352c5bcd9aead2cfd097da60d",
+  publishableKey: "pk_4b2ca5103e173cdd941ec632e69148a9057c7ac2a73a57f5e0d1fe3bea5f764d",
 });
 
 // Export type for customer data
@@ -27,7 +27,8 @@ export interface Customer {
 }
 
 // Test SDK connection
-sdk.store.product.list()
+sdk.store.product
+  .list()
   .then(() => {
     // Medusa SDK initialized successfully
   })
