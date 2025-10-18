@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import Layout from "@/components/Layout";
 import { sdk } from "@/lib/sdk";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrderItem {
   id: string;
@@ -33,6 +35,8 @@ export default function OrderConfirmation() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { customer } = useAuth();
+  const { toast } = useToast();
   const [order, setOrder] = useState<OrderSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,15 +49,44 @@ export default function OrderConfirmation() {
       }
       try {
         const res = await sdk.store.order.retrieve(id as string);
+        
+        // Security: Verify customer owns this order (defense in depth)
+        // Allow anonymous orders (no customer) or verify ownership
+        if (res.order.customer_id && customer && res.order.customer_id !== customer.id) {
+          setError(t('orders.accessDenied', { defaultValue: 'You do not have permission to view this order' }));
+          toast({
+            title: t('toast.accessDenied', { defaultValue: 'Access Denied' }),
+            description: t('toast.noPermission', { defaultValue: 'You do not have permission to view this order' }),
+            variant: 'destructive',
+          });
+          navigate('/');
+          return;
+        }
+        
         setOrder(res.order as any);
-      } catch (e) {
+      } catch (e: any) {
+        // Handle unauthorized access
+        if (e?.status === 403 || e?.status === 401) {
+          setError(t('orders.accessDenied', { defaultValue: 'You do not have permission to view this order' }));
+          toast({
+            title: t('toast.accessDenied', { defaultValue: 'Access Denied' }),
+            description: t('toast.noPermission', { defaultValue: 'You do not have permission to view this order' }),
+            variant: 'destructive',
+          });
+          navigate('/');
+          return;
+        }
+        
+        if (import.meta.env.DEV) {
+          console.error('Failed to load order:', { status: e?.status, message: e?.message });
+        }
         setError(t('orders.loadFailed', { defaultValue: 'Failed to load order details' }));
       } finally {
         setLoading(false);
       }
     };
     fetchOrder();
-  }, [id, t]);
+  }, [id, customer, navigate, t, toast]);
 
   const formatPrice = (amount: number | undefined, currency?: string) => {
     if (amount === undefined) return '';

@@ -50,11 +50,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Logout function - clears JWT token and customer data
+   * Note: Server-side token invalidation should be handled by Medusa backend
    */
   const logout = async () => {
     try {
-      // The SDK should handle token removal
-      // Clear the JWT token from localStorage
+      // Attempt server-side logout if SDK supports it
+      try {
+        await sdk.auth.logout();
+      } catch (logoutError) {
+        // Backend logout may not be available, continue with client cleanup
+        if (import.meta.env.DEV) {
+          console.error('Server-side logout not available:', { message: (logoutError as any)?.message });
+        }
+      }
+      
+      // Always clear the JWT token from localStorage
       localStorage.removeItem('medusa_jwt_token');
       setCustomer(null);
     } catch (error: any) {

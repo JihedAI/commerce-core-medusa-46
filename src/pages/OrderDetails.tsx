@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Package, Truck, MapPin, CreditCard } from "lucide-react";
 import { formatDate } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrderItem {
   id: string;
@@ -63,6 +64,7 @@ export default function OrderDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { customer } = useAuth();
+  const { toast } = useToast();
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,9 +86,36 @@ export default function OrderDetails() {
   const fetchOrderDetails = async (orderId: string) => {
     try {
       const { order } = await sdk.store.order.retrieve(orderId);
+      
+      // Security: Verify customer owns this order (defense in depth)
+      if (order.customer_id !== customer?.id) {
+        setError(t('orders.accessDenied', { defaultValue: 'You do not have permission to view this order' }));
+        toast({
+          title: t('toast.accessDenied', { defaultValue: 'Access Denied' }),
+          description: t('toast.noPermission', { defaultValue: 'You do not have permission to view this order' }),
+          variant: 'destructive',
+        });
+        navigate('/profile');
+        return;
+      }
+      
       setOrder(order as any); // Using any to avoid complex type conversion
-    } catch (err) {
-      console.error("Failed to fetch order details:", err);
+    } catch (err: any) {
+      // Handle unauthorized access
+      if (err?.status === 403 || err?.status === 401) {
+        setError(t('orders.accessDenied', { defaultValue: 'You do not have permission to view this order' }));
+        toast({
+          title: t('toast.accessDenied', { defaultValue: 'Access Denied' }),
+          description: t('toast.noPermission', { defaultValue: 'You do not have permission to view this order' }),
+          variant: 'destructive',
+        });
+        navigate('/profile');
+        return;
+      }
+      
+      if (import.meta.env.DEV) {
+        console.error("Failed to fetch order details:", { status: err?.status, message: err?.message });
+      }
       setError(t('orders.loadFailed', { defaultValue: 'Failed to load order details' }));
     } finally {
       setLoading(false);

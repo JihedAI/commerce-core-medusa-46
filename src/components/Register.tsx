@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { sdk, type Customer } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +11,16 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Sparkles, Shield, Zap, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Sparkles, Shield, Zap, CheckCircle, AlertCircle } from 'lucide-react';
 import Layout from './Layout';
+
+// Strong password validation schema
+const passwordSchema = z.string()
+  .min(12, 'Password must be at least 12 characters')
+  .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Must contain at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character');
 
 /**
  * Register Component
@@ -49,15 +58,19 @@ export default function Register() {
       return;
     }
 
-    // Validate password strength
-    if (password.length < 6) {
-      toast({
-        title: t('toast.validationError', { defaultValue: 'Validation Error' }),
-        description: t('toast.passwordTooShort', { defaultValue: 'Password must be at least 6 characters long' }),
-        variant: 'destructive'
-      });
-      setIsLoading(false);
-      return;
+    // Validate password strength with zod
+    try {
+      passwordSchema.parse(password);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: t('toast.validationError', { defaultValue: 'Weak Password' }),
+          description: error.errors[0].message,
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
     }
 
     try {
@@ -338,15 +351,27 @@ export default function Register() {
                       </button>
                     </div>
                     {password && (
-                      <div className="text-xs text-muted-foreground">
-                        {password.length >= 6 ? (
-                          <div className="flex items-center space-x-1 text-green-600">
-                            <CheckCircle className="h-3 w-3" />
-                            <span>{t('auth.passwordStrength', { defaultValue: 'Password strength: Good' })}</span>
-                          </div>
-                        ) : (
-                          <span>{t('auth.passwordMinLength', { defaultValue: 'At least 6 characters required' })}</span>
-                        )}
+                      <div className="text-xs space-y-1">
+                        <div className={`flex items-center space-x-1 ${password.length >= 12 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {password.length >= 12 ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                          <span>At least 12 characters</span>
+                        </div>
+                        <div className={`flex items-center space-x-1 ${/[A-Z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {/[A-Z]/.test(password) ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                          <span>One uppercase letter</span>
+                        </div>
+                        <div className={`flex items-center space-x-1 ${/[a-z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {/[a-z]/.test(password) ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                          <span>One lowercase letter</span>
+                        </div>
+                        <div className={`flex items-center space-x-1 ${/[0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {/[0-9]/.test(password) ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                          <span>One number</span>
+                        </div>
+                        <div className={`flex items-center space-x-1 ${/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {/[^A-Za-z0-9]/.test(password) ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                          <span>One special character</span>
+                        </div>
                       </div>
                     )}
                   </motion.div>
