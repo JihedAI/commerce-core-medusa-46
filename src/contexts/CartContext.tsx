@@ -50,8 +50,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         } else {
           await createNewCart();
         }
-      } catch (error) {
-        console.error("Failed to initialize cart:", error);
+      } catch (error: any) {
+        // Only log in development
+        if (import.meta.env.DEV) {
+          console.error("Failed to initialize cart:", { message: error?.message });
+        }
         toast({
           title: "Error",
           description: "Failed to initialize shopping cart",
@@ -79,8 +82,11 @@ const createNewCart = async () => {
     localStorage.setItem(CART_ID_KEY, cart.id);
 
     return cart; // ✅ important
-  } catch (error) {
-    console.error("Failed to create cart:", error);
+  } catch (error: any) {
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.error("Failed to create cart:", { message: error?.message });
+    }
     throw error;
   }
 };
@@ -92,8 +98,11 @@ const createNewCart = async () => {
     try {
       const { cart: updatedCart } = await sdk.store.cart.retrieve(cart.id);
       setCart(updatedCart);
-    } catch (error) {
-      console.error("Failed to refresh cart:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to refresh cart:", { message: error?.message });
+      }
     }
   };
 
@@ -123,8 +132,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
     });
 
     return updatedCart;
-  } catch (error) {
-    console.error("Failed to add item:", error);
+  } catch (error: any) {
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.error("Failed to add item:", { message: error?.message });
+    }
     toast({
       title: "Error",
       description: "Failed to add item to cart",
@@ -149,8 +161,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
       });
       
       await refreshCart();
-    } catch (error) {
-      console.error("Failed to update item:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to update item:", { message: error?.message });
+      }
       toast({
         title: "Error",
         description: "Failed to update item quantity",
@@ -170,8 +185,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
         title: "Removed from cart",
         description: "Item removed successfully",
       });
-    } catch (error) {
-      console.error("Failed to remove item:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to remove item:", { message: error?.message });
+      }
       toast({
         title: "Error",
         description: "Failed to remove item from cart",
@@ -208,7 +226,10 @@ const addItem = async (variantId: string, quantity: number = 1) => {
         description: `Successfully applied ${code}`,
       });
     } catch (error: any) {
-      console.error("Failed to apply promotion:", error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to apply promotion:", { message: error?.message });
+      }
       const errorMessage = error?.message || "Invalid or expired promo code";
       toast({
         title: "Error",
@@ -233,8 +254,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
         title: "Promo code removed",
         description: `Removed ${code} from your cart`,
       });
-    } catch (error) {
-      console.error("Failed to remove discount:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to remove discount:", { message: error?.message });
+      }
       toast({
         title: "Error", 
         description: "Failed to remove promo code",
@@ -252,8 +276,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
       });
       
       await refreshCart();
-    } catch (error) {
-      console.error("Failed to set shipping address:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to set shipping address:", { message: error?.message });
+      }
       throw error;
     }
   };
@@ -267,8 +294,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
       });
       
       await refreshCart();
-    } catch (error) {
-      console.error("Failed to set billing address:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to set billing address:", { message: error?.message });
+      }
       throw error;
     }
   };
@@ -282,8 +312,11 @@ const addItem = async (variantId: string, quantity: number = 1) => {
       });
       
       await refreshCart();
-    } catch (error) {
-      console.error("Failed to set email:", error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to set email:", { message: error?.message });
+      }
       throw error;
     }
   };

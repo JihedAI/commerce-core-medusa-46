@@ -68,7 +68,10 @@ export default function Login() {
       navigate('/');
       
     } catch (error: any) {
-      console.error('Login error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Login error:', { status: error?.status, message: error?.message });
+      }
       
       // Handle specific error cases
       if (error?.status === 401) {
@@ -97,11 +100,18 @@ export default function Login() {
 
   const loginWithGoogle = async () => {
     try {
+      // Generate and store OAuth state for CSRF protection
+      const state = crypto.randomUUID();
+      sessionStorage.setItem('oauth_state', state);
+      
       const result = await sdk.auth.login("customer", "google", {});
       
       if (typeof result === "object" && result.location) {
-        // Redirect to Google for authentication
-        window.location.href = result.location;
+        // Append state parameter to OAuth URL
+        const urlWithState = result.location.includes('?') 
+          ? `${result.location}&state=${state}`
+          : `${result.location}?state=${state}`;
+        window.location.href = urlWithState;
         return;
       }
       
@@ -126,7 +136,10 @@ export default function Login() {
       
       navigate('/');
     } catch (error: any) {
-      console.error('Google login error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Google login error:', { status: error?.status, message: error?.message });
+      }
       toast({
         title: t('toast.googleLoginFailed', { defaultValue: 'Google login failed' }),
         description: error?.message || t('toast.tryAgain', { defaultValue: 'Please try again.' }),

@@ -24,26 +24,43 @@ export default function GoogleCallback() {
   const sendCallback = async () => {
     let token = "";
     try {
+      // Validate OAuth state parameter
+      const savedState = sessionStorage.getItem('oauth_state');
+      const receivedState = queryParams.state;
+      
+      if (!savedState || savedState !== receivedState) {
+        throw new Error('Invalid OAuth state - possible CSRF attack');
+      }
+      
+      // Clear the state after validation
+      sessionStorage.removeItem('oauth_state');
+      
       token = await sdk.auth.callback("customer", "google", queryParams);
     } catch (error: any) {
-      console.error("Authentication callback failed:", error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Authentication callback failed:", { message: error?.message });
+      }
       setError("Authentication Failed. Please try again.");
       throw error;
     }
     return token;
   };
 
-  const createCustomer = async () => {
+  const createCustomer = async (email: string) => {
     try {
-      // Backend should get email from Google auth identity
-      // Use a placeholder that backend will replace
-      const response = await sdk.store.customer.create({
-        email: `temp-${Date.now()}@google-auth.temp`
-      });
-      console.log("✅ Customer created:", response);
+      // Create customer with email from OAuth identity
+      const response = await sdk.store.customer.create({ email });
+      
+      if (import.meta.env.DEV) {
+        console.log("Customer created successfully");
+      }
       return response;
     } catch (error: any) {
-      console.error("❌ Failed to create customer:", error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Failed to create customer:", { message: error?.message });
+      }
       // Customer might already exist, continue anyway
       throw error;
     }
@@ -55,10 +72,11 @@ export default function GoogleCallback() {
 
   const validateCallback = async () => {
     try {
-      console.log("🔍 Google Callback - Query params:", queryParams);
+      if (import.meta.env.DEV) {
+        console.log("Google Callback - Processing authentication");
+      }
       
       const token = await sendCallback();
-      console.log("🔍 Received token:", token);
       
       // Check if we need to create a new customer
       const decodedToken = decodeToken(token) as { 
@@ -71,27 +89,30 @@ export default function GoogleCallback() {
         }
       } | null;
       
-      console.log("🔍 Decoded token:", decodedToken);
-      
       const shouldCreateCustomer = decodedToken?.actor_id === "" || decodedToken?.actor_id === undefined;
-      console.log("🔍 Should create customer:", shouldCreateCustomer);
       
       if (shouldCreateCustomer) {
-        console.log("✅ Creating customer (backend will populate from Google auth identity)");
-        
         try {
-          await createCustomer();
-          console.log("✅ Customer creation successful, refreshing token");
+          // Extract email from token or use a placeholder
+          const email = decodedToken?.email || 
+                       decodedToken?.app_metadata?.user_metadata?.email || 
+                       `oauth-${Date.now()}@placeholder.local`;
+          await createCustomer(email);
           await refreshToken();
         } catch (createError: any) {
-          console.error("❌ Customer creation failed:", createError);
-          // Try to continue anyway - maybe customer already exists
+          // Only log in development
+          if (import.meta.env.DEV) {
+            console.error("Customer creation failed:", { message: createError?.message });
+          }
+          // Verify customer creation was necessary
+          if (createError?.status !== 409) {
+            throw createError;
+          }
         }
       }
       
       // Retrieve customer data
       const { customer: customerData } = await sdk.store.customer.retrieve();
-      console.log("✅ Retrieved customer:", customerData);
       
       setCustomerState(customerData);
       setCustomer(customerData as Customer);
@@ -103,7 +124,10 @@ export default function GoogleCallback() {
       
       setLoading(false);
     } catch (error: any) {
-      console.error("❌ Callback validation error:", error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error("Callback validation error:", { message: error?.message });
+      }
       setError(error?.message || "Authentication failed. Please try again.");
       setLoading(false);
       

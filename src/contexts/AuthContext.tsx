@@ -57,8 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear the JWT token from localStorage
       localStorage.removeItem('medusa_jwt_token');
       setCustomer(null);
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (error: any) {
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Logout error:', { message: error?.message });
+      }
     }
   };
 

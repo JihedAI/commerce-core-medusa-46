@@ -91,7 +91,10 @@ export default function Register() {
       navigate('/');
       
     } catch (error: any) {
-      console.error('Registration error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Registration error:', { status: error?.status, message: error?.message });
+      }
       
       // Handle specific error cases
       if (error?.status === 409) {
@@ -120,11 +123,18 @@ export default function Register() {
 
   const registerWithGoogle = async () => {
     try {
+      // Generate and store OAuth state for CSRF protection
+      const state = crypto.randomUUID();
+      sessionStorage.setItem('oauth_state', state);
+      
       const result = await sdk.auth.login("customer", "google", {});
       
       if (typeof result === "object" && result.location) {
-        // Redirect to Google for authentication
-        window.location.href = result.location;
+        // Append state parameter to OAuth URL
+        const urlWithState = result.location.includes('?') 
+          ? `${result.location}&state=${state}`
+          : `${result.location}?state=${state}`;
+        window.location.href = urlWithState;
         return;
       }
       
@@ -149,7 +159,10 @@ export default function Register() {
       
       navigate('/');
     } catch (error: any) {
-      console.error('Google registration error:', error);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.error('Google registration error:', { status: error?.status, message: error?.message });
+      }
       toast({
         title: t('toast.googleRegisterFailed', { defaultValue: 'Google registration failed' }),
         description: error?.message || t('toast.tryAgain', { defaultValue: 'Please try again.' }),
