@@ -83,7 +83,7 @@ export default function ProductCarousel({ initialCount = 8 }: ProductCarouselPro
     [],
   );
 
-  const TAG_ID = "ptag_01K5RXNQQETCANE08W17PCH6MB";
+  const TAG_ID = "ptag_01K7J2E54QZDHBFEXJF3CKH6JG";
 
   const { data: carouselData } = useProductCarousel(TAG_ID, currentRegion?.id, Math.max(8, initialCount), {
     staleTime: 10 * 60 * 1000,
