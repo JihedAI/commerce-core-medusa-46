@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { User, MapPin, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { profileSchema, addressSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 interface Address {
   id: string;
@@ -108,11 +110,14 @@ export default function CustomerProfile() {
 
   const handleProfileUpdate = async () => {
     try {
+      // Validate profile data
+      const validatedData = profileSchema.parse(profileData);
+      
       const { customer: updatedCustomer } = await sdk.store.customer.update({
-        first_name: profileData.first_name,
-        last_name: profileData.last_name,
-        phone: profileData.phone,
-        company_name: profileData.company_name,
+        first_name: validatedData.first_name,
+        last_name: validatedData.last_name,
+        phone: validatedData.phone || '',
+        company_name: validatedData.company_name || '',
       });
       
       if (updatedCustomer) {
@@ -134,18 +139,28 @@ export default function CustomerProfile() {
         description: 'Profile updated successfully',
       });
     } catch (error) {
-      console.error('Failed to update profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update profile',
-        variant: 'destructive',
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Validation Error',
+          description: error.errors[0].message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update profile',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
   const handleAddAddress = async () => {
     try {
-      await sdk.store.customer.createAddress(addressForm);
+      // Validate address data
+      const validatedData = addressSchema.parse(addressForm);
+      
+      await sdk.store.customer.createAddress(validatedData);
       
       toast({
         title: 'Success',
@@ -168,18 +183,28 @@ export default function CustomerProfile() {
       });
       loadAddresses();
     } catch (error) {
-      console.error('Failed to add address:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add address',
-        variant: 'destructive',
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Validation Error',
+          description: error.errors[0].message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add address',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
   const handleUpdateAddress = async (addressId: string) => {
     try {
-      await sdk.store.customer.updateAddress(addressId, addressForm);
+      // Validate address data
+      const validatedData = addressSchema.parse(addressForm);
+      
+      await sdk.store.customer.updateAddress(addressId, validatedData);
       
       toast({
         title: 'Success',
@@ -202,12 +227,19 @@ export default function CustomerProfile() {
       });
       loadAddresses();
     } catch (error) {
-      console.error('Failed to update address:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update address',
-        variant: 'destructive',
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Validation Error',
+          description: error.errors[0].message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update address',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

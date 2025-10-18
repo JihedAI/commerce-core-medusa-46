@@ -13,6 +13,8 @@ import { formatPrice } from "@/lib/utils";
 import { sdk } from "@/lib/sdk";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
+import { checkoutSchema, promoCodeSchema } from "@/lib/validation";
+import { z } from "zod";
 
 export default function Checkout() {
   const { t } = useTranslation();
@@ -36,6 +38,11 @@ export default function Checkout() {
   const [promoCode, setPromoCode] = useState("");
   const [promoMessage, setPromoMessage] = useState("");
   const [promoMessageType, setPromoMessageType] = useState<"success" | "error" | "">("");
+  
+  // Rate limiting for promo codes
+  const [promoAttemptCount, setPromoAttemptCount] = useState(0);
+  const [lastPromoAttempt, setLastPromoAttempt] = useState(0);
+  const [promoBlockedUntil, setPromoBlockedUntil] = useState(0);
 
   // Form data
   const [email, setEmailState] = useState("");
@@ -158,16 +165,66 @@ export default function Checkout() {
   // Get applied promotions/discounts - handle both v1 and v2 formats
   const appliedPromotions = (cart as any)?.promotions || (cart as any)?.discounts || [];
 
-  // Promotion handlers
+  // Promotion handlers with rate limiting
   const handleApplyPromo = async () => {
-    if (promoCode.trim()) {
-      try {
-        await applyDiscount(promoCode.trim());
-        setPromoMessage("Promo code applied successfully!");
-        setPromoMessageType("success");
-        setPromoCode("");
-      } catch (error) {
-        setPromoMessage("Invalid promo code. Please try again.");
+    const now = Date.now();
+    
+    // Check if blocked
+    if (now < promoBlockedUntil) {
+      const remainingSeconds = Math.ceil((promoBlockedUntil - now) / 1000);
+      toast({
+        title: "Too many attempts",
+        description: `Please wait ${remainingSeconds} seconds before trying again`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Rate limit: 3 second cooldown
+    if (now - lastPromoAttempt < 3000) {
+      toast({
+        title: "Please wait",
+        description: "Wait 3 seconds before trying again",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Block after 5 failed attempts
+    if (promoAttemptCount >= 5) {
+      setPromoBlockedUntil(now + 300000); // 5 minute block
+      toast({
+        title: "Too many failed attempts",
+        description: "Please contact support for help with promo codes",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate promo code format
+    try {
+      const validCode = promoCodeSchema.parse(promoCode);
+      
+      setLastPromoAttempt(now);
+      setPromoAttemptCount(prev => prev + 1);
+      
+      await applyDiscount(validCode);
+      
+      // Reset on success
+      setPromoAttemptCount(0);
+      setPromoBlockedUntil(0);
+      setPromoMessage("Promo code applied successfully!");
+      setPromoMessageType("success");
+      setPromoCode("");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Invalid format",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        setPromoMessage("This code cannot be applied to your order");
         setPromoMessageType("error");
       }
     }
@@ -178,36 +235,60 @@ export default function Checkout() {
   };
 
   const handleEmailSubmit = async () => {
-    if (!email || !shippingData.first_name || !shippingData.last_name || !shippingData.address_1 || !shippingData.city) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields including address",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Validate all input fields
     try {
-      // Set email first
-      await setEmail(email);
+      const validatedData = checkoutSchema.parse({
+        email,
+        ...shippingData,
+      });
       
-      // Set shipping address - this is crucial for shipping options to work
-      await setShippingAddress(shippingData);
+      // Set email first
+      await setEmail(validatedData.email);
+      
+      // Set shipping address with validated data
+      await setShippingAddress({
+        first_name: validatedData.first_name,
+        last_name: validatedData.last_name,
+        address_1: validatedData.address_1,
+        address_2: validatedData.address_2 || '',
+        city: validatedData.city,
+        province: validatedData.province || '',
+        postal_code: validatedData.postal_code,
+        country_code: validatedData.country_code,
+        phone: validatedData.phone || '',
+      });
       
       // Set billing address if same as shipping
       if (sameAsBilling) {
-        await setBillingAddress(shippingData);
+        await setBillingAddress({
+          first_name: validatedData.first_name,
+          last_name: validatedData.last_name,
+          address_1: validatedData.address_1,
+          address_2: validatedData.address_2 || '',
+          city: validatedData.city,
+          province: validatedData.province || '',
+          postal_code: validatedData.postal_code,
+          country_code: validatedData.country_code,
+          phone: validatedData.phone || '',
+        });
       }
       
       // Move to shipping step
       setCurrentStep(2);
     } catch (error) {
-      console.error("Failed to save information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save information. Please try again.",
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save information. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
