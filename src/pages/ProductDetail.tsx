@@ -514,7 +514,7 @@ export default function ProductDetail() {
                         </span>
                         <span className="text-foreground font-medium">
                           {t("productDetail.ordersOver", {
-                            defaultValue: "Orders over $100",
+                            defaultValue: "Orders over 100 TND",
                           })}
                         </span>
                       </div>
