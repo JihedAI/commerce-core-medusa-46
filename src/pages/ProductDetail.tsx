@@ -503,7 +503,7 @@ export default function ProductDetail() {
                           })}
                           :
                         </span>
-                        <span className="text-foreground font-medium">$10 TND</span>
+                        <span className="text-foreground font-medium">10 TND</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
