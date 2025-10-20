@@ -354,8 +354,7 @@
     "freeShipping": "Livraison Gratuite",
     "returns": "Retours sous 30 Jours",
     "warranty": "Garantie à Vie"
-  }
-  ,
+  },
   "productDetail": {
     "notFoundOrFailed": "Produit introuvable ou échec du chargement.",
     "productNotFound": "Produit introuvable",
@@ -377,7 +376,7 @@
     "standardShipping": "Livraison standard (5-7 jours)",
     "expressShipping": "Livraison express (2-3 jours)",
     "freeShipping": "Livraison gratuite",
-    "ordersOver": "Commandes de plus de 100$",
+    "ordersOver": "Commandes de plus de 100 TND",
     "shippingNote": "Toutes les commandes sont traitées sous 1 à 2 jours ouvrables. Vous recevrez un numéro de suivi une fois votre commande expédiée.",
     "similarProducts": "Produits similaires",
     "moreFrom": "Plus d'articles de {{collection}}",
