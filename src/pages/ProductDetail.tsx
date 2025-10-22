@@ -15,6 +15,7 @@ import { sdk } from "@/lib/sdk";
 import { useProductDetail, useRelatedProducts } from "@/hooks/useProducts";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Layout from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 
 // Price formatting utility
 const formatPrice = (amount: number, currency: string = "USD") => {
@@ -206,9 +207,45 @@ export default function ProductDetail() {
   }
   const currency = region?.currency_code || "USD";
   const price = selectedVariant?.calculated_price;
+  
+  // SEO data
+  const productDescription = product.description || product.subtitle || `High-quality ${product.title} from Amine Eyewear. Free shipping on all orders.`;
+  const productPrice = price?.calculated_amount || price?.calculated_amount_with_tax;
+  const productUrl = `https://lunette.amine.agency/products/${product.handle}`;
+  
   return (
     <>
       <Layout>
+        <SEO
+          title={`${product.title} - Premium Eyewear`}
+          description={productDescription.slice(0, 155)}
+          image={product.thumbnail || product.images?.[0]?.url}
+          url={productUrl}
+          type="product"
+          structuredData={{
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.title,
+            "image": product.images?.map((img: any) => img.url) || [product.thumbnail],
+            "description": productDescription,
+            "sku": product.id,
+            "brand": {
+              "@type": "Brand",
+              "name": product.type?.value || "Amine Eyewear"
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": productUrl,
+              "priceCurrency": currency.toUpperCase(),
+              "price": productPrice ? (productPrice / 1).toFixed(2) : undefined,
+              "availability": "https://schema.org/InStock",
+              "seller": {
+                "@type": "Organization",
+                "name": "Amine Eyewear"
+              }
+            }
+          }}
+        />
         <div className="p-4 md:p-8 min-h-screen">
           <div className="flex flex-col md:flex-row gap-6 md:gap-8">
             {/* Left Column - Images (60%) */}

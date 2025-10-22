@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import useCategories from "@/hooks/useCategories";
 import Layout from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 
 export default function Categories() {
   const { data = { flat: [], tree: [] }, isLoading } = useCategories({ limit: 100, fields: "id,name,handle,description,parent_category_id" });
@@ -11,6 +12,12 @@ export default function Categories() {
 
   return (
     <Layout>
+      <SEO
+        title="Product Categories - Browse Designer Eyewear"
+        description="Browse our eyewear by category: sunglasses, optical frames, contact lenses & accessories. Find your perfect style from top brands."
+        url="https://lunette.amine.agency/categories"
+        type="website"
+      />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-2">Product Categories</h1>

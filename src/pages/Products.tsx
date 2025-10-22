@@ -22,6 +22,7 @@ import ProductSkeleton from "@/components/ProductSkeleton";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { scrollToProductsGrid, scrollToTop } from "@/utils/smoothScroll";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
+import { SEO } from "@/components/SEO";
 import { useMedusaProducts } from "@/hooks/useMedusaProducts";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -394,7 +395,22 @@ function ProductsOptimized() {
     }, 3000);
     return () => clearInterval(interval);
   }, [exampleSearches.length]);
+  
+  // SEO data
+  const pageTitle = categoryData 
+    ? `${categoryData.name} - Designer Eyewear Collection`
+    : "All Products - Premium Sunglasses & Eyewear";
+  const pageDescription = categoryData
+    ? `Shop ${categoryData.name} from top brands. ${productsData?.count || 0} products with free shipping.`
+    : `Browse our complete collection of premium eyewear. ${productsData?.count || 0} designer sunglasses and optical frames with free shipping.`;
+  
   return <Layout>
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        url={`https://lunette.amine.agency/products${categoryData ? `/${categoryData.handle}` : ''}`}
+        type="website"
+      />
       <div className="min-h-screen bg-background">
         {/* Header */}
         {categoryData && <div className="container mx-auto px-4 pt-8 pb-4">

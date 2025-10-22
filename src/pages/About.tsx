@@ -6,6 +6,7 @@ import Layout from "@/components/Layout";
 import OptimizedImage from "@/components/OptimizedImage";
 import VideoHero from "@/components/VideoHero";
 import Typewriter from "@/components/Typewriter";
+import { SEO } from "@/components/SEO";
 gsap.registerPlugin(ScrollTrigger);
 export default function About() {
   const { t } = useTranslation();
@@ -82,6 +83,18 @@ export default function About() {
   }, []);
   return (
     <Layout>
+      <SEO
+        title="About Us - Premium Eyewear Since 1999"
+        description="Discover Amine Eyewear's story - 25+ years of crafting exceptional designer sunglasses and optical frames. Quality, innovation, and customer-centric service."
+        url="https://lunette.amine.agency/about"
+        type="website"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About Amine Eyewear",
+          "description": "Learn about our mission to provide premium eyewear with uncompromising quality and innovation"
+        }}
+      />
       {/* Full-bleed video section first */}
       <VideoHero
         videos={["https://web-video-resource.gentlemonster.com/assets/video/ps/PS_main_landing_PC_1920x1080.mp4"]}

@@ -10,6 +10,7 @@ import { HttpTypes } from "@medusajs/types";
 import OptimizedImage from "@/components/OptimizedImage";
 import Typewriter from "@/components/Typewriter";
 import { formatPrice } from "@/lib/utils";
+import { SEO } from "@/components/SEO";
 
 export default function CollectionProducts() {
   const { id } = useParams<{ id: string }>(); // here `id` will actually be the handle now
@@ -38,9 +39,27 @@ export default function CollectionProducts() {
   const products = productsData?.products || [];
 
   const isLoading = collectionLoading || productsLoading;
+  
+  const collectionDescription = collection?.metadata?.description 
+    ? String(collection.metadata.description).slice(0, 155)
+    : `Discover ${products.length} premium eyewear products in the ${collection?.title || ''} collection.`;
 
   return (
     <Layout>
+      <SEO
+        title={`${collection?.title || 'Collection'} - Designer Eyewear`}
+        description={collectionDescription}
+        url={`https://lunette.amine.agency/collections/${id}`}
+        image={collection?.metadata?.imgUrl as string || undefined}
+        type="website"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": collection?.title,
+          "description": collectionDescription,
+          "numberOfItems": products.length
+        }}
+      />
       {/* Hero Banner */}
       <section className="w-full">
         <div className="relative w-full aspect-[215/312] md:aspect-[32/15] overflow-hidden">
