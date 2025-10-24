@@ -7,7 +7,6 @@ import StorySection from "@/components/StorySection";
 import ExploreBanner from "@/components/ExploreBanner";
 import StoreLocator from "@/components/StoreLocator";
 import Layout from "@/components/Layout";
-import { SEO } from "@/components/SEO";
 
 export default function Home() {
   // Memoized video URLs for the hero section
@@ -23,24 +22,6 @@ export default function Home() {
 
   return (
     <Layout isHomePage={true}>
-      <SEO
-        title="Amine Eyewear - Premium Designer Sunglasses & Eyewear"
-        description="Discover luxury eyewear from top brands: Ray-Ban, Gucci, Prada, Dior, Oakley. Free shipping on all orders. Shop polarized sunglasses, designer frames & optical glasses."
-        url="https://lunette.amine.agency"
-        type="website"
-        structuredData={{
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": "Amine Eyewear",
-          "url": "https://lunette.amine.agency",
-          "logo": "https://lunette.amine.agency/image-Photoroom.png",
-          "description": "Premium eyewear retailer offering designer sunglasses and optical frames",
-          "address": {
-            "@type": "PostalAddress",
-            "addressCountry": "TN"
-          }
-        }}
-      />
       {/* 🏞 Fullscreen Hero */}
       <div className="-mt-20">
         <VideoHero videos={heroVideos} />

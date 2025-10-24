@@ -1,9 +1,14 @@
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
 User-agent: *
 Allow: /
-Disallow: /checkout
-Disallow: /profile
-Disallow: /orders
-Disallow: /auth/
-
-# Sitemap
-Sitemap: https://lunette.amine.agency/sitemap.xml

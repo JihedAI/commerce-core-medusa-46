@@ -5,19 +5,12 @@ import { Card } from "@/components/ui/card";
 import useCollections from "@/hooks/useCollections";
 import Layout from "@/components/Layout";
 import { HttpTypes } from "@medusajs/types";
-import { SEO } from "@/components/SEO";
 
 export default function Collections() {
   const { data: collections = [], isLoading } = useCollections({ fields: "id,title,handle,metadata", limit: 100 });
 
   return (
     <Layout>
-      <SEO
-        title="Collections - Curated Designer Eyewear"
-        description="Explore our curated collections: Nuit & Glamour, Luxe & Prestige, Nouveaux Créateurs. Premium sunglasses and optical frames."
-        url="https://lunette.amine.agency/collections"
-        type="website"
-      />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-2">Collections</h1>
