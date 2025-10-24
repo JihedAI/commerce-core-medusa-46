@@ -15,6 +15,7 @@ import { sdk } from "@/lib/sdk";
 import { useProductDetail, useRelatedProducts } from "@/hooks/useProducts";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Layout from "@/components/Layout";
+import Head from "@/components/Head";
 
 // Price formatting utility
 const formatPrice = (amount: number, currency: string = "USD") => {
@@ -103,6 +104,33 @@ export default function ProductDetail() {
     ? t("productDetail.notFoundOrFailed", {
         defaultValue: "Product not found or failed to load.",
       })
+    : null;
+
+  // SEO meta values
+  const siteDomain = "https://lunette.amine.agency";
+  const pageUrl = product ? `${siteDomain}/products/${product.handle}` : siteDomain;
+  const metaTitle = product?.title || undefined;
+  const metaDescription = product?.description
+    ? product.description.replace(/<[^>]*>?/gm, "").slice(0, 160)
+    : undefined;
+  const metaImage = product?.thumbnail || product?.images?.[0]?.url || undefined;
+  const jsonLd = product
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.title,
+        image: metaImage ? [metaImage] : undefined,
+        description: product.description ? product.description.replace(/<[^>]*>?/gm, "") : undefined,
+        sku: product.sku || product.id,
+        offers: {
+          "@type": "Offer",
+          price: selectedVariant?.calculated_price?.calculated_amount
+            ? (selectedVariant.calculated_price.calculated_amount / 100).toString()
+            : undefined,
+          priceCurrency: region?.currency_code || "USD",
+          availability: product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        },
+      }
     : null;
 
   // Debug final state (temporary)
@@ -208,6 +236,7 @@ export default function ProductDetail() {
   const price = selectedVariant?.calculated_price;
   return (
     <>
+      <Head title={metaTitle} description={metaDescription} image={metaImage} url={pageUrl} structuredData={jsonLd} />
       <Layout>
         <div className="p-4 md:p-8 min-h-screen">
           <div className="flex flex-col md:flex-row gap-6 md:gap-8">
