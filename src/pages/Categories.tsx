@@ -4,13 +4,16 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import useCategories from "@/hooks/useCategories";
 import Layout from "@/components/Layout";
+import Head from "@/components/Head";
 
 export default function Categories() {
   const { data = { flat: [], tree: [] }, isLoading } = useCategories({ limit: 100, fields: "id,name,handle,description,parent_category_id" });
   const categories = data.flat || [];
 
   return (
-    <Layout>
+    <>
+      <Head title="Product Categories — Amine Eyewear" description="Browse our products by category to find exactly what you're looking for" url="https://lunette.amine.agency/categories" />
+      <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-2">Product Categories</h1>
@@ -50,6 +53,7 @@ export default function Categories() {
           </div>
         )}
       </div>
-    </Layout>
+      </Layout>
+    </>
   );
 }

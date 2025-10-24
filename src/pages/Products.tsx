@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 import Layout from "@/components/Layout";
+import Head from "@/components/Head";
 import { useRegion } from "@/contexts/RegionContext";
 // Simple debounce utility
 const debounce = <T extends (...args: any[]) => any,>(func: T, wait: number): ((...args: Parameters<T>) => void) => {
@@ -167,6 +168,11 @@ function ProductsOptimized() {
     enabled: !!categoryHandle,
     staleTime: 5 * 60 * 1000
   });
+
+  // SEO meta for products/category listing
+  const siteDomain = "https://lunette.amine.agency";
+  const metaTitle = categoryData?.name ? `${categoryData.name} — Amine Eyewear` : "Products — Amine Eyewear";
+  const metaDescription = categoryData?.description || "Browse our selection of premium eyewear.";
 
   // Use proper Medusa SDK method with limit and offset
   const {
@@ -394,7 +400,10 @@ function ProductsOptimized() {
     }, 3000);
     return () => clearInterval(interval);
   }, [exampleSearches.length]);
-  return <Layout>
+  return (
+    <>
+      <Head title={metaTitle} description={metaDescription} url={`${siteDomain}${categoryData?.handle ? `/categories/${categoryData.handle}` : '/products'}`} />
+      <Layout>
       <div className="min-h-screen bg-background">
         {/* Header */}
         {categoryData && <div className="container mx-auto px-4 pt-8 pb-4">
@@ -617,6 +626,8 @@ function ProductsOptimized() {
           </div>
         </div>
       </div>
-    </Layout>;
+      </Layout>
+    </>
+  );
 }
 export default ProductsOptimized;

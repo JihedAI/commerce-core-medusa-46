@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Layout from "@/components/Layout";
+import Head from "@/components/Head";
 import OptimizedImage from "@/components/OptimizedImage";
 import VideoHero from "@/components/VideoHero";
 import Typewriter from "@/components/Typewriter";
@@ -81,7 +82,9 @@ export default function About() {
     }
   }, []);
   return (
-    <Layout>
+    <>
+      <Head title="About — Amine Eyewear" description="Founded to redefine eyewear with premium quality and design." url="https://lunette.amine.agency/about" />
+      <Layout>
       {/* Full-bleed video section first */}
       <VideoHero
         videos={["https://web-video-resource.gentlemonster.com/assets/video/ps/PS_main_landing_PC_1920x1080.mp4"]}
@@ -388,6 +391,7 @@ export default function About() {
           </div>
         </div>
       </section>
-    </Layout>
+      </Layout>
+    </>
   );
 }

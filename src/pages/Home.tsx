@@ -1,4 +1,5 @@
 import * as React from "react";
+import Head from "@/components/Head";
 import VideoHero from "@/components/VideoHero";
 import ProductCarousel from "@/components/ProductCarousel";
 import CollectionsShowcase from "@/components/CollectionsShowcase";
@@ -21,7 +22,9 @@ export default function Home() {
   );
 
   return (
-    <Layout isHomePage={true}>
+    <>
+      <Head title="Amine Eyewear" description="Qualité haut de gamme et livraison gratuite" url="https://lunette.amine.agency/" />
+      <Layout isHomePage={true}>
       {/* 🏞 Fullscreen Hero */}
       <div className="-mt-20">
         <VideoHero videos={heroVideos} />
@@ -44,6 +47,7 @@ export default function Home() {
 
       {/* 🏬 Store Locator */}
       <StoreLocator />
-    </Layout>
+      </Layout>
+    </>
   );
 }
