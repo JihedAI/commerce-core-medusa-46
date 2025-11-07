@@ -42,11 +42,17 @@ export default function CollectionProducts() {
   // SEO meta for collection
   const siteDomain = "https://lunette.amine.agency";
   const metaTitle = collection?.title ? `${collection.title} — Amine Eyewear` : "Collection — Amine Eyewear";
-  const metaDescription = collection?.metadata?.description || `Browse products from the ${collection?.title || 'collection'}`;
+  const metaDescription = String(collection?.metadata?.description || `Browse products from the ${collection?.title || 'collection'}`);
+  const collectionPath = String(collection?.handle || collection?.id || id || '');
+  const metaUrl = `${siteDomain}/collections/${collectionPath}`;
 
   return (
     <>
-      <Head title={metaTitle} description={metaDescription} url={`${siteDomain}/collections/${collection?.handle || collection?.id || id}`} />
+      <Head 
+        title={metaTitle} 
+        description={metaDescription} 
+        url={metaUrl as string} 
+      />
       <Layout>
       {/* Hero Banner */}
       <section className="w-full">
