@@ -7,6 +7,7 @@ import Head from "@/components/Head";
 import OptimizedImage from "@/components/OptimizedImage";
 import VideoHero from "@/components/VideoHero";
 import Typewriter from "@/components/Typewriter";
+import logo from "@/assets/logo.svg";
 gsap.registerPlugin(ScrollTrigger);
 export default function About() {
   const { t } = useTranslation();
@@ -100,9 +101,11 @@ export default function About() {
         <div className="text-center space-y-8 px-6">
           {/* Logo */}
           <div className="logo">
-            <span className="font-display font-extrabold tracking-[0.35em] uppercase text-6xl md:text-8xl lg:text-9xl text-primary">
-              Amine
-            </span>
+            <img 
+              src={logo} 
+              alt="Amine Eyewear" 
+              className="h-16 md:h-24 lg:h-32 mx-auto"
+            />
           </div>
 
           {/* Subtitle */}
