@@ -47,7 +47,7 @@ export function Header() {
               src={logo} 
               alt="Amine Eyewear"
               className={`transition-all duration-700 ease-out ${
-                hasScrolled ? "h-6 sm:h-8" : "h-8 sm:h-10 md:h-12"
+                hasScrolled ? "h-6 sm:h-8 w-auto" : "h-8 sm:h-10 md:h-14 w-auto"
               }`}
             />
           </Link>
