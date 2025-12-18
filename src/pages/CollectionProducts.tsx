@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 import { useRelatedProducts } from "@/hooks/useProducts";
 import Layout from "@/components/Layout";
-import Head from "@/components/Head";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRegion } from "@/contexts/RegionContext";
 import { HttpTypes } from "@medusajs/types";
@@ -39,21 +38,9 @@ export default function CollectionProducts() {
   const products = productsData?.products || [];
 
   const isLoading = collectionLoading || productsLoading;
-  // SEO meta for collection
-  const siteDomain = "https://lunette.amine.agency";
-  const metaTitle = collection?.title ? `${collection.title} — Amine Eyewear` : "Collection — Amine Eyewear";
-  const metaDescription = String(collection?.metadata?.description || `Browse products from the ${collection?.title || 'collection'}`);
-  const collectionPath = String(collection?.handle || collection?.id || id || '');
-  const metaUrl = `${siteDomain}/collections/${collectionPath}`;
 
   return (
-    <>
-      <Head 
-        title={metaTitle} 
-        description={metaDescription} 
-        url={metaUrl as string} 
-      />
-      <Layout>
+    <Layout>
       {/* Hero Banner */}
       <section className="w-full">
         <div className="relative w-full aspect-[215/312] md:aspect-[32/15] overflow-hidden">
@@ -120,7 +107,6 @@ export default function CollectionProducts() {
         )}
       </div>
     </Layout>
-    </>
   );
 }
 

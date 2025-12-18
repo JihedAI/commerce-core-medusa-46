@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
-import Head from '@/components/Head';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -23,9 +22,7 @@ export default function Help() {
   }, [hash]);
 
   return (
-    <>
-      <Head title="Customer Care — Amine Eyewear" description="Help center and shipping information for Amine Eyewear." url="https://lunette.amine.agency/help" />
-      <Layout>
+    <Layout>
       <section className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
         <div className="text-center mb-10 md:mb-12">
           <h1 className="text-3xl md:text-4xl font-display font-bold">{t('footer.customerCare', { defaultValue: 'Customer Care' })}</h1>
@@ -92,8 +89,7 @@ export default function Help() {
           </div>
         </div>
       </section>
-      </Layout>
-    </>
+    </Layout>
   );
 }
 

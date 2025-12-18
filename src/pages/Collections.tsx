@@ -4,16 +4,13 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import useCollections from "@/hooks/useCollections";
 import Layout from "@/components/Layout";
-import Head from "@/components/Head";
 import { HttpTypes } from "@medusajs/types";
 
 export default function Collections() {
   const { data: collections = [], isLoading } = useCollections({ fields: "id,title,handle,metadata", limit: 100 });
 
   return (
-    <>
-      <Head title="Collections — Amine Eyewear" description="Explore our curated collections of premium products" url="https://lunette.amine.agency/collections" />
-      <Layout>
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-2">Collections</h1>
@@ -56,7 +53,6 @@ export default function Collections() {
           </div>
         )}
       </div>
-      </Layout>
-    </>
+    </Layout>
   );
 }

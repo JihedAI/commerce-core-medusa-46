@@ -3,11 +3,9 @@ import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Layout from "@/components/Layout";
-import Head from "@/components/Head";
 import OptimizedImage from "@/components/OptimizedImage";
 import VideoHero from "@/components/VideoHero";
 import Typewriter from "@/components/Typewriter";
-import logo from "@/assets/logo.svg";
 gsap.registerPlugin(ScrollTrigger);
 export default function About() {
   const { t } = useTranslation();
@@ -83,9 +81,7 @@ export default function About() {
     }
   }, []);
   return (
-    <>
-      <Head title="About — Amine Eyewear" description="Founded to redefine eyewear with premium quality and design." url="https://lunette.amine.agency/about" />
-      <Layout>
+    <Layout>
       {/* Full-bleed video section first */}
       <VideoHero
         videos={["https://web-video-resource.gentlemonster.com/assets/video/ps/PS_main_landing_PC_1920x1080.mp4"]}
@@ -101,11 +97,9 @@ export default function About() {
         <div className="text-center space-y-8 px-6">
           {/* Logo */}
           <div className="logo">
-            <img 
-              src={logo} 
-              alt="Amine Eyewear" 
-              className="h-16 md:h-24 lg:h-32 mx-auto"
-            />
+            <span className="font-display font-extrabold tracking-[0.35em] uppercase text-6xl md:text-8xl lg:text-9xl text-primary">
+              Amine
+            </span>
           </div>
 
           {/* Subtitle */}
@@ -394,7 +388,6 @@ export default function About() {
           </div>
         </div>
       </section>
-      </Layout>
-    </>
+    </Layout>
   );
 }

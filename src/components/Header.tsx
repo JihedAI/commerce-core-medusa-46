@@ -11,7 +11,6 @@ import { UserMenu } from "./user/UserMenu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import CartDrawer from "./CartDrawer";
 import { useCart } from "@/contexts/CartContext";
-import logo from "@/assets/logo.svg";
 
 export function Header() {
   const [hasScrolled, setHasScrolled] = React.useState(false);
@@ -43,13 +42,13 @@ export function Header() {
 
           {/* Logo */}
           <Link to="/" className="block shrink-0">
-            <img 
-              src={logo} 
-              alt="Amine Eyewear"
-              className={`transition-all duration-700 ease-out ${
-                hasScrolled ? "h-6 sm:h-8 w-auto" : "h-8 sm:h-10 md:h-14 w-auto"
+            <span
+              className={`font-display font-extrabold tracking-[0.35em] uppercase transition-all duration-700 ease-out ${
+                hasScrolled ? "text-xl sm:text-2xl text-foreground" : "text-2xl sm:text-3xl md:text-4xl text-primary"
               }`}
-            />
+            >
+              Amine
+            </span>
           </Link>
         </div>
 
