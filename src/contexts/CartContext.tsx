@@ -32,11 +32,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Initialize or retrieve cart on mount
   useEffect(() => {
-    if (!currentRegion || currentRegion.id === "default") {
-      // Skip cart initialization if region is not loaded or is fallback
-      setIsLoading(false);
-      return;
-    }
+    if (!currentRegion) return; // Wait for region to load
     
     const initializeCart = async () => {
       try {
@@ -59,7 +55,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (import.meta.env.DEV) {
           console.error("Failed to initialize cart:", { message: error?.message });
         }
-        // Don't show toast for network errors to avoid spamming
+        toast({
+          title: "Error",
+          description: "Failed to initialize shopping cart",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
