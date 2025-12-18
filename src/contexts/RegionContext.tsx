@@ -46,9 +46,16 @@ export function RegionProvider({ children }: { children: React.ReactNode }) {
         r.countries?.some(c => c.iso_2.toLowerCase() === 'tn')
       );
       
-      setCurrentRegion(tunisiaRegion || fetchedRegions[0]);
+      setCurrentRegion(tunisiaRegion || fetchedRegions[0] || null);
     } catch (error) {
       console.error("Failed to fetch regions:", error);
+      // Set a default region to prevent app from breaking
+      setCurrentRegion({
+        id: "default",
+        name: "Default",
+        currency_code: "TND",
+        countries: []
+      });
     } finally {
       setIsLoading(false);
     }
